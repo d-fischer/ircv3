@@ -1,8 +1,19 @@
 {
   "name": "ircv3",
+  "description": "Connect to and interact with IRC servers. IRCv3 compatible.",
   "version": "0.0.1",
+  "main": "build",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/d-fischer/ircv3.git"
+  },
   "devDependencies": {
+    "@types/ws": "0.0.41",
     "tslint": "^5.4.2",
     "typescript": "^2.3.4"
+  },
+  "dependencies": {
+    "ws": "^3.0.0"
   }
 }
