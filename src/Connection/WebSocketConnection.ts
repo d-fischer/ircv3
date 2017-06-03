@@ -5,17 +5,12 @@ class WebSocketConnection extends Connection {
 	private _socket?: WebSocket;
 
 	connect() {
-		this._socket = new WebSocket(`ws://${this._host}:${this._port}`);
+		this._socket = new WebSocket(`ws://${this._host}:${this._port || 80}`);
 		this._socket.on('open', () => {
 			this._connected = true;
-			this.register();
+			this.emit('connected');
 		});
-		this._socket.on('message', (line, {binary}: {binary: boolean}) => {
-			if (binary) {
-				// no idea what to do if an IRC server sends binary data...
-				return;
-			}
-
+		this._socket.on('message', (line: string) => {
 			this.receiveRaw(line.trim());
 		});
 	}

@@ -1,4 +1,5 @@
 import Connection from './Connection';
+
 import {Socket} from 'net';
 
 class DirectConnection extends Connection {
@@ -9,9 +10,9 @@ class DirectConnection extends Connection {
 		this._socket.on('data', (data: Buffer) => {
 			this.receiveRaw(data.toString().trim());
 		});
-		this._socket.connect(this._port, this._host, () => {
+		this._socket.connect(this._port || 6667, this._host, () => {
 			this._connected = true;
-			this.register();
+			this.emit('connected');
 		});
 	}
 

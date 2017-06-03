@@ -1,4 +1,4 @@
-import {sanitizeParameter as sanitize} from '../Toolkit/StringTools';
+import {EventEmitter} from 'events';
 
 export interface ConnectionInfo {
 	hostName: string;
@@ -9,20 +9,17 @@ export interface ConnectionInfo {
 	realName?: string;
 }
 
-abstract class Connection {
+abstract class Connection extends EventEmitter {
 	protected _host: string;
-	protected _port: number = 6667;
-	protected _nick: string;
-	protected _password?: string;
-	protected _userName: string;
-	protected _realName: string;
+	protected _port?: number;
 	protected _connected: boolean = false;
 
 	public abstract connect(): void;
 
 	protected abstract sendRaw(line: string): void;
 
-	constructor({hostName, port, nick, password, userName, realName}: ConnectionInfo) {
+	constructor({hostName, port}: ConnectionInfo) {
+		super();
 		if (port) {
 			this._host = hostName;
 			this._port = port;
@@ -33,12 +30,8 @@ abstract class Connection {
 			}
 			let [host, splitPort] = splitHost;
 			this._host = host;
-			this._port = Number(splitPort) || 6667;
+			this._port = Number(splitPort);
 		}
-		this._nick = nick;
-		this._password = password;
-		this._userName = userName || nick;
-		this._realName = realName || nick;
 	}
 
 	sendLine(line: string): void {
@@ -50,17 +43,11 @@ abstract class Connection {
 		}
 	}
 
-	register(): void {
-		if (this._password) {
-			this.sendLine(`PASS ${sanitize(this._password)}`);
+	receiveRaw(data: string) {
+		let receivedLines = data.split('\r\n');
+		for (const line of receivedLines) {
+			this.emit('lineReceived', line);
 		}
-		this.sendLine(`NICK ${sanitize(this._nick)}`);
-		this.sendLine(`USER ${sanitize(this._userName)} 8 * :${sanitize(this._realName, true)}`);
-	}
-
-	receiveRaw(line: string) {
-		// tslint:disable-next-line:no-console
-		console.log(`> recv: ${line}`);
 	}
 }
 
