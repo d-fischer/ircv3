@@ -1,4 +1,4 @@
-import Message, {MessageParam, MessageParamSpec, MessagePrefix} from '../Message';
+import Message, {MessageParam, MessageParamSpec} from '../Message';
 
 export interface PrivateMessageParams {
 	target: MessageParam;
@@ -17,9 +17,4 @@ export default class PrivateMessage extends Message<PrivateMessageParams> {
 			trailing: true
 		}
 	};
-
-	public constructor(command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix) {
-		super(command, params, tags, prefix);
-		this.parseParams();
-	}
 }

@@ -172,6 +172,8 @@ export default class Message<D = {}> {
 		this._params = params;
 		this._tags = tags;
 		this._prefix = prefix;
+
+		this.parseParams();
 	}
 
 	public parseParams() {
