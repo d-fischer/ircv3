@@ -19,22 +19,18 @@ export interface MessageParamSpecEntry {
 	optional: boolean;
 }
 
-export type MessageParamSpec<D extends MessageParams> = {
-	[name in keyof D]?: MessageParamSpecEntry
+export type MessageParamSpec<D> = {
+	[name in keyof D]: MessageParamSpecEntry
 };
 
-export interface MessageConstructor<T extends Message = Message, D extends MessageParams = MessageParams> {
+export interface MessageConstructor<T extends Message = Message, D = {}> {
 	COMMAND: string;
 	PARAM_SPEC: MessageParamSpec<D>;
 	minParamCount: number;
 	new (command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix): T;
 }
 
-export interface MessageParams {
-	[name: string]: MessageParam;
-}
-
-export default class Message<D extends MessageParams = MessageParams> {
+export default class Message<D = {}> {
 	public static readonly COMMAND: string = '';
 	public static readonly PARAM_SPEC = {};
 
@@ -44,7 +40,7 @@ export default class Message<D extends MessageParams = MessageParams> {
 	protected _prefix?: MessagePrefix;
 	protected _command: string;
 	protected _params?: string[] = [];
-	protected _parsedParams: Partial<D> = {};
+	protected _parsedParams: D;
 
 	private _raw: string;
 
@@ -138,16 +134,12 @@ export default class Message<D extends MessageParams = MessageParams> {
 		return tags;
 	}
 
-	public static create<T extends Message, D extends MessageParams>(
+	public static create<T extends Message, D>(
 		this: MessageConstructor<T>,
 		params: {[name in keyof D]?: string}
 	): T {
 		let message = new this(this.COMMAND);
-		for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry | undefined>(this.PARAM_SPEC)) {
-			if (paramSpec === undefined) {
-				continue;
-			}
-
+		for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(this.PARAM_SPEC)) {
 			if (paramName in params) {
 				const param = params[paramName];
 				if (param !== undefined) {
@@ -165,9 +157,9 @@ export default class Message<D extends MessageParams = MessageParams> {
 	public toString(): string {
 		const cls = this.constructor as MessageConstructor<this>;
 		const specKeys = Object.keys(cls.PARAM_SPEC);
-		return [this._command, ...specKeys.map((paramName: string): string | void => {
+		return [this._command, ...specKeys.map((paramName: keyof D): string | void => {
 			const param = this._parsedParams[paramName];
-			if (param) {
+			if (param instanceof MessageParam) {
 				return (param.trailing ? ':' : '') + param.value;
 			}
 		}).filter((param: string|undefined) => param !== undefined)].join(' ');
@@ -192,15 +184,11 @@ export default class Message<D extends MessageParams = MessageParams> {
 			const paramSpecList = cls.PARAM_SPEC;
 			let i = 0;
 			let hadTrailing: boolean = false;
-			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry | undefined>(paramSpecList)) {
-				if (paramSpec === undefined) {
-					continue;
-				}
-
+			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList)) {
 				hadTrailing = hadTrailing || paramSpec.trailing;
 				const param = this._params[i];
 
-				if (param === undefined) {
+				if (!param) {
 					if (paramSpec.optional && hadTrailing) {
 						break;
 					}

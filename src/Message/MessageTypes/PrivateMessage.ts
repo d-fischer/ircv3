@@ -1,6 +1,6 @@
-import Message, {MessageParam, MessageParams, MessageParamSpec, MessagePrefix} from '../Message';
+import Message, {MessageParam, MessageParamSpec, MessagePrefix} from '../Message';
 
-export interface PrivateMessageParams extends MessageParams {
+export interface PrivateMessageParams {
 	target: MessageParam;
 	message: MessageParam;
 }

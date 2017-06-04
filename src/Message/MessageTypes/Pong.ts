@@ -1,10 +1,10 @@
-import Message, {MessageParam, MessageParams, MessageParamSpec, MessagePrefix} from '../Message';
+import Message, {MessageParam, MessageParamSpec, MessagePrefix} from '../Message';
 
-export interface PongParams extends MessageParams {
+export interface PongParams {
 	message: MessageParam;
 }
 
-export default class Pong extends Message {
+export default class Pong extends Message<PongParams> {
 	public static readonly COMMAND = 'PONG';
 	public static readonly PARAM_SPEC: MessageParamSpec<PongParams> = {
 		message: {

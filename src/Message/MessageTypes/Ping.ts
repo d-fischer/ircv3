@@ -1,10 +1,10 @@
-import Message, {MessageParam, MessageParams, MessageParamSpec, MessagePrefix} from '../Message';
+import Message, {MessageParam, MessageParamSpec, MessagePrefix} from '../Message';
 
-export interface PingParams extends MessageParams {
+export interface PingParams {
 	message: MessageParam;
 }
 
-export default class Ping extends Message {
+export default class Ping extends Message<PingParams> {
 	public static readonly COMMAND = 'PING';
 	public static readonly PARAM_SPEC: MessageParamSpec<PingParams> = {
 		message: {
