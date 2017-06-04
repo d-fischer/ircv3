@@ -139,17 +139,19 @@ export default class Message<D = {}> {
 		params: {[name in keyof D]?: string}
 	): T {
 		let message = new this(this.COMMAND);
+		let parsedParams = {};
 		for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(this.PARAM_SPEC)) {
 			if (paramName in params) {
 				const param = params[paramName];
 				if (param !== undefined) {
-					message._parsedParams[paramName] = new MessageParam(param, paramSpec.trailing);
+					parsedParams[paramName] = new MessageParam(param, paramSpec.trailing);
 				}
 			}
-			if (!(paramName in message._parsedParams) && !paramSpec.optional) {
+			if (!(paramName in parsedParams) && !paramSpec.optional) {
 				throw new Error(`required parameter "${paramName}" not found in command "${this.COMMAND}"`);
 			}
 		}
+		message._parsedParams = parsedParams;
 
 		return message;
 	}
@@ -184,6 +186,7 @@ export default class Message<D = {}> {
 			const paramSpecList = cls.PARAM_SPEC;
 			let i = 0;
 			let hadTrailing: boolean = false;
+			let parsedParams = {};
 			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList)) {
 				hadTrailing = hadTrailing || paramSpec.trailing;
 				const param = this._params[i];
@@ -195,13 +198,15 @@ export default class Message<D = {}> {
 					throw new Error(`unexpected parameter underflow`);
 				}
 
-				this._parsedParams[paramName] = new MessageParam(param, Boolean(paramSpec.trailing));
+				parsedParams[paramName] = new MessageParam(param, Boolean(paramSpec.trailing));
 				++i;
 
 				if (paramSpec.trailing) {
 					break;
 				}
 			}
+
+			this._parsedParams = parsedParams as D;
 		}
 	}
 
