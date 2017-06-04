@@ -1,3 +1,4 @@
+import ObjectTools from '../Toolkit/ObjectTools';
 type NickOnlyMessagePrefix = {
 	raw: string;
 	nick: string;
@@ -8,28 +9,42 @@ export type MessagePrefix = NickOnlyMessagePrefix | NickOnlyMessagePrefix & {
 	host: string;
 };
 
-export type MessageParamSpecEntry = true | {
-	trailing?: boolean
-	optional?: boolean;
-};
-export type MessageParamSpec<T> = { [name in keyof T]?: MessageParamSpecEntry };
+export class MessageParam {
+	constructor(public value: string, public trailing: boolean) {
+	}
+}
 
-export interface MessageConstructor<T = Message> {
+export interface MessageParamSpecEntry {
+	trailing: boolean;
+	optional: boolean;
+}
+
+export type MessageParamSpec<D extends MessageParams> = {
+	[name in keyof D]?: MessageParamSpecEntry
+};
+
+export interface MessageConstructor<T extends Message = Message, D extends MessageParams = MessageParams> {
 	COMMAND: string;
+	PARAM_SPEC: MessageParamSpec<D>;
+	minParamCount: number;
 	new (command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix): T;
 }
 
-export default class Message {
+export interface MessageParams {
+	[name: string]: MessageParam;
+}
+
+export default class Message<D extends MessageParams = MessageParams> {
 	public static readonly COMMAND: string = '';
+	public static readonly PARAM_SPEC = {};
 
 	private static _registeredTypes: Map<string, MessageConstructor<Message>> = new Map;
-
-	public readonly PARAM_SPEC = {};
 
 	protected _tags?: Map<string, string>;
 	protected _prefix?: MessagePrefix;
 	protected _command: string;
 	protected _params?: string[] = [];
+	protected _parsedParams: Partial<D> = {};
 
 	private _raw: string;
 
@@ -84,6 +99,7 @@ export default class Message {
 		}
 
 		message._raw = line;
+		message.parseParams();
 
 		return message;
 	}
@@ -122,21 +138,39 @@ export default class Message {
 		return tags;
 	}
 
-	public static create<T extends Message>(this: MessageConstructor<T>, params: {[name in keyof T]?: T[name]}): T {
+	public static create<T extends Message, D extends MessageParams>(
+		this: MessageConstructor<T>,
+		params: {[name in keyof D]?: string}
+	): T {
 		let message = new this(this.COMMAND);
-		for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry | undefined>(message.PARAM_SPEC)) {
+		for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry | undefined>(this.PARAM_SPEC)) {
 			if (paramSpec === undefined) {
 				continue;
 			}
 
 			if (paramName in params) {
-				message[paramName] = params[paramName];
-			} else if (paramSpec === true || !paramSpec.optional) {
+				const param = params[paramName];
+				if (param !== undefined) {
+					message._parsedParams[paramName] = new MessageParam(param, paramSpec.trailing);
+				}
+			}
+			if (!(paramName in message._parsedParams) && !paramSpec.optional) {
 				throw new Error(`required parameter "${paramName}" not found in command "${this.COMMAND}"`);
 			}
 		}
 
 		return message;
+	}
+
+	public toString(): string {
+		const cls = this.constructor as MessageConstructor<this>;
+		const specKeys = Object.keys(cls.PARAM_SPEC);
+		return [this._command, ...specKeys.map((paramName: string): string | void => {
+			const param = this._parsedParams[paramName];
+			if (param) {
+				return (param.trailing ? ':' : '') + param.value;
+			}
+		}).filter((param: string|undefined) => param !== undefined)].join(' ');
 	}
 
 	public constructor(command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix) {
@@ -148,33 +182,32 @@ export default class Message {
 
 	public parseParams() {
 		if (this._params) {
-			if (this.minParamCount > this._params.length) {
+			const cls = this.constructor as MessageConstructor<this>;
+			if (cls.minParamCount > this._params.length) {
 				throw new Error(
-					`command "${this._command}" expected ${this.minParamCount} or more parameters, got ${this._params.length}`
+					`command "${this._command}" expected ${cls.minParamCount} or more parameters, got ${this._params.length}`
 				);
 			}
 
-			const paramSpecList = this.PARAM_SPEC;
+			const paramSpecList = cls.PARAM_SPEC;
 			let i = 0;
+			let hadTrailing: boolean = false;
 			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry | undefined>(paramSpecList)) {
 				if (paramSpec === undefined) {
 					continue;
 				}
 
-				if (paramSpec === true) {
-					paramSpec = {trailing: false};
-				}
-
+				hadTrailing = hadTrailing || paramSpec.trailing;
 				const param = this._params[i];
 
 				if (param === undefined) {
-					if (paramSpec.optional) {
+					if (paramSpec.optional && hadTrailing) {
 						break;
 					}
 					throw new Error(`unexpected parameter underflow`);
 				}
 
-				this[paramName] = param;
+				this._parsedParams[paramName] = new MessageParam(param, Boolean(paramSpec.trailing));
 				++i;
 
 				if (paramSpec.trailing) {
@@ -184,24 +217,23 @@ export default class Message {
 		}
 	}
 
-	public toString(): string {
-		const specEntries = Object.entries<MessageParamSpecEntry | undefined>(this.PARAM_SPEC);
-		return [this._command, ...specEntries.map(([paramName, paramSpec]: [string, MessageParamSpecEntry]) => {
-			return ((paramSpec !== true && paramSpec.trailing) ? ':' : '') + this[paramName];
-		})].join(' ');
-	}
-
-	public get minParamCount(): number {
+	public static get minParamCount(): number {
 		let i = 0;
-		Object.entries<MessageParamSpecEntry | undefined>(this.PARAM_SPEC).some((spec: MessageParamSpecEntry) => {
-			if (spec !== true && spec.optional) {
-				return true;
-			} else {
-				++i;
-				return false;
-			}
-		});
+		Object.values(this.PARAM_SPEC).reduce(
+			(result: number, spec: MessageParamSpecEntry) => {
+				if (!spec.optional) {
+					++result;
+				}
+
+				return result;
+			},
+			0
+		);
 
 		return i;
+	}
+
+	public get params(): {[name in keyof D]: string} {
+		return ObjectTools.map(this._parsedParams as D, (param: MessageParam) => param.value);
 	}
 }

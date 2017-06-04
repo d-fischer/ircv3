@@ -6,9 +6,9 @@ import Message, {MessageConstructor} from './Message/Message';
 import Ping from './Message/MessageTypes/Ping';
 import Pong from './Message/MessageTypes/Pong';
 
-type EventHandler<T = Message> = (message: T) => void;
-type EventHandlerList = {
-	[name: string]: EventHandler;
+type EventHandler<T extends Message = Message> = (message: T) => void;
+type EventHandlerList<T extends Message = Message> = {
+	[name: string]: EventHandler<T>;
 };
 
 export default class Client {
@@ -39,7 +39,7 @@ export default class Client {
 			// tslint:enable:no-console
 		});
 
-		this.on(Ping, ({message}) => {
+		this.on(Ping, ({params: {message}}: Ping) => {
 			this.send(Pong.create({message}));
 		});
 

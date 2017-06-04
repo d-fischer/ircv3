@@ -1,16 +1,22 @@
-import Message, {MessageParamSpec, MessagePrefix} from '../Message';
+import Message, {MessageParam, MessageParams, MessageParamSpec, MessagePrefix} from '../Message';
 
-export default class PrivateMessage extends Message {
+export interface PrivateMessageParams extends MessageParams {
+	target: MessageParam;
+	message: MessageParam;
+}
+
+export default class PrivateMessage extends Message<PrivateMessageParams> {
 	public static readonly COMMAND = 'PRIVMSG';
-	public readonly PARAM_SPEC: MessageParamSpec<PrivateMessage> = {
-		target: true,
+	public static readonly PARAM_SPEC: MessageParamSpec<PrivateMessageParams> = {
+		target: {
+			optional: false,
+			trailing: false
+		},
 		message: {
+			optional: false,
 			trailing: true
 		}
 	};
-
-	public target: string;
-	public message: string;
 
 	public constructor(command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix) {
 		super(command, params, tags, prefix);
