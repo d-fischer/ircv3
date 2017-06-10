@@ -1,4 +1,6 @@
 import ObjectTools from '../Toolkit/ObjectTools';
+import Client from '../Client';
+
 type NickOnlyMessagePrefix = {
 	raw: string;
 	nick: string;
@@ -27,7 +29,8 @@ export interface MessageConstructor<T extends Message = Message, D = {}> {
 	COMMAND: string;
 	PARAM_SPEC: MessageParamSpec<D>;
 	minParamCount: number;
-	new (command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix): T;
+	new (client: Client, command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix): T;
+	create<T extends Message, D>(this: MessageConstructor<T>, client: Client, params: {[name in keyof D]?: string}): T;
 }
 
 export default class Message<D = {}> {
@@ -41,6 +44,7 @@ export default class Message<D = {}> {
 	protected _command: string;
 	protected _params?: string[] = [];
 	protected _parsedParams: D;
+	protected _client: Client;
 
 	private _raw: string;
 
@@ -50,7 +54,7 @@ export default class Message<D = {}> {
 		}
 	}
 
-	public static parse(line: string): Message {
+	public static parse(line: string, client: Client): Message {
 		const splitLine: string[] = line.split(' ');
 		let token: string;
 
@@ -86,12 +90,12 @@ export default class Message<D = {}> {
 		if (Message._registeredTypes.has(command)) {
 			const messageClass = Message._registeredTypes.get(command);
 			if (messageClass) {
-				message = new messageClass(command, params, tags, prefix);
+				message = new messageClass(client, command, params, tags, prefix);
 			}
 		}
 
 		if (!message) {
-			message = new Message(command, params, tags, prefix);
+			message = new Message(client, command, params, tags, prefix);
 		}
 
 		message._raw = line;
@@ -136,9 +140,10 @@ export default class Message<D = {}> {
 
 	public static create<T extends Message, D>(
 		this: MessageConstructor<T>,
+		client: Client,
 		params: {[name in keyof D]?: string}
 	): T {
-		let message = new this(this.COMMAND);
+		let message = new this(client, this.COMMAND);
 		let parsedParams = {};
 		for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(this.PARAM_SPEC)) {
 			if (paramName in params) {
@@ -167,7 +172,10 @@ export default class Message<D = {}> {
 		}).filter((param: string|undefined) => param !== undefined)].join(' ');
 	}
 
-	public constructor(command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix) {
+	public constructor(
+		client: Client, command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix
+	) {
+		this._client = client;
 		this._command = command;
 		this._params = params;
 		this._tags = tags;

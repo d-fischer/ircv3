@@ -33,14 +33,14 @@ export default class Client {
 		this._connection.on('lineReceived', (line: string) => {
 			// tslint:disable:no-console
 			console.log(`> recv: ${line}`);
-			let parsedMessage = Message.parse(line);
+			let parsedMessage = Message.parse(line, this);
 			// console.log(`> recv parsed:`, parsedMessage);
 			this.handleEvents(parsedMessage);
 			// tslint:enable:no-console
 		});
 
 		this.on(Ping, ({params: {message}}: Ping) => {
-			this.send(Pong.create({message}));
+			this.send(this.createCommand(Pong, {message}));
 		});
 
 		this._nick = connection.nick;
@@ -77,6 +77,13 @@ export default class Client {
 		handlerList[handlerName] = handler;
 
 		return handlerName;
+	}
+
+	public createCommand<T extends Message, D>(
+		type: MessageConstructor<T>,
+		params: {[name in keyof D]?: string}
+	) {
+		return type.create(this, params);
 	}
 
 	private register(): void {
