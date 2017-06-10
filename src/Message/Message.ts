@@ -60,7 +60,7 @@ export default class Message<D = {}> {
 		let prefix: MessagePrefix | undefined;
 
 		while ((token = splitLine[0]) !== undefined) {
-			if (token[0] === '@' && !tags) {
+			if (token[0] === '@' && !tags && !command) {
 				tags = Message.parseTags(token.substr(1));
 			} else if (token[0] === ':') {
 				if (!prefix && !command) {
@@ -81,7 +81,7 @@ export default class Message<D = {}> {
 			throw new Error(`line without command received: ${line}`);
 		}
 
-		let message: Message | undefined = undefined;
+		let message: Message | undefined;
 
 		if (Message._registeredTypes.has(command)) {
 			const messageClass = Message._registeredTypes.get(command);
