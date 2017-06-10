@@ -11,7 +11,7 @@ class WebSocketConnection extends Connection {
 			this.emit('connected');
 		});
 		this._socket.on('message', (line: string) => {
-			this.receiveRaw(line.trim());
+			this.receiveRaw(line);
 		});
 	}
 

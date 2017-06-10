@@ -13,6 +13,7 @@ abstract class Connection extends EventEmitter {
 	protected _host: string;
 	protected _port?: number;
 	protected _connected: boolean = false;
+	private _currentLine = '';
 
 	public abstract connect(): void;
 
@@ -45,8 +46,13 @@ abstract class Connection extends EventEmitter {
 
 	receiveRaw(data: string) {
 		let receivedLines = data.split('\r\n');
-		for (const line of receivedLines) {
-			this.emit('lineReceived', line);
+		this._currentLine += receivedLines.shift() || '';
+		if (receivedLines.length) {
+			this.emit('lineReceived', this._currentLine);
+			this._currentLine = receivedLines.pop() || '';
+			for (const line of receivedLines) {
+				this.emit('lineReceived', line);
+			}
 		}
 	}
 }

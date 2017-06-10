@@ -8,7 +8,7 @@ class DirectConnection extends Connection {
 	connect() {
 		this._socket = new Socket();
 		this._socket.on('data', (data: Buffer) => {
-			this.receiveRaw(data.toString().trim());
+			this.receiveRaw(data.toString());
 		});
 		this._socket.connect(this._port || 6667, this._host, () => {
 			this._connected = true;
