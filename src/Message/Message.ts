@@ -1,6 +1,8 @@
 import ObjectTools from '../Toolkit/ObjectTools';
 import Client from '../Client';
 
+const escapeRegexString = require('escape-string-regexp');
+
 type NickOnlyMessagePrefix = {
 	raw: string;
 	nick: string;
@@ -17,8 +19,9 @@ export class MessageParam {
 }
 
 export interface MessageParamSpecEntry {
-	trailing: boolean;
-	optional: boolean;
+	trailing?: boolean;
+	optional?: boolean;
+	type?: 'channel';
 }
 
 export type MessageParamSpec<D> = {
@@ -31,6 +34,7 @@ export interface MessageConstructor<T extends Message = Message, D = {}> {
 	minParamCount: number;
 	new (client: Client, command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix): T;
 	create<T extends Message, D>(this: MessageConstructor<T>, client: Client, params: {[name in keyof D]?: string}): T;
+	checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean;
 }
 
 export default class Message<D = {}> {
@@ -149,7 +153,11 @@ export default class Message<D = {}> {
 			if (paramName in params) {
 				const param = params[paramName];
 				if (param !== undefined) {
-					parsedParams[paramName] = new MessageParam(param, paramSpec.trailing);
+					if (this.checkParam(client, param, paramSpec)) {
+						parsedParams[paramName] = new MessageParam(param, Boolean(paramSpec.trailing));
+					} else if (!paramSpec.optional) {
+						throw new Error(`required parameter ${paramName} did not suit requirements: "${param}"`);
+					}
 				}
 			}
 			if (!(paramName in parsedParams) && !paramSpec.optional) {
@@ -159,6 +167,17 @@ export default class Message<D = {}> {
 		message._parsedParams = parsedParams;
 
 		return message;
+	}
+
+	public static checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean {
+		if (spec.type === 'channel') {
+			const re = new RegExp(`^[${escapeRegexString(client.channelTypes)}][^ \b\0\n\r,]+$`);
+			if (!re.test(param)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	public toString(): string {
@@ -195,21 +214,22 @@ export default class Message<D = {}> {
 
 			const paramSpecList = cls.PARAM_SPEC;
 			let i = 0;
-			let hadTrailing: boolean = false;
 			let parsedParams = {};
 			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList)) {
-				hadTrailing = hadTrailing || paramSpec.trailing;
 				const param = this._params[i];
-
 				if (!param) {
-					if (paramSpec.optional && hadTrailing) {
+					if (paramSpec.optional) {
 						break;
 					}
 					throw new Error(`unexpected parameter underflow`);
 				}
 
-				parsedParams[paramName] = new MessageParam(param, Boolean(paramSpec.trailing));
-				++i;
+				if (this.checkParam(param, paramSpec)) {
+					parsedParams[paramName] = new MessageParam(param, Boolean(paramSpec.trailing));
+					++i;
+				} else if (!paramSpec.optional) {
+					throw new Error(`required parameter ${paramName} (index ${i}) did not suit requirements: "${param}"`);
+				}
 
 				if (paramSpec.trailing) {
 					break;
@@ -218,6 +238,11 @@ export default class Message<D = {}> {
 
 			this._parsedParams = parsedParams as D;
 		}
+	}
+
+	public checkParam(param: string, spec: MessageParamSpecEntry): boolean {
+		const cls = this.constructor as MessageConstructor<this>;
+		return cls.checkParam(this._client, param, spec);
 	}
 
 	public static get minParamCount(): number {
