@@ -1,3 +1,5 @@
+export const escapeRegexString = require('escape-string-regexp');
+
 export function sanitizeParameter(param: string, spaceAllowed: boolean = false) {
 	if (spaceAllowed) {
 		return param.replace(/[\0\r\n]/g, '');
@@ -35,4 +37,9 @@ export function padLeft(str: string | number, length: number, padding?: string) 
 	} while (length);
 
 	return paddingStr + str;
+}
+
+export function isChannel(str: string, validTypes: string = '#&') {
+	const re = new RegExp(`^[${escapeRegexString(validTypes)}][^ \b\0\n\r,]+$`);
+	return re.test(str);
 }

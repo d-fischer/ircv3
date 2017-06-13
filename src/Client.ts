@@ -3,8 +3,10 @@ import WebSocketConnection from './Connection/WebSocketConnection';
 import DirectConnection from './Connection/DirectConnection';
 import {padLeft, sanitizeParameter as sanitize} from './Toolkit/StringTools';
 import Message, {MessageConstructor} from './Message/Message';
-import Ping from './Message/MessageTypes/Ping';
-import Pong from './Message/MessageTypes/Pong';
+import Ping from './Message/MessageTypes/Commands/Ping';
+import Pong from './Message/MessageTypes/Commands/Pong';
+import Numeric005ISupport from './Message/MessageTypes/Numerics/Numeric005ISupport';
+import ObjectTools from './Toolkit/ObjectTools';
 
 type EventHandler<T extends Message = Message> = (message: T) => void;
 type EventHandlerList<T extends Message = Message> = {
@@ -12,7 +14,7 @@ type EventHandlerList<T extends Message = Message> = {
 };
 
 export default class Client {
-	public _connection: Connection;
+	protected _connection: Connection;
 	protected _nick: string;
 	protected _userName: string;
 	protected _realName: string;
@@ -21,6 +23,20 @@ export default class Client {
 
 	// sane default based on RFC 1459
 	protected _channelTypes: string = '#&';
+
+	protected _supportedUserModes: string = 'iwso';
+	protected _supportedChannelModes: {
+		list: string;
+		alwaysWithParam: string;
+		paramWhenSet: string;
+		noParam: string;
+	} = {
+		list: 'b',
+		alwaysWithParam: 'ovk',
+		paramWhenSet: 'l',
+		noParam: 'imnpst'
+	};
+	protected _supportedFeatures: { [feature: string]: boolean | string } = {};
 
 	public constructor({connection, webSocket, channelTypes}: {
 		connection: ConnectionInfo,
@@ -44,12 +60,23 @@ export default class Client {
 			// tslint:disable:no-console
 			console.log(`> recv: ${line}`);
 			let parsedMessage = Message.parse(line, this);
+			console.log('> recv parsed:', parsedMessage);
 			this.handleEvents(parsedMessage);
 			// tslint:enable:no-console
 		});
 
 		this.on(Ping, ({params: {message}}: Ping) => {
 			this.send(this.createCommand(Pong, {message}));
+		});
+
+		this.on(Numeric005ISupport, ({params: {supports}}: Numeric005ISupport) => {
+			this._supportedFeatures = Object.assign(
+				this._supportedFeatures,
+				ObjectTools.fromArray(supports.split(' '), (part: string) => {
+					const [support, param] = part.split('=', 2);
+					return {[support]: param || true};
+				})
+			);
 		});
 
 		this._nick = connection.nick;

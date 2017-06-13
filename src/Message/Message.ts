@@ -1,7 +1,7 @@
-import ObjectTools from '../Toolkit/ObjectTools';
 import Client from '../Client';
 
-const escapeRegexString = require('escape-string-regexp');
+import ObjectTools from '../Toolkit/ObjectTools';
+import {isChannel} from '../Toolkit/StringTools';
 
 type NickOnlyMessagePrefix = {
 	raw: string;
@@ -20,6 +20,7 @@ export class MessageParam {
 
 export interface MessageParamSpecEntry {
 	trailing?: boolean;
+	rest?: boolean;
 	optional?: boolean;
 	type?: 'channel';
 }
@@ -28,11 +29,12 @@ export type MessageParamSpec<D> = {
 	[name in keyof D]: MessageParamSpecEntry
 };
 
+// WS doesn't pick up members of this to be actually used, so we need to turn off their inspections
 export interface MessageConstructor<T extends Message = Message, D = {}> {
 	COMMAND: string;
 	PARAM_SPEC: MessageParamSpec<D>;
 	minParamCount: number;
-	new (client: Client, command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix): T;
+	new (client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix): T;
 	create<T extends Message, D>(this: MessageConstructor<T>, client: Client, params: {[name in keyof D]?: string}): T;
 	checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean;
 }
@@ -46,7 +48,7 @@ export default class Message<D = {}> {
 	protected _tags?: Map<string, string>;
 	protected _prefix?: MessagePrefix;
 	protected _command: string;
-	protected _params?: string[] = [];
+	protected _params?: MessageParam[] = [];
 	protected _parsedParams: D;
 	protected _client: Client;
 
@@ -63,7 +65,7 @@ export default class Message<D = {}> {
 		let token: string;
 
 		let command: string | undefined;
-		let params: string[] = [];
+		let params: MessageParam[] = [];
 		let tags: Map<string, string> | undefined;
 		let prefix: MessagePrefix | undefined;
 
@@ -74,13 +76,13 @@ export default class Message<D = {}> {
 				if (!prefix && !command) {
 					prefix = Message.parsePrefix(token.substr(1));
 				} else {
-					params.push(splitLine.join(' ').substr(1));
+					params.push(new MessageParam(splitLine.join(' ').substr(1), true));
 					break;
 				}
 			} else if (!command) {
 				command = token.toUpperCase();
 			} else {
-				params.push(token);
+				params.push(new MessageParam(token, false));
 			}
 			splitLine.shift();
 		}
@@ -142,6 +144,7 @@ export default class Message<D = {}> {
 		return tags;
 	}
 
+	// noinspection JSUnusedGlobalSymbols
 	public static create<T extends Message, D>(
 		this: MessageConstructor<T>,
 		client: Client,
@@ -171,8 +174,7 @@ export default class Message<D = {}> {
 
 	public static checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean {
 		if (spec.type === 'channel') {
-			const re = new RegExp(`^[${escapeRegexString(client.channelTypes)}][^ \b\0\n\r,]+$`);
-			if (!re.test(param)) {
+			if (!isChannel(param, client.channelTypes)) {
 				return false;
 			}
 		}
@@ -192,13 +194,18 @@ export default class Message<D = {}> {
 	}
 
 	public constructor(
-		client: Client, command: string, params?: string[], tags?: Map<string, string>, prefix?: MessagePrefix
+		client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix
 	) {
-		this._client = client;
 		this._command = command;
 		this._params = params;
 		this._tags = tags;
 		this._prefix = prefix;
+
+		Object.defineProperty(this, '_client', {
+			get: () => {
+				return client;
+			}
+		});
 
 		this.parseParams();
 	}
@@ -216,7 +223,7 @@ export default class Message<D = {}> {
 			let i = 0;
 			let parsedParams = {};
 			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList)) {
-				const param = this._params[i];
+				let param = this._params[i];
 				if (!param) {
 					if (paramSpec.optional) {
 						break;
@@ -224,9 +231,19 @@ export default class Message<D = {}> {
 					throw new Error(`unexpected parameter underflow`);
 				}
 
-				if (this.checkParam(param, paramSpec)) {
-					parsedParams[paramName] = new MessageParam(param, Boolean(paramSpec.trailing));
-					++i;
+				if (paramSpec.rest) {
+					let restParams = [];
+					do {
+						restParams.push(this._params[i].value);
+						++i;
+					} while (this._params[i] && !this._params[i].trailing);
+					param = new MessageParam(restParams.join(' '), false);
+				}
+				if (this.checkParam(param.value, paramSpec)) {
+					parsedParams[paramName] = new MessageParam(param.value, Boolean(paramSpec.trailing));
+					if (!paramSpec.rest) {
+						++i;
+					}
 				} else if (!paramSpec.optional) {
 					throw new Error(`required parameter ${paramName} (index ${i}) did not suit requirements: "${param}"`);
 				}
@@ -245,6 +262,7 @@ export default class Message<D = {}> {
 		return cls.checkParam(this._client, param, spec);
 	}
 
+	// noinspection JSUnusedGlobalSymbols
 	public static get minParamCount(): number {
 		let i = 0;
 		Object.values(this.PARAM_SPEC).reduce(
@@ -261,6 +279,8 @@ export default class Message<D = {}> {
 		return i;
 	}
 
+	// WS doesn't pick this up in destructuring, so we need to turn off the inspection
+	// noinspection JSUnusedGlobalSymbols
 	public get params(): {[name in keyof D]: string} {
 		return ObjectTools.map(this._parsedParams as D, (param: MessageParam) => param.value);
 	}
