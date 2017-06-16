@@ -13,6 +13,12 @@ type EventHandlerList<T extends Message = Message> = {
 	[name: string]: EventHandler<T>;
 };
 
+interface SupportedChannelModes {
+	list: string;
+	alwaysWithParam: string;
+	paramWhenSet: string;
+	noParam: string;
+}
 export default class Client {
 	protected _connection: Connection;
 	protected _nick: string;
@@ -25,12 +31,7 @@ export default class Client {
 	protected _channelTypes: string = '#&';
 
 	protected _supportedUserModes: string = 'iwso';
-	protected _supportedChannelModes: {
-		list: string;
-		alwaysWithParam: string;
-		paramWhenSet: string;
-		noParam: string;
-	} = {
+	protected _supportedChannelModes: SupportedChannelModes = {
 		list: 'b',
 		alwaysWithParam: 'ovk',
 		paramWhenSet: 'l',
@@ -127,6 +128,10 @@ export default class Client {
 
 	public get channelTypes() {
 		return this._channelTypes;
+	}
+
+	get supportedChannelModes(): SupportedChannelModes {
+		return this._supportedChannelModes;
 	}
 
 	private handleEvents(message: Message): void {

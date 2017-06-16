@@ -233,10 +233,16 @@ export default class Message<D = {}> {
 
 				if (paramSpec.rest) {
 					let restParams = [];
-					do {
+					while (this._params[i] && !this._params[i].trailing) {
 						restParams.push(this._params[i].value);
 						++i;
-					} while (this._params[i] && !this._params[i].trailing);
+					}
+					if (!restParams.length) {
+						if (paramSpec.optional) {
+							continue;
+						}
+						throw new Error(`no parameters left for required rest parameter ${paramName}`);
+					}
 					param = new MessageParam(restParams.join(' '), false);
 				}
 				if (this.checkParam(param.value, paramSpec)) {
