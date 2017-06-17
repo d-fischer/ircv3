@@ -1,11 +1,82 @@
-export {default as ChannelJoin} from './ChannelJoin';
-export {default as ChannelPart} from './ChannelPart';
-export {default as ClientQuit} from './ClientQuit';
-export {default as Mode} from './Mode';
-export {default as NickChange} from './NickChange';
-export {default as OperLogin} from './OperLogin';
+// region RFC1459
+// region 4 Message details
+// region 4.1 Connection Registration
+// 4.1.1 Password message
 export {default as Password} from './Password';
-export {default as Ping} from './Ping';
-export {default as Pong} from './Pong';
-export {default as PrivateMessage} from './PrivateMessage';
+
+// 4.1.2 Nickname message
+export {default as NickChange} from './NickChange';
+
+// 4.1.3 User message
 export {default as UserRegistration} from './UserRegistration';
+
+// 4.1.4 Server message
+// We can't be a server yet
+
+// 4.1.5 Operator message
+export {default as OperLogin} from './OperLogin';
+
+// 4.1.6 Quit message
+export {default as ClientQuit} from './ClientQuit';
+
+// 4.1.7 Server Quit message
+export {default as ServerQuit} from './ServerQuit';
+// endregion
+
+// region 4.2 Channel operations
+// 4.2.1 Join message
+export {default as ChannelJoin} from './ChannelJoin';
+
+// 4.2.2 Part message
+export {default as ChannelPart} from './ChannelPart';
+
+// 4.2.3 Mode message
+export {default as Mode} from './Mode';
+
+// 4.2.4 Topic message
+export {default as Topic} from './Topic';
+
+// 4.2.5 Names message
+export {default as Names} from './Names';
+
+// 4.2.6 List message
+export {default as ChannelList} from './ChannelList';
+
+// 4.2.7 Invite message
+export {default as ChannelInvite} from './ChannelInvite';
+
+// 4.2.8 Kick message
+export {default  as ChannelKick} from './ChannelKick';
+// endregion
+
+// region 4.3 Server queries and commands
+// TODO
+// endregion
+
+// region 4.4 Sending messages
+// 4.4.1 Private messages
+export {default as PrivateMessage} from './PrivateMessage';
+
+// 4.4.2 Notice messages
+export {default as Notice} from './Notice';
+// endregion
+
+// region 4.5 User-based queries
+// TODO
+// endregion
+
+// region 4.6 Miscellaneous messages
+// 4.6.1 Kill message
+export {default as Kill} from './Kill';
+
+// 4.6.2 Ping message
+export {default as Ping} from './Ping';
+
+// 4.6.3 Pong message
+export {default as Pong} from './Pong';
+
+// 4.6.4 Error message
+export {default as Error} from './Error';
+// endregion
+// endregion
+// endregion
