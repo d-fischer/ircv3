@@ -3,7 +3,7 @@ import Client from '../Client';
 import ObjectTools from '../Toolkit/ObjectTools';
 import {isChannel} from '../Toolkit/StringTools';
 
-type NickOnlyMessagePrefix = {
+export type NickOnlyMessagePrefix = {
 	raw: string;
 	nick: string;
 };

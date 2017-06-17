@@ -8,17 +8,18 @@ import Pong from './Message/MessageTypes/Commands/Pong';
 import Numeric005ISupport from './Message/MessageTypes/Numerics/Numeric005ISupport';
 import ObjectTools from './Toolkit/ObjectTools';
 
-type EventHandler<T extends Message = Message> = (message: T) => void;
-type EventHandlerList<T extends Message = Message> = {
+export type EventHandler<T extends Message = Message> = (message: T) => void;
+export type EventHandlerList<T extends Message = Message> = {
 	[name: string]: EventHandler<T>;
 };
 
-interface SupportedChannelModes {
+export interface SupportedChannelModes {
 	list: string;
 	alwaysWithParam: string;
 	paramWhenSet: string;
 	noParam: string;
 }
+
 export default class Client {
 	protected _connection: Connection;
 	protected _nick: string;

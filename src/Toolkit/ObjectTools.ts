@@ -5,8 +5,8 @@ declare interface ObjectCtor extends ObjectConstructor {
 
 declare let Object: ObjectCtor;
 
-type ObjMap<Obj, T> = { [name in keyof Obj]: T };
-type ObjMapPart<Obj, T> = Partial<ObjMap<Obj, T>>;
+export type ObjMap<Obj, T> = { [name in keyof Obj]: T };
+export type ObjMapPart<Obj, T> = Partial<ObjMap<Obj, T>>;
 
 export default class ObjectTools {
 	static map<Obj, T, O>(obj: Obj, fn: (value: T, key: keyof Obj) => O): ObjMap<Obj, O> {
