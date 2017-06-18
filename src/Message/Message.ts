@@ -23,6 +23,7 @@ export interface MessageParamSpecEntry {
 	rest?: boolean;
 	optional?: boolean;
 	type?: 'channel';
+	match?: RegExp;
 }
 
 export type MessageParamSpec<D> = {
@@ -105,7 +106,6 @@ export default class Message<D = {}> {
 		}
 
 		message._raw = line;
-		message.parseParams();
 
 		return message;
 	}
@@ -179,6 +179,12 @@ export default class Message<D = {}> {
 			}
 		}
 
+		if (spec.match) {
+			if (!spec.match.test(param)) {
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -213,9 +219,10 @@ export default class Message<D = {}> {
 	public parseParams() {
 		if (this._params) {
 			const cls = this.constructor as MessageConstructor<this>;
-			if (cls.minParamCount > this._params.length) {
+			let requiredParamsLeft = cls.minParamCount;
+			if (requiredParamsLeft > this._params.length) {
 				throw new Error(
-					`command "${this._command}" expected ${cls.minParamCount} or more parameters, got ${this._params.length}`
+					`command "${this._command}" expected ${requiredParamsLeft} or more parameters, got ${this._params.length}`
 				);
 			}
 
@@ -223,11 +230,19 @@ export default class Message<D = {}> {
 			let i = 0;
 			let parsedParams = {};
 			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList)) {
+				if ((this._params.length - i) <= requiredParamsLeft) {
+					if (paramSpec.optional) {
+						continue;
+					} else if (this._params.length - i !== requiredParamsLeft) {
+						throw new Error('not enough parameters left for required parameters parsing (this is a bug)');
+					}
+				}
 				let param = this._params[i];
 				if (!param) {
 					if (paramSpec.optional) {
 						break;
 					}
+
 					throw new Error(`unexpected parameter underflow`);
 				}
 
@@ -247,6 +262,9 @@ export default class Message<D = {}> {
 				}
 				if (this.checkParam(param.value, paramSpec)) {
 					parsedParams[paramName] = new MessageParam(param.value, Boolean(paramSpec.trailing));
+					if (!paramSpec.optional) {
+						--requiredParamsLeft;
+					}
 					if (!paramSpec.rest) {
 						++i;
 					}
@@ -270,19 +288,7 @@ export default class Message<D = {}> {
 
 	// noinspection JSUnusedGlobalSymbols
 	public static get minParamCount(): number {
-		let i = 0;
-		Object.values(this.PARAM_SPEC).reduce(
-			(result: number, spec: MessageParamSpecEntry) => {
-				if (!spec.optional) {
-					++result;
-				}
-
-				return result;
-			},
-			0
-		);
-
-		return i;
+		return Object.values(this.PARAM_SPEC).filter((spec: MessageParamSpecEntry) => !spec.optional).length;
 	}
 
 	// WS doesn't pick this up in destructuring, so we need to turn off the inspection

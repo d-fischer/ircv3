@@ -38,7 +38,7 @@ export default class Client {
 		paramWhenSet: 'l',
 		noParam: 'imnpst'
 	};
-	protected _supportedFeatures: { [feature: string]: boolean | string } = {};
+	protected _supportedFeatures: { [feature: string]: true | string } = {};
 
 	public constructor({connection, webSocket, channelTypes}: {
 		connection: ConnectionInfo,

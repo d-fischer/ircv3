@@ -62,7 +62,14 @@ export {default as Notice} from './Notice';
 // endregion
 
 // region 4.5 User-based queries
-// TODO
+// 4.5.1 Who query
+export {default as WhoQuery} from './WhoQuery';
+
+// 4.5.2 Whois query
+export {default as WhoIsQuery} from './WhoIsQuery';
+
+// 4.5.3 Whowas
+export {default as WhoWasQuery} from './WhoWasQuery';
 // endregion
 
 // region 4.6 Miscellaneous messages
@@ -78,5 +85,31 @@ export {default as Pong} from './Pong';
 // 4.6.4 Error message
 export {default as Error} from './Error';
 // endregion
+// endregion
+
+// region 5 Optionals
+// 5.1 Away
+export {default as Away} from './Away';
+
+// 5.2 Rehash message
+export {default as Rehash} from './Rehash';
+
+// 5.3 Restart message
+export {default as Restart} from './Restart';
+
+// 5.4 Summon message
+// really, would anyone use that?
+
+// 5.5 Users message
+// would anyone WANT to have that? it seems like a huge security risk.
+
+// 5.6 Operwall message
+export {default as Wallops} from './WallopsMessage';
+
+// 5.7 Userhost message
+export {default as UserHostQuery} from './UserHostQuery';
+
+// 5.8 Ison message
+export {default as IsOnQuery} from './IsOnQuery';
 // endregion
 // endregion
