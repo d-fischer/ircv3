@@ -1,7 +1,7 @@
 import Message, {MessageParam, MessageParamSpec} from '../../Message';
 
 export interface Numeric005ISupportParams {
-	nick: MessageParam;
+	me: MessageParam;
 	supports: MessageParam;
 	suffix: MessageParam;
 }
@@ -9,7 +9,7 @@ export interface Numeric005ISupportParams {
 export default class Numeric005ISupport extends Message<Numeric005ISupportParams> {
 	public static readonly COMMAND = '005';
 	public static readonly PARAM_SPEC: MessageParamSpec<Numeric005ISupportParams> = {
-		nick: {},
+		me: {},
 		supports: {
 			rest: true
 		},

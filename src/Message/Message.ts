@@ -261,7 +261,7 @@ export default class Message<D = {}> {
 					param = new MessageParam(restParams.join(' '), false);
 				}
 				if (this.checkParam(param.value, paramSpec)) {
-					parsedParams[paramName] = new MessageParam(param.value, Boolean(paramSpec.trailing));
+					parsedParams[paramName] = new MessageParam(param.value, param.trailing);
 					if (!paramSpec.optional) {
 						--requiredParamsLeft;
 					}
@@ -269,7 +269,7 @@ export default class Message<D = {}> {
 						++i;
 					}
 				} else if (!paramSpec.optional) {
-					throw new Error(`required parameter ${paramName} (index ${i}) did not suit requirements: "${param}"`);
+					throw new Error(`required parameter ${paramName} (index ${i}) did not suit requirements: "${param.value}"`);
 				}
 
 				if (paramSpec.trailing) {
@@ -295,5 +295,10 @@ export default class Message<D = {}> {
 	// noinspection JSUnusedGlobalSymbols
 	public get params(): {[name in keyof D]: string} {
 		return ObjectTools.map(this._parsedParams as D, (param: MessageParam) => param.value);
+	}
+
+	public async send(): Promise<Message[]> {
+		this._client.send(this);
+		return [];
 	}
 }

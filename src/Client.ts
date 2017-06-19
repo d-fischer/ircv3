@@ -7,6 +7,7 @@ import Ping from './Message/MessageTypes/Commands/Ping';
 import Pong from './Message/MessageTypes/Commands/Pong';
 import Numeric005ISupport from './Message/MessageTypes/Numerics/Numeric005ISupport';
 import ObjectTools from './Toolkit/ObjectTools';
+import MessageInterceptor from './Message/MessageInterceptor';
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = {
@@ -39,6 +40,7 @@ export default class Client {
 		noParam: 'imnpst'
 	};
 	protected _supportedFeatures: { [feature: string]: true | string } = {};
+	protected _interceptors: MessageInterceptor[] = [];
 
 	public constructor({connection, webSocket, channelTypes}: {
 		connection: ConnectionInfo,
@@ -68,7 +70,8 @@ export default class Client {
 		});
 
 		this.on(Ping, ({params: {message}}: Ping) => {
-			this.send(this.createCommand(Pong, {message}));
+			//noinspection JSIgnoredPromiseFromCall
+			this.createMessage(Pong, {message}).send();
 		});
 
 		this.on(Numeric005ISupport, ({params: {supports}}: Numeric005ISupport) => {
@@ -120,7 +123,7 @@ export default class Client {
 		return handlerName;
 	}
 
-	public createCommand<T extends Message, D>(
+	public createMessage<T extends Message, D>(
 		type: MessageConstructor<T>,
 		params: {[name in keyof D]?: string}
 	) {
@@ -135,7 +138,21 @@ export default class Client {
 		return this._supportedChannelModes;
 	}
 
+	public intercept(...types: MessageConstructor[]) {
+		const interceptor = new MessageInterceptor(this, ...types);
+		this._interceptors.push(interceptor);
+		return interceptor;
+	}
+
+	public stopIntercept(interceptor: MessageInterceptor) {
+		this._interceptors.splice(this._interceptors.findIndex(value => value === interceptor), 1);
+	}
+
 	private handleEvents(message: Message): void {
+		if (this._interceptors.some(interceptor => interceptor.intercept(message))) {
+			return;
+		}
+
 		const handlers: EventHandlerList | undefined = this._events.get(message.constructor as MessageConstructor);
 		if (!handlers) {
 			return;
