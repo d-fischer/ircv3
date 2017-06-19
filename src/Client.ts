@@ -5,7 +5,7 @@ import {padLeft, sanitizeParameter as sanitize} from './Toolkit/StringTools';
 import Message, {MessageConstructor} from './Message/Message';
 import Ping from './Message/MessageTypes/Commands/Ping';
 import Pong from './Message/MessageTypes/Commands/Pong';
-import Numeric005ISupport from './Message/MessageTypes/Numerics/Numeric005ISupport';
+import {Numeric004ServerInfo, Numeric005ISupport} from './Message/MessageTypes/Numerics';
 import ObjectTools from './Toolkit/ObjectTools';
 import MessageInterceptor from './Message/MessageInterceptor';
 
@@ -72,6 +72,12 @@ export default class Client {
 		this.on(Ping, ({params: {message}}: Ping) => {
 			//noinspection JSIgnoredPromiseFromCall
 			this.createMessage(Pong, {message}).send();
+		});
+
+		this.on(Numeric004ServerInfo, ({params: {userModes}}: Numeric004ServerInfo) => {
+			if (userModes) {
+				this._supportedUserModes = userModes;
+			}
 		});
 
 		this.on(Numeric005ISupport, ({params: {supports}}: Numeric005ISupport) => {
