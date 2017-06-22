@@ -144,8 +144,8 @@ export default class Client {
 		return this._supportedChannelModes;
 	}
 
-	public intercept(...types: MessageConstructor[]) {
-		const interceptor = new MessageInterceptor(this, ...types);
+	public intercept(originalMessage: Message, ...types: MessageConstructor[]) {
+		const interceptor = new MessageInterceptor(this, originalMessage, ...types);
 		this._interceptors.push(interceptor);
 		return interceptor;
 	}

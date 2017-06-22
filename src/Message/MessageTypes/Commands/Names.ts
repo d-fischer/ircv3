@@ -15,7 +15,7 @@ export default class Names extends Message<NamesParams> {
 	};
 
 	public async send(): Promise<Message[]> {
-		const promise = this._client.intercept(Numeric353NamesReply).untilType(Numeric366EndOfNames).promise();
+		const promise = this._client.intercept(this, Numeric353NamesReply).untilType(Numeric366EndOfNames).promise();
 		await super.send();
 		return await promise;
 	}

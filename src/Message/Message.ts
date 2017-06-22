@@ -297,6 +297,10 @@ export default class Message<D = {}> {
 		return ObjectTools.map(this._parsedParams as D, (param: MessageParam) => param.value);
 	}
 
+	public get command(): string {
+		return this._command;
+	}
+
 	public async send(): Promise<Message[]> {
 		this._client.send(this);
 		return [];
