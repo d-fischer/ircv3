@@ -57,7 +57,12 @@ export default class Client {
 				this.createMessage(Password, {password: connection.password}).send();
 			}
 			this.createMessage(NickChange, {nick: this._nick}).send();
-			this.createMessage(UserRegistration, {user: this._userName, mode: '8', unused: '*', realName: this._realName});
+			this.createMessage(UserRegistration, {
+				user: this._userName,
+				mode: '8',
+				unused: '*',
+				realName: this._realName
+			}).send();
 		});
 		this._connection.on('lineReceived', (line: string) => {
 			// tslint:disable:no-console
