@@ -2,7 +2,7 @@ import Message, {MessageConstructor} from './Message';
 import Client from '../Client';
 import {Numeric421UnknownCommand} from './MessageTypes/Numerics';
 
-export type MessageInterceptorEndConditionChecker = (message: Message, interceptor: MessageInterceptor) => boolean;
+export type MessageInterceptorConditionChecker = (message: Message, interceptor: MessageInterceptor) => boolean;
 export type MessageInterceptorEndCallback = (messages: Message[]) => void;
 
 export default class MessageInterceptor {
@@ -10,20 +10,25 @@ export default class MessageInterceptor {
 	protected _messages: Message[] = [];
 	protected _promise?: Promise<Message[]>;
 	protected _promiseResolve?: MessageInterceptorEndCallback;
-	protected _endCondition: MessageInterceptorEndConditionChecker = () => true;
+	protected _additionalCondition: MessageInterceptorConditionChecker = () => false;
+	protected _endCondition: MessageInterceptorConditionChecker = () => true;
 
 	constructor(protected _client: Client, protected _originalMessage: Message, ...types: MessageConstructor[]) {
 		this._types = new Set(types);
 	}
 
-	public untilType(...types: MessageConstructor[]) {
+	public addType(...types: MessageConstructor[]) {
 		types.forEach(type => this._types.add(type));
+	}
+
+	public untilType(...types: MessageConstructor[]) {
+		this.addType(...types);
 		return this.until((message: Message) => {
 			return types.some(type => message instanceof type);
 		});
 	}
 
-	public until(condition: MessageInterceptorEndConditionChecker): this {
+	public until(condition: MessageInterceptorConditionChecker): this {
 		this._endCondition = condition;
 		return this;
 	}
@@ -38,14 +43,18 @@ export default class MessageInterceptor {
 
 	public intercept(message: Message): boolean {
 		let unknown = false;
+		let isInterceptedType = false;
 
-		// special case: if we get a 421 reply to this, always abort, even if the consumer did not request that
+		// special case: if we get a 421 reply to this, always abort, even if the consumer did not request that -
 		// the command does not exist on the server, and trying to wait for the actual replies would break shit
 		// (and probably lead to huge amounts of memory leaks)
 		if (message instanceof Numeric421UnknownCommand && this._originalMessage.command === message.params.command) {
 			unknown = true;
-		} else if (!this._types.has(message.constructor as MessageConstructor)) {
-			return false;
+		} else {
+			isInterceptedType = this._types.has(message.constructor as MessageConstructor);
+			if (!this._additionalCondition(message, this) && !isInterceptedType) {
+				return false;
+			}
 		}
 
 		this._messages.push(message);
@@ -56,7 +65,7 @@ export default class MessageInterceptor {
 			this.end();
 		}
 
-		return true;
+		return isInterceptedType || unknown;
 	}
 
 	public end() {

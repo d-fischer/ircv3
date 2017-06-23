@@ -36,7 +36,7 @@ export interface MessageConstructor<T extends Message = Message, D = {}> {
 	PARAM_SPEC: MessageParamSpec<D>;
 	minParamCount: number;
 	new (client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix): T;
-	create<T extends Message, D>(this: MessageConstructor<T>, client: Client, params: {[name in keyof D]?: string}): T;
+	create(this: MessageConstructor<T>, client: Client, params: {[name in keyof D]?: string}): T;
 	checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean;
 }
 
@@ -301,7 +301,11 @@ export default class Message<D = {}> {
 		return this._command;
 	}
 
-	public async send(): Promise<Message[]> {
+	public send(): void {
+		this._client.send(this);
+	}
+
+	public async sendWithReply(): Promise<Message[]> {
 		this._client.send(this);
 		return [];
 	}

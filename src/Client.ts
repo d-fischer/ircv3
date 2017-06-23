@@ -1,10 +1,9 @@
 import Connection, {ConnectionInfo} from './Connection/Connection';
 import WebSocketConnection from './Connection/WebSocketConnection';
 import DirectConnection from './Connection/DirectConnection';
-import {padLeft, sanitizeParameter as sanitize} from './Toolkit/StringTools';
+import {padLeft} from './Toolkit/StringTools';
 import Message, {MessageConstructor} from './Message/Message';
-import Ping from './Message/MessageTypes/Commands/Ping';
-import Pong from './Message/MessageTypes/Commands/Pong';
+import {Ping, Pong, Password, UserRegistration, NickChange} from './Message/MessageTypes/Commands';
 import {Numeric004ServerInfo, Numeric005ISupport} from './Message/MessageTypes/Numerics';
 import ObjectTools from './Toolkit/ObjectTools';
 import MessageInterceptor from './Message/MessageInterceptor';
@@ -55,10 +54,10 @@ export default class Client {
 
 		this._connection.on('connected', () => {
 			if (connection.password) {
-				this._connection.sendLine(`PASS ${sanitize(connection.password)}`);
+				this.createMessage(Password, {password: connection.password}).send();
 			}
-			this._connection.sendLine(`NICK ${sanitize(this._nick)}`);
-			this._connection.sendLine(`USER ${sanitize(this._userName)} 8 * :${sanitize(this._realName, true)}`);
+			this.createMessage(NickChange, {nick: this._nick}).send();
+			this.createMessage(UserRegistration, {user: this._userName, mode: '8', unused: '*', realName: this._realName});
 		});
 		this._connection.on('lineReceived', (line: string) => {
 			// tslint:disable:no-console
@@ -70,7 +69,6 @@ export default class Client {
 		});
 
 		this.on(Ping, ({params: {message}}: Ping) => {
-			//noinspection JSIgnoredPromiseFromCall
 			this.createMessage(Pong, {message}).send();
 		});
 
@@ -130,10 +128,10 @@ export default class Client {
 	}
 
 	public createMessage<T extends Message, D>(
-		type: MessageConstructor<T>,
+		type: MessageConstructor<T, D>,
 		params: {[name in keyof D]?: string}
 	) {
-		return type.create<T, D>(this, params);
+		return type.create(this, params);
 	}
 
 	public get channelTypes() {
