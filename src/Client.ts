@@ -4,9 +4,15 @@ import DirectConnection from './Connection/DirectConnection';
 import {padLeft} from './Toolkit/StringTools';
 import Message, {MessageConstructor} from './Message/Message';
 import {Ping, Pong, Password, UserRegistration, NickChange} from './Message/MessageTypes/Commands';
-import {Numeric004ServerInfo, Numeric005ISupport} from './Message/MessageTypes/Numerics';
 import ObjectTools from './Toolkit/ObjectTools';
-import MessageInterceptor from './Message/MessageInterceptor';
+import MessageCollector from './Message/MessageCollector';
+
+import {EventEmitter} from 'events';
+
+import {
+	Reply001Welcome, Reply004ServerInfo, Reply005ISupport,
+	Error462AlreadyRegistered
+} from './Message/MessageTypes/Numerics';
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = {
@@ -20,17 +26,18 @@ export interface SupportedChannelModes {
 	noParam: string;
 }
 
-export default class Client {
+export default class Client extends EventEmitter {
 	protected _connection: Connection;
 	protected _nick: string;
 	protected _userName: string;
 	protected _realName: string;
 
+	protected _registered: boolean = false;
+
 	protected _events: Map<MessageConstructor, EventHandlerList> = new Map();
 
-	// sane default based on RFC 1459
+	// sane defaults based on RFC 1459
 	protected _channelTypes: string = '#&';
-
 	protected _supportedUserModes: string = 'iwso';
 	protected _supportedChannelModes: SupportedChannelModes = {
 		list: 'b',
@@ -39,13 +46,14 @@ export default class Client {
 		noParam: 'imnpst'
 	};
 	protected _supportedFeatures: { [feature: string]: true | string } = {};
-	protected _interceptors: MessageInterceptor[] = [];
+	protected _collectors: MessageCollector[] = [];
 
 	public constructor({connection, webSocket, channelTypes}: {
 		connection: ConnectionInfo,
 		webSocket?: boolean,
 		channelTypes?: string
 	}) {
+		super();
 		if (webSocket) {
 			this._connection = new WebSocketConnection(connection);
 		} else {
@@ -64,6 +72,7 @@ export default class Client {
 				realName: this._realName
 			}).send();
 		});
+
 		this._connection.on('lineReceived', (line: string) => {
 			// tslint:disable:no-console
 			console.log(`> recv: ${line}`);
@@ -73,17 +82,22 @@ export default class Client {
 			// tslint:enable:no-console
 		});
 
-		this.on(Ping, ({params: {message}}: Ping) => {
+		this.onMessage(Ping, ({params: {message}}: Ping) => {
 			this.createMessage(Pong, {message}).send();
 		});
 
-		this.on(Numeric004ServerInfo, ({params: {userModes}}: Numeric004ServerInfo) => {
+		this.onMessage(Reply001Welcome, () => {
+			this._registered = true;
+			this.emit('registered');
+		});
+
+		this.onMessage(Reply004ServerInfo, ({params: {userModes}}: Reply004ServerInfo) => {
 			if (userModes) {
 				this._supportedUserModes = userModes;
 			}
 		});
 
-		this.on(Numeric005ISupport, ({params: {supports}}: Numeric005ISupport) => {
+		this.onMessage(Reply005ISupport, ({params: {supports}}: Reply005ISupport) => {
 			this._supportedFeatures = Object.assign(
 				this._supportedFeatures,
 				ObjectTools.fromArray(supports.split(' '), (part: string) => {
@@ -91,6 +105,15 @@ export default class Client {
 					return {[support]: param || true};
 				})
 			);
+		});
+
+		this.onMessage(Error462AlreadyRegistered, () => {
+			// what, I thought we are not registered yet?
+			if (!this._registered) {
+				// screw this, we are now.
+				this._registered = true;
+				this.emit('registered');
+			}
 		});
 
 		this._nick = connection.nick;
@@ -103,6 +126,7 @@ export default class Client {
 	}
 
 	public connect(): void {
+		this._registered = false;
 		this._connection.connect();
 	}
 
@@ -110,7 +134,11 @@ export default class Client {
 		this._connection.sendLine(message.toString());
 	}
 
-	public on<T extends Message>(type: MessageConstructor<T>, handler: EventHandler<T>, handlerName?: string): string {
+	public onMessage<T extends Message>(
+		type: MessageConstructor<T>,
+		handler: EventHandler<T>,
+		handlerName?: string
+	): string {
 		if (!this._events.has(type)) {
 			this._events.set(type, {});
 		}
@@ -147,20 +175,18 @@ export default class Client {
 		return this._supportedChannelModes;
 	}
 
-	public intercept(originalMessage: Message, ...types: MessageConstructor[]) {
-		const interceptor = new MessageInterceptor(this, originalMessage, ...types);
-		this._interceptors.push(interceptor);
-		return interceptor;
+	public collect(originalMessage: Message, ...types: MessageConstructor[]) {
+		const collector = new MessageCollector(this, originalMessage, ...types);
+		this._collectors.push(collector);
+		return collector;
 	}
 
-	public stopIntercept(interceptor: MessageInterceptor) {
-		this._interceptors.splice(this._interceptors.findIndex(value => value === interceptor), 1);
+	public stopCollect(collector: MessageCollector) {
+		this._collectors.splice(this._collectors.findIndex(value => value === collector), 1);
 	}
 
 	private handleEvents(message: Message): void {
-		if (this._interceptors.some(interceptor => interceptor.intercept(message))) {
-			return;
-		}
+		this._collectors.some(collector => collector.collect(message));
 
 		const handlers: EventHandlerList | undefined = this._events.get(message.constructor as MessageConstructor);
 		if (!handlers) {

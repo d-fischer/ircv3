@@ -34,6 +34,7 @@ export type MessageParamSpec<D> = {
 export interface MessageConstructor<T extends Message = Message, D = {}> {
 	COMMAND: string;
 	PARAM_SPEC: MessageParamSpec<D>;
+	SUPPORTS_CAPTURE: boolean;
 	minParamCount: number;
 	new (client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix): T;
 	create(this: MessageConstructor<T>, client: Client, params: {[name in keyof D]?: string}): T;
@@ -43,8 +44,10 @@ export interface MessageConstructor<T extends Message = Message, D = {}> {
 export default class Message<D = {}> {
 	public static readonly COMMAND: string = '';
 	public static readonly PARAM_SPEC = {};
+	//noinspection JSUnusedGlobalSymbols
+	public static readonly SUPPORTS_CAPTURE: boolean = false;
 
-	private static _registeredTypes: Map<string, MessageConstructor<Message>> = new Map;
+		private static _registeredTypes: Map<string, MessageConstructor<Message>> = new Map;
 
 	protected _tags?: Map<string, string>;
 	protected _prefix?: MessagePrefix;
@@ -189,7 +192,7 @@ export default class Message<D = {}> {
 	}
 
 	public toString(): string {
-		const cls = this.constructor as MessageConstructor<this>;
+		const cls = this.constructor as MessageConstructor<this, D>;
 		const specKeys = Object.keys(cls.PARAM_SPEC);
 		return [this._command, ...specKeys.map((paramName: keyof D): string | void => {
 			const param = this._parsedParams[paramName];
@@ -218,7 +221,7 @@ export default class Message<D = {}> {
 
 	public parseParams() {
 		if (this._params) {
-			const cls = this.constructor as MessageConstructor<this>;
+			const cls = this.constructor as MessageConstructor<this, D>;
 			let requiredParamsLeft = cls.minParamCount;
 			if (requiredParamsLeft > this._params.length) {
 				throw new Error(
@@ -229,7 +232,7 @@ export default class Message<D = {}> {
 			const paramSpecList = cls.PARAM_SPEC;
 			let i = 0;
 			let parsedParams = {};
-			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList)) {
+			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList as MessageParamSpec<{}>)) {
 				if ((this._params.length - i) <= requiredParamsLeft) {
 					if (paramSpec.optional) {
 						continue;
@@ -282,7 +285,7 @@ export default class Message<D = {}> {
 	}
 
 	public checkParam(param: string, spec: MessageParamSpecEntry): boolean {
-		const cls = this.constructor as MessageConstructor<this>;
+		const cls = this.constructor as MessageConstructor<this, D>;
 		return cls.checkParam(this._client, param, spec);
 	}
 
@@ -305,8 +308,28 @@ export default class Message<D = {}> {
 		this._client.send(this);
 	}
 
-	public async sendWithReply(): Promise<Message[]> {
-		this._client.send(this);
-		return [];
+	public async sendAndCaptureReply(): Promise<Message[]> {
+		const cls = this.constructor as MessageConstructor<this, D>;
+
+		if (!cls.SUPPORTS_CAPTURE) {
+			throw new Error(`The command ${cls.COMMAND} does not support reply capture`);
+		}
+
+		const promise = this._client.collect(this).promise();
+		this.send();
+		return await promise;
+	}
+
+	protected isResponseTo(originalMessage: Message): boolean {
+		return false;
+	}
+
+	public endsResponseTo(originalMessage: Message): boolean {
+		return false;
+	}
+
+	public acceptsInCollection(message: Message): boolean {
+		// TODO implement IRCv3 labeled-response / batch here
+		return message.isResponseTo(this);
 	}
 }
