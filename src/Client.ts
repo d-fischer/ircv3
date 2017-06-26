@@ -130,7 +130,7 @@ export default class Client extends EventEmitter {
 		this._connection.connect();
 	}
 
-	public send(message: Message) {
+	public send(message: Message): void {
 		this._connection.sendLine(message.toString());
 	}
 
@@ -163,15 +163,29 @@ export default class Client extends EventEmitter {
 	public createMessage<T extends Message, D>(
 		type: MessageConstructor<T, D>,
 		params: {[name in keyof D]?: string}
-	) {
+	): T {
 		return type.create(this, params);
 	}
 
-	public get channelTypes() {
+	public sendMessage<T extends Message, D>(
+		type: MessageConstructor<T, D>,
+		params: {[name in keyof D]?: string}
+	): void {
+		this.createMessage(type, params).send();
+	}
+
+	public async sendMessageAndCaptureReply<T extends Message, D>(
+		type: MessageConstructor<T, D>,
+		params: {[name in keyof D]?: string}
+	): Promise<Message[]> {
+		return this.createMessage(type, params).sendAndCaptureReply();
+	}
+
+	public get channelTypes(): string {
 		return this._channelTypes;
 	}
 
-	get supportedChannelModes(): SupportedChannelModes {
+	public get supportedChannelModes(): SupportedChannelModes {
 		return this._supportedChannelModes;
 	}
 
@@ -181,7 +195,7 @@ export default class Client extends EventEmitter {
 		return collector;
 	}
 
-	public stopCollect(collector: MessageCollector) {
+	public stopCollect(collector: MessageCollector): void {
 		this._collectors.splice(this._collectors.findIndex(value => value === collector), 1);
 	}
 
