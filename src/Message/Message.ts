@@ -98,10 +98,8 @@ export default class Message<D = {}> {
 		let message: Message | undefined;
 
 		if (Message._registeredTypes.has(command)) {
-			const messageClass = Message._registeredTypes.get(command);
-			if (messageClass) {
-				message = new messageClass(client, command, params, tags, prefix);
-			}
+			const messageClass = Message._registeredTypes.get(command) as MessageConstructor;
+			message = new messageClass(client, command, params, tags, prefix);
 		}
 
 		if (!message) {

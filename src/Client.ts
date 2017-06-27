@@ -143,11 +143,7 @@ export default class Client extends EventEmitter {
 			this._events.set(type, {});
 		}
 
-		let handlerList = this._events.get(type);
-
-		if (!handlerList) {
-			throw new Error(`Handler list for type "${type.name}" not found even though it was just created`);
-		}
+		let handlerList = this._events.get(type) as EventHandlerList<T>;
 
 		if (!handlerName) {
 			do {
