@@ -60,7 +60,7 @@ export default class Message<D = {}> {
 
 	public static registerType(cls: MessageConstructor) {
 		if (cls.COMMAND !== '') {
-			Message._registeredTypes.set(cls.COMMAND, cls);
+			Message._registeredTypes.set(cls.COMMAND.toUpperCase(), cls);
 		}
 	}
 
@@ -95,14 +95,12 @@ export default class Message<D = {}> {
 			throw new Error(`line without command received: ${line}`);
 		}
 
-		let message: Message | undefined;
+		let message: Message;
 
 		if (Message._registeredTypes.has(command)) {
 			const messageClass = Message._registeredTypes.get(command) as MessageConstructor;
 			message = new messageClass(client, command, params, tags, prefix);
-		}
-
-		if (!message) {
+		} else {
 			message = new Message(client, command, params, tags, prefix);
 		}
 
@@ -160,7 +158,7 @@ export default class Message<D = {}> {
 					if (this.checkParam(client, param, paramSpec)) {
 						parsedParams[paramName] = new MessageParam(param, Boolean(paramSpec.trailing));
 					} else if (!paramSpec.optional) {
-						throw new Error(`required parameter ${paramName} did not suit requirements: "${param}"`);
+						throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
 					}
 				}
 			}
@@ -257,7 +255,7 @@ export default class Message<D = {}> {
 						if (paramSpec.optional) {
 							continue;
 						}
-						throw new Error(`no parameters left for required rest parameter ${paramName}`);
+						throw new Error(`no parameters left for required rest parameter "${paramName}"`);
 					}
 					param = new MessageParam(restParams.join(' '), false);
 				}
@@ -270,7 +268,7 @@ export default class Message<D = {}> {
 						++i;
 					}
 				} else if (!paramSpec.optional) {
-					throw new Error(`required parameter ${paramName} (index ${i}) did not suit requirements: "${param.value}"`);
+					throw new Error(`required parameter "${paramName}" (index ${i}) did not suit requirements: "${param.value}"`);
 				}
 
 				if (paramSpec.trailing) {
@@ -310,7 +308,7 @@ export default class Message<D = {}> {
 		const cls = this.constructor as MessageConstructor<this, D>;
 
 		if (!cls.SUPPORTS_CAPTURE) {
-			throw new Error(`The command ${cls.COMMAND} does not support reply capture`);
+			throw new Error(`The command "${cls.COMMAND}" does not support reply capture`);
 		}
 
 		const promise = this._client.collect(this).promise();
