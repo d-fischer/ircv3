@@ -12,7 +12,7 @@
   "devDependencies": {
     "@types/ws": "3.0.0",
     "tslint": "^5.4.3",
-    "typescript": "~2.3.4"
+    "typescript": "^2.4.1"
   },
   "dependencies": {
     "@types/escape-string-regexp": "0.0.30",
