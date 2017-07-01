@@ -40,7 +40,7 @@ abstract class Connection extends EventEmitter {
 			line = line.replace(/[\0\r\n]/g, '');
 			this.sendRaw(line + '\r\n');
 			// tslint:disable-next-line:no-console
-			console.log(`< send: ${line}`);
+			console.log(`< send: \`${line}\``);
 		}
 	}
 

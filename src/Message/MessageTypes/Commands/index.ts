@@ -113,3 +113,8 @@ export {default as UserHostQuery} from './UserHostQuery';
 export {default as IsOnQuery} from './IsOnQuery';
 // endregion
 // endregion
+
+// region IRCv3
+// Capability Negotiation
+export {default as CapabilityNegotiation} from './CapabilityNegotiation';
+// endregion

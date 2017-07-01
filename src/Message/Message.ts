@@ -26,7 +26,7 @@ export interface MessageParamSpecEntry {
 	match?: RegExp;
 }
 
-export type MessageParamSpec<D> = {
+export type MessageParamSpec<D = {}> = {
 	[name in keyof D]: MessageParamSpecEntry
 };
 
@@ -228,12 +228,14 @@ export default class Message<D = {}> {
 			const paramSpecList = cls.PARAM_SPEC;
 			let i = 0;
 			let parsedParams = {};
-			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList as MessageParamSpec<{}>)) {
+			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList as MessageParamSpec)) {
 				if ((this._params.length - i) <= requiredParamsLeft) {
 					if (paramSpec.optional) {
 						continue;
 					} else if (this._params.length - i !== requiredParamsLeft) {
-						throw new Error('not enough parameters left for required parameters parsing (this is a bug)');
+						throw new Error(
+							'not enough parameters left for required parameters parsing (this is a library bug)'
+						);
 					}
 				}
 				let param = this._params[i];

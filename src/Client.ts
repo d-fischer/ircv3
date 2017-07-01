@@ -3,11 +3,17 @@ import WebSocketConnection from './Connection/WebSocketConnection';
 import DirectConnection from './Connection/DirectConnection';
 import {padLeft} from './Toolkit/StringTools';
 import Message, {MessageConstructor} from './Message/Message';
-import {Ping, Pong, Password, UserRegistration, NickChange} from './Message/MessageTypes/Commands';
 import ObjectTools from './Toolkit/ObjectTools';
 import MessageCollector from './Message/MessageCollector';
+import Capability, {ServerCapability} from './Capability/Capability';
+import * as CoreCapabilities from './Capability/CoreCapabilities';
 
 import {EventEmitter} from 'events';
+
+import {
+	Ping, Pong,
+	CapabilityNegotiation, Password, UserRegistration, NickChange
+} from './Message/MessageTypes/Commands';
 
 import {
 	Reply001Welcome, Reply004ServerInfo, Reply005ISupport,
@@ -33,6 +39,7 @@ export default class Client extends EventEmitter {
 	protected _realName: string;
 
 	protected _registered: boolean = false;
+	protected _supportsCapabilities: boolean = true;
 
 	protected _events: Map<MessageConstructor, EventHandlerList> = new Map();
 
@@ -48,6 +55,10 @@ export default class Client extends EventEmitter {
 	protected _supportedFeatures: { [feature: string]: true | string } = {};
 	protected _collectors: MessageCollector[] = [];
 
+	protected _clientCapabilities: Map<string, Capability> = new Map;
+	protected _serverCapabilities: Map<string, ServerCapability> = new Map;
+	protected _negotiatedCapabilities: Map<string, ServerCapability> = new Map;
+
 	public constructor({connection, webSocket, channelTypes}: {
 		connection: ConnectionInfo,
 		webSocket?: boolean,
@@ -60,26 +71,93 @@ export default class Client extends EventEmitter {
 			this._connection = new DirectConnection(connection);
 		}
 
+		for (const cap of Object.values(CoreCapabilities)) {
+			this.registerCapability(cap);
+		}
+
 		this._connection.on('connected', () => {
+			this.sendMessageAndCaptureReply(CapabilityNegotiation, {
+				command: 'LS',
+				version: '302'
+			}).then((capReply: CapabilityNegotiation[]) => {
+				if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
+					this._supportsCapabilities = false;
+					return;
+				}
+				const capLists = capReply.map(line => ObjectTools.fromArray(line.params.capabilities.split(' '), (part: string) => {
+					if (!part) {
+						return {};
+					}
+					const [cap, param] = part.split('=', 2);
+					return {[cap]: {
+						name: cap,
+						param: param || true
+					}};
+				}));
+				this._serverCapabilities = new Map<string, ServerCapability>(Object.entries(Object.assign({}, ...capLists)));
+				const capabilitiesToNegotiate = capLists.map(list => {
+					const capNames = Object.keys(list);
+					return Array.from(this._clientCapabilities.entries())
+						.filter(([name]) => capNames.includes(name))
+						.map(([, cap]) => cap);
+				});
+				this._negotiateCapabilityBatch(capabilitiesToNegotiate).then(() => {
+					this.sendMessage(CapabilityNegotiation, {command: 'END'});
+				});
+			});
 			if (connection.password) {
-				this.createMessage(Password, {password: connection.password}).send();
+				this.sendMessage(Password, {password: connection.password});
 			}
-			this.createMessage(NickChange, {nick: this._nick}).send();
-			this.createMessage(UserRegistration, {
+			this.sendMessage(NickChange, {nick: this._nick});
+			this.sendMessage(UserRegistration, {
 				user: this._userName,
 				mode: '8',
 				unused: '*',
 				realName: this._realName
-			}).send();
+			});
 		});
 
 		this._connection.on('lineReceived', (line: string) => {
 			// tslint:disable:no-console
-			console.log(`> recv: ${line}`);
+			console.log(`> recv: \`${line}\``);
 			let parsedMessage = Message.parse(line, this);
 			console.log('> recv parsed:', parsedMessage);
 			this.handleEvents(parsedMessage);
 			// tslint:enable:no-console
+		});
+
+		this.onMessage(CapabilityNegotiation, ({params: {command, capabilities}}: CapabilityNegotiation) => {
+			// tslint:disable-next-line:switch-default
+			switch (command.toUpperCase()) {
+				case 'NEW': {
+					const capList = ObjectTools.fromArray<string, ServerCapability, {}>(capabilities.split(' '), (part: string) => {
+						if (!part) {
+							return {};
+						}
+						const [cap, param] = part.split('=', 2);
+						return {[cap]: {
+							name: cap,
+							param: param || true
+						}};
+					});
+					for (const [name, cap] of Object.entries<ServerCapability>(capList)) {
+						this._serverCapabilities.set(name, cap);
+					}
+					const capNames = Object.keys(capList);
+					this._negotiateCapabilities(Array.from(this._clientCapabilities.entries())
+						.filter(([name]) => capNames.includes(name))
+						.map(([, cap]) => cap));
+					break;
+				}
+
+				case 'DEL': {
+					for (const cap of capabilities.split(' ')) {
+						this._serverCapabilities.delete(cap);
+						this._negotiatedCapabilities.delete(cap);
+					}
+					break;
+				}
+			}
 		});
 
 		this.onMessage(Ping, ({params: {message}}: Ping) => {
@@ -127,7 +205,58 @@ export default class Client extends EventEmitter {
 
 	public connect(): void {
 		this._registered = false;
+		this._supportsCapabilities = true;
+		this._negotiatedCapabilities = new Map;
 		this._connection.connect();
+	}
+
+	protected _negotiateCapabilityBatch(capabilities: ServerCapability[][]): Promise<(ServerCapability[] | Error)[]> {
+		return Promise.all(capabilities.filter(list => list.length).map(
+			(capList: ServerCapability[]) => this._negotiateCapabilities(capList)
+		));
+	}
+
+	protected _negotiateCapabilities(capList: ServerCapability[]): Promise<ServerCapability[] | Error> {
+		const mappedCapList = ObjectTools.fromArray(capList, cap => ({[cap.name]: cap}));
+		return this.sendMessageAndCaptureReply(CapabilityNegotiation, {
+			command: 'REQ',
+			capabilities: capList.map(cap => cap.name).join(' ')
+		}).then((messages: Message[]) => {
+			const capReply = messages.shift();
+			if (!capReply) {
+				throw new Error('capability negotiation failed unexpectedly without any reply');
+			}
+			if (!(capReply instanceof CapabilityNegotiation)) {
+				throw new Error(`capability negotiation failed unexpectedly with "${capReply.command}" command`);
+			}
+			if (capReply.params.command === 'ACK') {
+				// filter is necessary because some networks seem to add trailing spaces...
+				const newCapNames = capReply.params.capabilities.split(' ').filter(c => c);
+				const newNegotiatedCaps: ServerCapability[] = newCapNames.map(capName => mappedCapList[capName]);
+				for (const newCap of newNegotiatedCaps) {
+					let mergedCap = this._clientCapabilities.get(newCap.name) as ServerCapability;
+					mergedCap.param = newCap.param;
+					this._negotiatedCapabilities.set(mergedCap.name, mergedCap);
+				}
+				return newNegotiatedCaps;
+			} else {
+				return new Error('capabilities failed to negotiate');
+			}
+		});
+	}
+
+	public registerCapability(cap: Capability) {
+		this._clientCapabilities.set(cap.name, cap);
+
+		if (cap.messageTypes) {
+			for (const messageType of cap.messageTypes) {
+				Message.registerType(messageType);
+			}
+		}
+
+		if (this._serverCapabilities.has(cap.name)) {
+			this._negotiateCapabilities([cap]);
+		}
 	}
 
 	public send(message: Message): void {
