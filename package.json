@@ -3,7 +3,7 @@
   "description": "Connect to and interact with IRC servers. IRCv3 compatible.",
   "version": "0.1.1",
   "main": "lib",
-  "typings": "index",
+  "types": "lib/index",
   "license": "MIT",
   "repository": {
     "type": "git",
