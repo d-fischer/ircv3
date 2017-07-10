@@ -41,13 +41,21 @@ export interface MessageConstructor<T extends Message = Message, D = {}> {
 	checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean;
 }
 
+const tagEscapeMap = {
+	'\\': '\\',
+	':': ';',
+	n: '\n',
+	r: '\r',
+	s: ' '
+};
+
 export default class Message<D = {}> {
 	public static readonly COMMAND: string = '';
 	public static readonly PARAM_SPEC = {};
 	//noinspection JSUnusedGlobalSymbols
 	public static readonly SUPPORTS_CAPTURE: boolean = false;
 
-		private static _registeredTypes: Map<string, MessageConstructor<Message>> = new Map;
+	private static _registeredTypes: Map<string, MessageConstructor<Message>> = new Map;
 
 	protected _tags?: Map<string, string>;
 	protected _prefix?: MessagePrefix;
@@ -129,15 +137,7 @@ export default class Message<D = {}> {
 		for (const tagString of tagStrings) {
 			const [tagName, tagValue] = tagString.split('=', 2);
 			// unescape according to http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
-			tags.set(tagName, tagValue.replace(/\\([\\:nrs])/g, (_, match) => {
-				return {
-					'\\': '\\',
-					':': ';',
-					n: '\n',
-					r: '\r',
-					s: ' '
-				}[match];
-			}));
+			tags.set(tagName, tagValue.replace(/\\([\\:nrs])/g, (_, match) => tagEscapeMap[match]));
 		}
 
 		return tags;
