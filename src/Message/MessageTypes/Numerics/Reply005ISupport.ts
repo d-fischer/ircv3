@@ -1,4 +1,4 @@
-import Message, {MessageParam, MessageParamSpec} from '../../Message';
+import Message, { MessageParam, MessageParamSpec } from '../../Message';
 
 export interface Reply005ISupportParams {
 	me: MessageParam;

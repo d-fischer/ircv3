@@ -1,4 +1,4 @@
-import Message, {MessageConstructor} from './Message';
+import Message, { MessageConstructor } from './Message';
 import Client from '../Client';
 
 export type MessageCollectorEndCallback = (messages: Message[]) => void;
@@ -50,13 +50,13 @@ export default class MessageCollector {
 	}
 
 	private _cleanEndEventHandlers() {
-		this._endEventHandlers.forEach((handler, type) => this._client.removeListener(type, handler));
+		this._endEventHandlers.forEach((handler, type) => this._client.removeListener(type, handler as () => void));
 		this._endEventHandlers.clear();
 	}
 
 	private _cleanEndEventHandler(eventType: string) {
 		if (this._endEventHandlers.has(eventType)) {
-			this._client.removeListener(eventType, this._endEventHandlers.get(eventType) as Function);
+			this._client.removeListener(eventType, this._endEventHandlers.get(eventType) as () => void);
 			this._endEventHandlers.delete(eventType);
 		}
 	}

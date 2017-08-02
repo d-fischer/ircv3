@@ -1,5 +1,5 @@
-import Message, {MessageParam, MessageParamSpec, MessagePrefix} from '../../Message';
-import {isChannel} from '../../../Toolkit/StringTools';
+import Message, { MessageParam, MessageParamSpec, MessagePrefix } from '../../Message';
+import { isChannel } from '../../../Toolkit/StringTools';
 
 export interface ModeParams {
 	target: MessageParam;

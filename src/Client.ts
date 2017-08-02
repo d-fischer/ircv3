@@ -1,14 +1,14 @@
-import Connection, {ConnectionInfo} from './Connection/Connection';
+import Connection, { ConnectionInfo } from './Connection/Connection';
 import WebSocketConnection from './Connection/WebSocketConnection';
 import DirectConnection from './Connection/DirectConnection';
-import {padLeft} from './Toolkit/StringTools';
-import Message, {MessageConstructor} from './Message/Message';
+import { padLeft } from './Toolkit/StringTools';
+import Message, { MessageConstructor } from './Message/Message';
 import ObjectTools from './Toolkit/ObjectTools';
 import MessageCollector from './Message/MessageCollector';
-import Capability, {ServerCapability} from './Capability/Capability';
+import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
 
-import {EventEmitter} from 'events';
+import { EventEmitter } from 'events';
 
 import {
 	Ping, Pong,
@@ -84,16 +84,19 @@ export default class Client extends EventEmitter {
 					this._supportsCapabilities = false;
 					return;
 				}
-				const capLists = capReply.map(line => ObjectTools.fromArray(line.params.capabilities.split(' '), (part: string) => {
-					if (!part) {
-						return {};
-					}
-					const [cap, param] = part.split('=', 2);
-					return {[cap]: {
-						name: cap,
-						param: param || true
-					}};
-				}));
+				const capLists = capReply.map(
+					line => ObjectTools.fromArray(line.params.capabilities.split(' '), (part: string) => {
+						if (!part) {
+							return {};
+						}
+						const [cap, param] = part.split('=', 2);
+						return {
+							[cap]: {
+								name: cap,
+								param: param || true
+							}
+						};
+					}));
 				this._serverCapabilities = new Map<string, ServerCapability>(Object.entries(Object.assign({}, ...capLists)));
 				const capabilitiesToNegotiate = capLists.map(list => {
 					const capNames = Object.keys(list);
@@ -135,10 +138,12 @@ export default class Client extends EventEmitter {
 							return {};
 						}
 						const [cap, param] = part.split('=', 2);
-						return {[cap]: {
-							name: cap,
-							param: param || true
-						}};
+						return {
+							[cap]: {
+								name: cap,
+								param: param || true
+							}
+						};
 					});
 					for (const [name, cap] of Object.entries<ServerCapability>(capList)) {
 						this._serverCapabilities.set(name, cap);

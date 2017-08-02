@@ -1,7 +1,7 @@
 import Client from '../Client';
 
 import ObjectTools from '../Toolkit/ObjectTools';
-import {isChannel} from '../Toolkit/StringTools';
+import { isChannel } from '../Toolkit/StringTools';
 
 export type NickOnlyMessagePrefix = {
 	raw: string;
@@ -28,7 +28,7 @@ export interface MessageParamSpecEntry {
 
 export type MessageParamSpec<D = {}> = {
 	[name in keyof D]: MessageParamSpecEntry
-};
+	};
 
 // WS doesn't pick up members of this to be actually used, so we need to turn off their inspections
 export interface MessageConstructor<T extends Message = Message, D = {}> {
@@ -36,8 +36,14 @@ export interface MessageConstructor<T extends Message = Message, D = {}> {
 	PARAM_SPEC: MessageParamSpec<D>;
 	SUPPORTS_CAPTURE: boolean;
 	minParamCount: number;
-	new (client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix): T;
+
+	new (
+		client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>,
+		prefix?: MessagePrefix
+	): T;
+
 	create(this: MessageConstructor<T>, client: Client, params: {[name in keyof D]?: string}): T;
+
 	checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean;
 }
 
@@ -144,10 +150,10 @@ export default class Message<D = {}> {
 	}
 
 	// noinspection JSUnusedGlobalSymbols
-	public static create<T extends Message, D>(
+	public static create<T extends Message, DT>(
 		this: MessageConstructor<T>,
 		client: Client,
-		params: {[name in keyof D]?: string}
+		params: {[name in keyof DT]?: string}
 	): T {
 		let message = new this(client, this.COMMAND);
 		let parsedParams = {};
@@ -195,12 +201,11 @@ export default class Message<D = {}> {
 			if (param instanceof MessageParam) {
 				return (param.trailing ? ':' : '') + param.value;
 			}
-		}).filter((param: string|undefined) => param !== undefined)].join(' ');
+		}).filter((param: string | undefined) => param !== undefined)].join(' ');
 	}
 
 	public constructor(
-		client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix
-	) {
+		client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix) {
 		this._command = command;
 		this._params = params;
 		this._tags = tags;

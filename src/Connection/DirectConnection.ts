@@ -1,6 +1,6 @@
 import Connection from './Connection';
 
-import {Socket} from 'net';
+import { Socket } from 'net';
 
 class DirectConnection extends Connection {
 	private _socket?: Socket;

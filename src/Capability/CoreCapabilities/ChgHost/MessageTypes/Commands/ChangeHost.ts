@@ -1,4 +1,4 @@
-import Message, {MessageParam, MessageParamSpec} from '../../../../../Message/Message';
+import Message, { MessageParam, MessageParamSpec } from '../../../../../Message/Message';
 
 export interface ChgHostParams {
 	newUser: MessageParam;

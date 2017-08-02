@@ -1,4 +1,4 @@
-import Message, {MessageConstructor} from './Message/Message';
+import Message, { MessageConstructor } from './Message/Message';
 import * as MessageTypes from './Message/MessageTypes';
 import Capability from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';

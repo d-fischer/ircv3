@@ -1,5 +1,5 @@
-import Message, {MessageParam, MessageParamSpec} from '../../Message';
-import {Names} from '../Commands';
+import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import { Names } from '../Commands';
 
 export interface Reply366EndOfNamesParams {
 	me: MessageParam;
