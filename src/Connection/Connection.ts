@@ -7,11 +7,13 @@ export interface ConnectionInfo {
 	password?: string;
 	userName?: string;
 	realName?: string;
+	secure?: boolean;
 }
 
 abstract class Connection extends EventEmitter {
 	protected _host: string;
 	protected _port?: number;
+	protected _secure: boolean;
 	protected _connected: boolean = false;
 	private _currentLine = '';
 
@@ -19,8 +21,9 @@ abstract class Connection extends EventEmitter {
 
 	protected abstract sendRaw(line: string): void;
 
-	constructor({hostName, port}: ConnectionInfo) {
+	constructor({hostName, port, secure}: ConnectionInfo) {
 		super();
+		this._secure = Boolean(secure);
 		if (port) {
 			this._host = hostName;
 			this._port = port;
