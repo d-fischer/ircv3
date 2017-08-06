@@ -49,16 +49,16 @@ export default class Client extends EventEmitter {
 	onRegister: (handler: () => void) => Listener = this.registerEvent();
 	onDisconnect: (handler: (reason?: Error) => void) => Listener = this.registerEvent();
 
-	onPrivmsg: (handler: (target: string, message: string, tags: Map<string, string>) => void)
+	onPrivmsg: (handler: (target: string, message: string, msg: PrivateMessage) => void)
 		=> Listener = this.registerEvent();
-	onAction: (handler: (target: string, message: string, tags: Map<string, string>) => void)
+	onAction: (handler: (target: string, message: string, msg: PrivateMessage) => void)
 		=> Listener = this.registerEvent();
-	onNotice: (handler: (target: string, message: string, tags: Map<string, string>) => void)
+	onNotice: (handler: (target: string, message: string, msg: Notice) => void)
 		=> Listener = this.registerEvent();
 
-	onCtcp: (handler: (target: string, command: string, message: string, tags: Map<string, string>) => void)
+	onCtcp: (handler: (target: string, command: string, message: string, msg: PrivateMessage) => void)
 		=> Listener = this.registerEvent();
-	onCtcpReply: (handler: (target: string, command: string, message: string, tags: Map<string, string>) => void)
+	onCtcpReply: (handler: (target: string, command: string, message: string, msg: Notice) => void)
 		=> Listener = this.registerEvent();
 
 	// sane defaults based on RFC 1459
@@ -217,7 +217,8 @@ export default class Client extends EventEmitter {
 			}
 		});
 
-		this.onMessage(PrivateMessage, ({params: {target, message}, tags}: PrivateMessage) => {
+		this.onMessage(PrivateMessage, (msg: PrivateMessage) => {
+			const {params: {target, message}} = msg;
 			if (message[0] === '\001') {
 				// CTCP
 				let strippedMessage = message.substring(1);
@@ -232,18 +233,19 @@ export default class Client extends EventEmitter {
 					command = command.toUpperCase();
 					const joinedParams = splitMessage.join(' ');
 					if (command === 'ACTION') {
-						this.emit(this.onAction, target, joinedParams, tags);
+						this.emit(this.onAction, target, joinedParams, msg);
 					} else {
-						this.emit(this.onCtcp, command, target, joinedParams, tags);
+						this.emit(this.onCtcp, command, target, joinedParams, msg);
 					}
 					return;
 				}
 			}
 
-			this.emit(this.onPrivmsg, target, message, tags);
+			this.emit(this.onPrivmsg, target, message, msg);
 		});
 
-		this.onMessage(Notice, ({params: {target, message}, tags}) => {
+		this.onMessage(Notice, (msg: Notice) => {
+			const {params: {target, message}} = msg;
 			if (message[0] === '\001') {
 				// CTCP reply
 				let strippedMessage = message.substring(1);
@@ -255,12 +257,12 @@ export default class Client extends EventEmitter {
 				const splitMessage = strippedMessage.split(' ');
 				let command = splitMessage.shift();
 				if (command) {
-					this.emit(this.onCtcpReply, command.toUpperCase(), target, splitMessage.join(' '), tags);
+					this.emit(this.onCtcpReply, command.toUpperCase(), target, splitMessage.join(' '), msg);
 					return;
 				}
 			}
 
-			this.emit(this.onNotice, target, message, tags);
+			this.emit(this.onNotice, target, message, msg);
 		});
 
 		this._connection.on('disconnect', (reason?: Error) => {
