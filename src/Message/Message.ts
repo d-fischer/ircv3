@@ -324,7 +324,7 @@ export default class Message<D = {}> {
 
 		const promise = this._client.collect(this).promise();
 		this.send();
-		return await promise;
+		return promise;
 	}
 
 	protected isResponseTo(originalMessage: Message): boolean {
@@ -335,7 +335,7 @@ export default class Message<D = {}> {
 		return false;
 	}
 
-	public acceptsInCollection(message: Message): boolean {
+	public _acceptsInReplyCollection(message: Message): boolean {
 		// TODO implement IRCv3 labeled-response / batch here
 		return message.isResponseTo(this);
 	}

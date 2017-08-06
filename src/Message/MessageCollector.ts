@@ -30,7 +30,7 @@ export default class MessageCollector {
 	}
 
 	public collect(message: Message): boolean {
-		if (!this._originalMessage.acceptsInCollection(message)) {
+		if (!this._originalMessage._acceptsInReplyCollection(message)) {
 			return false;
 		}
 

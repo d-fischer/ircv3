@@ -284,39 +284,41 @@ export default class Client extends EventEmitter {
 		this.emit(this.onConnect);
 	}
 
-	protected _negotiateCapabilityBatch(capabilities: ServerCapability[][]): Promise<(ServerCapability[] | Error)[]> {
+	protected async _negotiateCapabilityBatch(
+		capabilities: ServerCapability[][]
+	): Promise<(ServerCapability[] | Error)[]> {
 		return Promise.all(capabilities.filter(list => list.length).map(
 			(capList: ServerCapability[]) => this._negotiateCapabilities(capList)
 		));
 	}
 
-	protected _negotiateCapabilities(capList: ServerCapability[]): Promise<ServerCapability[] | Error> {
+	protected async _negotiateCapabilities(capList: ServerCapability[]): Promise<ServerCapability[] | Error> {
 		const mappedCapList = ObjectTools.fromArray(capList, cap => ({[cap.name]: cap}));
-		return this.sendMessageAndCaptureReply(CapabilityNegotiation, {
+		const messages = await this.sendMessageAndCaptureReply(CapabilityNegotiation, {
 			command: 'REQ',
 			capabilities: capList.map(cap => cap.name).join(' ')
-		}).then((messages: Message[]) => {
-			const capReply = messages.shift();
-			if (!capReply) {
-				throw new Error('capability negotiation failed unexpectedly without any reply');
-			}
-			if (!(capReply instanceof CapabilityNegotiation)) {
-				throw new Error(`capability negotiation failed unexpectedly with "${capReply.command}" command`);
-			}
-			if (capReply.params.command === 'ACK') {
-				// filter is necessary because some networks seem to add trailing spaces...
-				const newCapNames = capReply.params.capabilities.split(' ').filter(c => c);
-				const newNegotiatedCaps: ServerCapability[] = newCapNames.map(capName => mappedCapList[capName]);
-				for (const newCap of newNegotiatedCaps) {
-					let mergedCap = this._clientCapabilities.get(newCap.name) as ServerCapability;
-					mergedCap.param = newCap.param;
-					this._negotiatedCapabilities.set(mergedCap.name, mergedCap);
-				}
-				return newNegotiatedCaps;
-			} else {
-				return new Error('capabilities failed to negotiate');
-			}
 		});
+
+		const capReply = messages.shift();
+		if (!capReply) {
+			throw new Error('capability negotiation failed unexpectedly without any reply');
+		}
+		if (!(capReply instanceof CapabilityNegotiation)) {
+			throw new Error(`capability negotiation failed unexpectedly with "${capReply.command}" command`);
+		}
+		if (capReply.params.command === 'ACK') {
+			// filter is necessary because some networks seem to add trailing spaces...
+			const newCapNames = capReply.params.capabilities.split(' ').filter(c => c);
+			const newNegotiatedCaps: ServerCapability[] = newCapNames.map(capName => mappedCapList[capName]);
+			for (const newCap of newNegotiatedCaps) {
+				let mergedCap = this._clientCapabilities.get(newCap.name) as ServerCapability;
+				mergedCap.param = newCap.param;
+				this._negotiatedCapabilities.set(mergedCap.name, mergedCap);
+			}
+			return newNegotiatedCaps;
+		} else {
+			return new Error('capabilities failed to negotiate');
+		}
 	}
 
 	public registerCapability(cap: Capability) {
