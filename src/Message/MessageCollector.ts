@@ -1,5 +1,6 @@
 import Message, { MessageConstructor } from './Message';
 import Client from '../Client';
+import { Listener } from 'typed-event-emitter';
 
 export type MessageCollectorEndCallback = (messages: Message[]) => void;
 
@@ -8,15 +9,16 @@ export default class MessageCollector {
 	protected _messages: Message[] = [];
 	protected _promise?: Promise<Message[]>;
 	protected _promiseResolve?: MessageCollectorEndCallback;
-	protected _endEventHandlers: Map<string, Function> = new Map();
+	protected _endEventHandlers: Map<Function, Listener> = new Map();
 
 	constructor(protected _client: Client, protected _originalMessage: Message, ...types: MessageConstructor[]) {
 		this._types = new Set(types);
 	}
 
-	public untilEvent(eventType: string) {
+	public untilEvent(eventType: Function) {
 		this._cleanEndEventHandler(eventType);
-		this._endEventHandlers.set(eventType, () => this.end());
+		const listener = this._client.on(eventType, () => this.end());
+		this._endEventHandlers.set(eventType, listener);
 	}
 
 	public promise(): Promise<Message[]> {
@@ -50,13 +52,13 @@ export default class MessageCollector {
 	}
 
 	private _cleanEndEventHandlers() {
-		this._endEventHandlers.forEach((handler, type) => this._client.removeListener(type, handler as () => void));
+		this._endEventHandlers.forEach(listener => this._client.removeListener(listener));
 		this._endEventHandlers.clear();
 	}
 
-	private _cleanEndEventHandler(eventType: string) {
+	private _cleanEndEventHandler(eventType: Function) {
 		if (this._endEventHandlers.has(eventType)) {
-			this._client.removeListener(eventType, this._endEventHandlers.get(eventType) as () => void);
+			this._client.removeListener(this._endEventHandlers.get(eventType) as Listener);
 			this._endEventHandlers.delete(eventType);
 		}
 	}

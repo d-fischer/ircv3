@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "escape-string-regexp": "^1.0.5",
+    "typed-event-emitter": "^1.0.3",
     "ws": "^3.1.0"
   }
 }

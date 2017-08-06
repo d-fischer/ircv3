@@ -17,7 +17,7 @@ abstract class Connection extends EventEmitter {
 	protected _connected: boolean = false;
 	private _currentLine = '';
 
-	public abstract connect(): void;
+	public abstract async connect(): Promise<void>;
 
 	protected abstract sendRaw(line: string): void;
 

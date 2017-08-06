@@ -8,11 +8,12 @@ import MessageCollector from './Message/MessageCollector';
 import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
 
-import { EventEmitter } from 'events';
+import { EventEmitter, Listener } from 'typed-event-emitter';
 
 import {
 	Ping, Pong,
-	CapabilityNegotiation, Password, UserRegistration, NickChange
+	CapabilityNegotiation, Password, UserRegistration, NickChange,
+	PrivateMessage, Notice
 } from './Message/MessageTypes/Commands';
 
 import {
@@ -42,6 +43,23 @@ export default class Client extends EventEmitter {
 	protected _supportsCapabilities: boolean = true;
 
 	protected _events: Map<MessageConstructor, EventHandlerList> = new Map();
+
+	// emitted events
+	onConnect: (handler: () => void) => Listener = this.registerEvent();
+	onRegister: (handler: () => void) => Listener = this.registerEvent();
+	onDisconnect: (handler: (reason?: Error) => void) => Listener = this.registerEvent();
+
+	onPrivmsg: (handler: (target: string, message: string, tags: Map<string, string>) => void)
+		=> Listener = this.registerEvent();
+	onAction: (handler: (target: string, message: string, tags: Map<string, string>) => void)
+		=> Listener = this.registerEvent();
+	onNotice: (handler: (target: string, message: string, tags: Map<string, string>) => void)
+		=> Listener = this.registerEvent();
+
+	onCtcp: (handler: (target: string, command: string, message: string, tags: Map<string, string>) => void)
+		=> Listener = this.registerEvent();
+	onCtcpReply: (handler: (target: string, command: string, message: string, tags: Map<string, string>) => void)
+		=> Listener = this.registerEvent();
 
 	// sane defaults based on RFC 1459
 	protected _channelTypes: string = '#&';
@@ -75,7 +93,7 @@ export default class Client extends EventEmitter {
 			this.registerCapability(cap);
 		}
 
-		this._connection.on('connected', () => {
+		this._connection.on('connect', () => {
 			this.sendMessageAndCaptureReply(CapabilityNegotiation, {
 				command: 'LS',
 				version: '302'
@@ -171,7 +189,7 @@ export default class Client extends EventEmitter {
 
 		this.onMessage(Reply001Welcome, () => {
 			this._registered = true;
-			this.emit('registered');
+			this.emit(this.onRegister);
 		});
 
 		this.onMessage(Reply004ServerInfo, ({params: {userModes}}: Reply004ServerInfo) => {
@@ -195,8 +213,58 @@ export default class Client extends EventEmitter {
 			if (!this._registered) {
 				// screw this, we are now.
 				this._registered = true;
-				this.emit('registered');
+				this.emit(this.onRegister);
 			}
+		});
+
+		this.onMessage(PrivateMessage, ({params: {target, message}, tags}: PrivateMessage) => {
+			if (message[0] === '\001') {
+				// CTCP
+				let strippedMessage = message.substring(1);
+				// remove trailing \001 if present
+				if (strippedMessage.slice(-1) === '\001') {
+					strippedMessage = strippedMessage.slice(0, -1);
+				}
+
+				const splitMessage = strippedMessage.split(' ');
+				let command = splitMessage.shift();
+				if (command) {
+					command = command.toUpperCase();
+					const joinedParams = splitMessage.join(' ');
+					if (command === 'ACTION') {
+						this.emit(this.onAction, target, joinedParams, tags);
+					} else {
+						this.emit(this.onCtcp, command, target, joinedParams, tags);
+					}
+					return;
+				}
+			}
+
+			this.emit(this.onPrivmsg, target, message, tags);
+		});
+
+		this.onMessage(Notice, ({params: {target, message}, tags}) => {
+			if (message[0] === '\001') {
+				// CTCP reply
+				let strippedMessage = message.substring(1);
+				// remove trailing \001 if present
+				if (strippedMessage.slice(-1) === '\001') {
+					strippedMessage = strippedMessage.slice(0, -1);
+				}
+
+				const splitMessage = strippedMessage.split(' ');
+				let command = splitMessage.shift();
+				if (command) {
+					this.emit(this.onCtcpReply, command.toUpperCase(), target, splitMessage.join(' '), tags);
+					return;
+				}
+			}
+
+			this.emit(this.onNotice, target, message, tags);
+		});
+
+		this._connection.on('disconnect', (reason?: Error) => {
+			this.emit(this.onDisconnect, reason);
 		});
 
 		this._nick = connection.nick;
@@ -208,11 +276,12 @@ export default class Client extends EventEmitter {
 		}
 	}
 
-	public connect(): void {
+	public async connect(): Promise<void> {
 		this._registered = false;
 		this._supportsCapabilities = true;
 		this._negotiatedCapabilities = new Map;
-		this._connection.connect();
+		await this._connection.connect();
+		this.emit(this.onConnect);
 	}
 
 	protected _negotiateCapabilityBatch(capabilities: ServerCapability[][]): Promise<(ServerCapability[] | Error)[]> {

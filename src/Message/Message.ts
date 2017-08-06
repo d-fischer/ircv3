@@ -307,6 +307,10 @@ export default class Message<D = {}> {
 		return this._command;
 	}
 
+	public get tags(): Map<string, string> {
+		return new Map(this._tags || []);
+	}
+
 	public send(): void {
 		this._client.send(this);
 	}
