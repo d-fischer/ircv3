@@ -219,11 +219,11 @@ export default class Client extends EventEmitter {
 
 		this.onMessage(PrivateMessage, (msg: PrivateMessage) => {
 			const {params: {target, message}} = msg;
-			if (message[0] === '\001') {
+			if (message[0] === '\x01') {
 				// CTCP
 				let strippedMessage = message.substring(1);
-				// remove trailing \001 if present
-				if (strippedMessage.slice(-1) === '\001') {
+				// remove trailing \x01 if present
+				if (strippedMessage.slice(-1) === '\x01') {
 					strippedMessage = strippedMessage.slice(0, -1);
 				}
 
@@ -246,11 +246,11 @@ export default class Client extends EventEmitter {
 
 		this.onMessage(Notice, (msg: Notice) => {
 			const {params: {target, message}} = msg;
-			if (message[0] === '\001') {
+			if (message[0] === '\x01') {
 				// CTCP reply
 				let strippedMessage = message.substring(1);
-				// remove trailing \001 if present
-				if (strippedMessage.slice(-1) === '\001') {
+				// remove trailing \x01 if present
+				if (strippedMessage.slice(-1) === '\x01') {
 					strippedMessage = strippedMessage.slice(0, -1);
 				}
 
