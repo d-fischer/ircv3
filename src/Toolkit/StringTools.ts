@@ -43,3 +43,37 @@ export function isChannel(str: string, validTypes: string = '#&') {
 	const re = new RegExp(`^[${escapeRegexString(validTypes)}][^ \b\0\n\r,]+$`);
 	return re.test(str);
 }
+
+export interface ParsedCtcp {
+	command: string;
+	message: string;
+}
+
+export function decodeCtcp(message: string): ParsedCtcp | false {
+	if (message[0] !== '\x01') {
+		// this is not a CTCP message
+		return false;
+	}
+
+	let strippedMessage = message.substring(1);
+	// remove trailing \x01 if present
+	if (strippedMessage.slice(-1) === '\x01') {
+		strippedMessage = strippedMessage.slice(0, -1);
+	}
+
+	// unescape weirdly escaped stuff
+	strippedMessage = strippedMessage.replace(/\x10(.)/, (_, escapedChar) => {
+		return {
+			0: '\0',
+			n: '\n',
+			r: '\r',
+			'\x10': '\x10'
+		}[escapedChar] || '';
+	});
+
+	const splitMessage = strippedMessage.split(' ');
+	let command = splitMessage.shift();
+	command = command ? command.toUpperCase() : '';
+
+	return {command, message: splitMessage.join(' ')};
+}

@@ -1,7 +1,7 @@
 import Connection, { ConnectionInfo } from './Connection/Connection';
 import WebSocketConnection from './Connection/WebSocketConnection';
 import DirectConnection from './Connection/DirectConnection';
-import { padLeft } from './Toolkit/StringTools';
+import { decodeCtcp, padLeft } from './Toolkit/StringTools';
 import Message, { MessageConstructor } from './Message/Message';
 import ObjectTools from './Toolkit/ObjectTools';
 import MessageCollector from './Message/MessageCollector';
@@ -219,25 +219,12 @@ export default class Client extends EventEmitter {
 
 		this.onMessage(PrivateMessage, (msg: PrivateMessage) => {
 			const {params: {target, message}} = msg;
-			if (message[0] === '\x01') {
-				// CTCP
-				let strippedMessage = message.substring(1);
-				// remove trailing \x01 if present
-				if (strippedMessage.slice(-1) === '\x01') {
-					strippedMessage = strippedMessage.slice(0, -1);
-				}
-
-				const splitMessage = strippedMessage.split(' ');
-				let command = splitMessage.shift();
-				if (command) {
-					command = command.toUpperCase();
-					const joinedParams = splitMessage.join(' ');
-					if (command === 'ACTION') {
-						this.emit(this.onAction, target, joinedParams, msg);
-					} else {
-						this.emit(this.onCtcp, command, target, joinedParams, msg);
-					}
-					return;
+			const ctcpMessage = decodeCtcp(message);
+			if (ctcpMessage) {
+				if (ctcpMessage.command === 'ACTION') {
+					this.emit(this.onAction, target, ctcpMessage.message, msg);
+				} else {
+					this.emit(this.onCtcp, ctcpMessage.command, target, ctcpMessage.message, msg);
 				}
 			}
 
@@ -246,20 +233,9 @@ export default class Client extends EventEmitter {
 
 		this.onMessage(Notice, (msg: Notice) => {
 			const {params: {target, message}} = msg;
-			if (message[0] === '\x01') {
-				// CTCP reply
-				let strippedMessage = message.substring(1);
-				// remove trailing \x01 if present
-				if (strippedMessage.slice(-1) === '\x01') {
-					strippedMessage = strippedMessage.slice(0, -1);
-				}
-
-				const splitMessage = strippedMessage.split(' ');
-				let command = splitMessage.shift();
-				if (command) {
-					this.emit(this.onCtcpReply, command.toUpperCase(), target, splitMessage.join(' '), msg);
-					return;
-				}
+			const ctcpMessage = decodeCtcp(message);
+			if (ctcpMessage) {
+				this.emit(this.onCtcpReply, ctcpMessage.command, target, ctcpMessage.message, msg);
 			}
 
 			this.emit(this.onNotice, target, message, msg);
