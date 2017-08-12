@@ -6,7 +6,7 @@ export interface Error462AlreadyRegisteredParams {
 }
 
 export default class Error462AlreadyRegistered extends Message<Error462AlreadyRegisteredParams> {
-	public static readonly COMMAND = '001';
+	public static readonly COMMAND = '462';
 	public static readonly PARAM_SPEC: MessageParamSpec<Error462AlreadyRegisteredParams> = {
 		me: {},
 		text: {
