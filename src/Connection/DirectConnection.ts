@@ -38,6 +38,12 @@ class DirectConnection extends Connection {
 		});
 	}
 
+	disconnect() {
+		if (this._socket) {
+			this._socket.destroy();
+		}
+	}
+
 	sendRaw(line: string) {
 		if (this._socket) {
 			this._socket.write(line);

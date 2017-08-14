@@ -30,6 +30,12 @@ class WebSocketConnection extends Connection {
 		});
 	}
 
+	disconnect() {
+		if (this._socket) {
+			this._socket.close();
+		}
+	}
+
 	sendRaw(line: string) {
 		if (this._socket) {
 			this._socket.send(line);
