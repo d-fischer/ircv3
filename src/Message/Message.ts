@@ -3,14 +3,11 @@ import Client from '../Client';
 import ObjectTools from '../Toolkit/ObjectTools';
 import { isChannel } from '../Toolkit/StringTools';
 
-export type NickOnlyMessagePrefix = {
+export type MessagePrefix = {
 	raw: string;
 	nick: string;
-};
-
-export type MessagePrefix = NickOnlyMessagePrefix | NickOnlyMessagePrefix & {
 	user?: string;
-	host: string;
+	host?: string;
 };
 
 export class MessageParam {
