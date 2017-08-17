@@ -49,16 +49,16 @@ export default class Client extends EventEmitter {
 	onRegister: (handler: () => void) => Listener = this.registerEvent();
 	onDisconnect: (handler: (reason?: Error) => void) => Listener = this.registerEvent();
 
-	onPrivmsg: (handler: (target: string, message: string, msg: PrivateMessage) => void)
+	onPrivmsg: (handler: (target: string, user: string, message: string, msg: PrivateMessage) => void)
 		=> Listener = this.registerEvent();
-	onAction: (handler: (target: string, message: string, msg: PrivateMessage) => void)
+	onAction: (handler: (target: string, user: string, message: string, msg: PrivateMessage) => void)
 		=> Listener = this.registerEvent();
-	onNotice: (handler: (target: string, message: string, msg: Notice) => void)
+	onNotice: (handler: (target: string, user: string, message: string, msg: Notice) => void)
 		=> Listener = this.registerEvent();
 
-	onCtcp: (handler: (target: string, command: string, message: string, msg: PrivateMessage) => void)
+	onCtcp: (handler: (target: string, user: string, command: string, message: string, msg: PrivateMessage) => void)
 		=> Listener = this.registerEvent();
-	onCtcpReply: (handler: (target: string, command: string, message: string, msg: Notice) => void)
+	onCtcpReply: (handler: (target: string, user: string, command: string, message: string, msg: Notice) => void)
 		=> Listener = this.registerEvent();
 
 	// sane defaults based on RFC 1459
@@ -220,25 +220,29 @@ export default class Client extends EventEmitter {
 		this.onMessage(PrivateMessage, (msg: PrivateMessage) => {
 			const {params: {target, message}} = msg;
 			const ctcpMessage = decodeCtcp(message);
+			const nick = msg.prefix && msg.prefix.nick;
+
 			if (ctcpMessage) {
 				if (ctcpMessage.command === 'ACTION') {
-					this.emit(this.onAction, target, ctcpMessage.message, msg);
+					this.emit(this.onAction, target, nick, ctcpMessage.message, msg);
 				} else {
-					this.emit(this.onCtcp, ctcpMessage.command, target, ctcpMessage.message, msg);
+					this.emit(this.onCtcp, target, nick, ctcpMessage.command, ctcpMessage.message, msg);
 				}
 			}
 
-			this.emit(this.onPrivmsg, target, message, msg);
+			this.emit(this.onPrivmsg, target, nick, message, msg);
 		});
 
 		this.onMessage(Notice, (msg: Notice) => {
 			const {params: {target, message}} = msg;
 			const ctcpMessage = decodeCtcp(message);
+			const nick = msg.prefix && msg.prefix.nick;
+
 			if (ctcpMessage) {
-				this.emit(this.onCtcpReply, ctcpMessage.command, target, ctcpMessage.message, msg);
+				this.emit(this.onCtcpReply, target, nick, ctcpMessage.command, ctcpMessage.message, msg);
 			}
 
-			this.emit(this.onNotice, target, message, msg);
+			this.emit(this.onNotice, target, nick, message, msg);
 		});
 
 		this._connection.on('disconnect', (reason?: Error) => {
