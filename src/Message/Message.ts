@@ -303,6 +303,10 @@ export default class Message<D = {}> {
 		return ObjectTools.map(this._parsedParams as D, (param: MessageParam) => param.value);
 	}
 
+	public get prefix(): MessagePrefix | undefined {
+		return Object.assign({}, this._prefix);
+	}
+
 	public get command(): string {
 		return this._command;
 	}
