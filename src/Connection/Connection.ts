@@ -15,6 +15,7 @@ abstract class Connection extends EventEmitter {
 	protected _port?: number;
 	protected _secure: boolean;
 	protected _connected: boolean = false;
+
 	private _currentLine = '';
 
 	public abstract async connect(): Promise<void>;
@@ -43,8 +44,6 @@ abstract class Connection extends EventEmitter {
 		if (this._connected) {
 			line = line.replace(/[\0\r\n]/g, '');
 			this.sendRaw(line + '\r\n');
-			// tslint:disable-next-line:no-console
-			console.log(`< send: \`${line}\``);
 		}
 	}
 

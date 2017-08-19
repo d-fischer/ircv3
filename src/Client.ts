@@ -5,6 +5,7 @@ import { decodeCtcp, padLeft } from './Toolkit/StringTools';
 import Message, { MessageConstructor } from './Message/Message';
 import ObjectTools from './Toolkit/ObjectTools';
 import MessageCollector from './Message/MessageCollector';
+import * as MessageTypes from './Message/MessageTypes';
 import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
 
@@ -37,12 +38,14 @@ export default class Client extends EventEmitter {
 	protected _connection: Connection;
 	protected _nick: string;
 	protected _userName: string;
-	protected _realName: string;
 
+	protected _realName: string;
 	protected _registered: boolean = false;
+
 	protected _supportsCapabilities: boolean = true;
 
 	protected _events: Map<MessageConstructor, EventHandlerList> = new Map();
+	protected _registeredMessageTypes: Map<string, MessageConstructor<Message>> = new Map;
 
 	// emitted events
 	onConnect: (handler: () => void) => Listener = this.registerEvent();
@@ -77,17 +80,25 @@ export default class Client extends EventEmitter {
 	protected _serverCapabilities: Map<string, ServerCapability> = new Map;
 	protected _negotiatedCapabilities: Map<string, ServerCapability> = new Map;
 
-	public constructor({connection, webSocket, channelTypes}: {
+	protected _debugLevel: number;
+
+	public constructor({connection, webSocket, channelTypes, debugLevel}: {
 		connection: ConnectionInfo,
 		webSocket?: boolean,
-		channelTypes?: string
+		channelTypes?: string,
+		debugLevel?: number;
 	}) {
 		super();
+
+		this._debugLevel = debugLevel || 0;
+
 		if (webSocket) {
 			this._connection = new WebSocketConnection(connection);
 		} else {
 			this._connection = new DirectConnection(connection);
 		}
+
+		this.registerCoreMessageTypes();
 
 		for (const cap of Object.values(CoreCapabilities)) {
 			this.registerCapability(cap);
@@ -140,9 +151,13 @@ export default class Client extends EventEmitter {
 
 		this._connection.on('lineReceived', (line: string) => {
 			// tslint:disable:no-console
-			console.log(`> recv: \`${line}\``);
+			if (this._debugLevel >= 1) {
+				console.log(`> recv: \`${line}\``);
+			}
 			let parsedMessage = Message.parse(line, this);
-			console.log('> recv parsed:', parsedMessage);
+			if (this._debugLevel >= 2) {
+				console.log('> recv parsed:', parsedMessage);
+			}
 			this.handleEvents(parsedMessage);
 			// tslint:enable:no-console
 		});
@@ -258,6 +273,30 @@ export default class Client extends EventEmitter {
 		}
 	}
 
+	public registerMessageType(cls: MessageConstructor) {
+		if (cls.COMMAND !== '') {
+			this._registeredMessageTypes.set(cls.COMMAND.toUpperCase(), cls);
+		}
+	}
+
+	public knowsCommand(command: string): boolean {
+		return this._registeredMessageTypes.has(command.toUpperCase());
+	}
+
+	public getCommandClass(command: string): MessageConstructor | undefined {
+		return this._registeredMessageTypes.get(command.toUpperCase());
+	}
+
+	protected registerCoreMessageTypes() {
+		ObjectTools.forEach(MessageTypes.Commands, (type: MessageConstructor) => {
+			this.registerMessageType(type);
+		});
+
+		ObjectTools.forEach(MessageTypes.Numerics, (type: MessageConstructor) => {
+			this.registerMessageType(type);
+		});
+	}
+
 	public async connect(): Promise<void> {
 		this._registered = false;
 		this._supportsCapabilities = true;
@@ -303,22 +342,29 @@ export default class Client extends EventEmitter {
 		}
 	}
 
-	public registerCapability(cap: Capability) {
+	public async registerCapability(cap: Capability) {
 		this._clientCapabilities.set(cap.name, cap);
 
 		if (cap.messageTypes) {
 			for (const messageType of cap.messageTypes) {
-				Message.registerType(messageType);
+				this.registerMessageType(messageType);
 			}
 		}
 
 		if (this._serverCapabilities.has(cap.name)) {
-			this._negotiateCapabilities([cap]);
+			return this._negotiateCapabilities([cap]);
 		}
+
+		return [];
 	}
 
 	public send(message: Message): void {
-		this._connection.sendLine(message.toString());
+		const line = message.toString();
+		if (this._debugLevel >= 1) {
+			// tslint:disable-next-line:no-console
+			console.log(`< send: \`${line}\``);
+		}
+		this._connection.sendLine(line);
 	}
 
 	public onMessage<T extends Message>(

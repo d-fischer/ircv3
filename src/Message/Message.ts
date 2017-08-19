@@ -58,8 +58,6 @@ export default class Message<D = {}> {
 	//noinspection JSUnusedGlobalSymbols
 	public static readonly SUPPORTS_CAPTURE: boolean = false;
 
-	private static _registeredTypes: Map<string, MessageConstructor<Message>> = new Map;
-
 	protected _tags?: Map<string, string>;
 	protected _prefix?: MessagePrefix;
 	protected _command: string;
@@ -68,12 +66,6 @@ export default class Message<D = {}> {
 	protected _client: Client;
 
 	private _raw: string;
-
-	public static registerType(cls: MessageConstructor) {
-		if (cls.COMMAND !== '') {
-			Message._registeredTypes.set(cls.COMMAND.toUpperCase(), cls);
-		}
-	}
 
 	public static parse(line: string, client: Client): Message {
 		const splitLine: string[] = line.split(' ');
@@ -108,13 +100,12 @@ export default class Message<D = {}> {
 
 		let message: Message;
 
-		if (Message._registeredTypes.has(command)) {
-			const messageClass = Message._registeredTypes.get(command) as MessageConstructor;
-			message = new messageClass(client, command, params, tags, prefix);
-		} else {
-			message = new Message(client, command, params, tags, prefix);
+		let messageClass: MessageConstructor = Message;
+		if (client.knowsCommand(command)) {
+			messageClass = client.getCommandClass(command) as MessageConstructor;
 		}
 
+		message = new messageClass(client, command, params, tags, prefix);
 		message._raw = line;
 
 		return message;
