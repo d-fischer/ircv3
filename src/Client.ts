@@ -23,9 +23,7 @@ import {
 } from './Message/MessageTypes/Numerics';
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
-export type EventHandlerList<T extends Message = Message> = {
-	[name: string]: EventHandler<T>;
-};
+export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
 
 export interface SupportedChannelModes {
 	list: string;
@@ -44,7 +42,7 @@ export default class Client extends EventEmitter {
 
 	protected _supportsCapabilities: boolean = true;
 
-	protected _events: Map<MessageConstructor, EventHandlerList> = new Map();
+	protected _events: Map<string, EventHandlerList> = new Map();
 	protected _registeredMessageTypes: Map<string, MessageConstructor<Message>> = new Map;
 
 	// emitted events
@@ -368,25 +366,35 @@ export default class Client extends EventEmitter {
 	}
 
 	public onMessage<T extends Message>(
-		type: MessageConstructor<T>,
+		type: MessageConstructor<T> | string,
 		handler: EventHandler<T>,
 		handlerName?: string
 	): string {
-		if (!this._events.has(type)) {
-			this._events.set(type, {});
+		const commandName = typeof type === 'string' ? type : type.COMMAND;
+		if (!this._events.has(commandName)) {
+			this._events.set(commandName, new Map);
 		}
 
-		let handlerList = this._events.get(type) as EventHandlerList<T>;
+		let handlerList = this._events.get(commandName)!;
 
 		if (!handlerName) {
 			do {
-				handlerName = type.name + padLeft(Math.random() * 10000, 4, '0');
-			} while (handlerName in handlerList);
+				handlerName = `${commandName}:${padLeft(Math.random() * 10000, 4, '0')}`;
+			} while (handlerList.has(handlerName));
 		}
 
-		handlerList[handlerName] = handler;
+		handlerList.set(handlerName, handler);
 
 		return handlerName;
+	}
+
+	public removeMessageListener(handlerName: string) {
+		const [commandName] = handlerName.split(':');
+		if (!this._events.has(commandName)) {
+			return;
+		}
+
+		this._events.get(commandName)!.delete(handlerName);
 	}
 
 	public createMessage<T extends Message, D>(
@@ -431,7 +439,7 @@ export default class Client extends EventEmitter {
 	private handleEvents(message: Message): void {
 		this._collectors.some(collector => collector.collect(message));
 
-		const handlers: EventHandlerList | undefined = this._events.get(message.constructor as MessageConstructor);
+		const handlers: EventHandlerList | undefined = this._events.get((message.constructor as MessageConstructor).COMMAND);
 		if (!handlers) {
 			return;
 		}
