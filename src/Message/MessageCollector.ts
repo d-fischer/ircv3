@@ -58,7 +58,7 @@ export default class MessageCollector {
 
 	private _cleanEndEventHandler(eventType: Function) {
 		if (this._endEventHandlers.has(eventType)) {
-			this._client.removeListener(this._endEventHandlers.get(eventType) as Listener);
+			this._client.removeListener(this._endEventHandlers.get(eventType)!);
 			this._endEventHandlers.delete(eventType);
 		}
 	}

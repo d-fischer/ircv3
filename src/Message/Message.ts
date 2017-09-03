@@ -102,7 +102,7 @@ export default class Message<D = {}> {
 
 		let messageClass: MessageConstructor = Message;
 		if (client.knowsCommand(command)) {
-			messageClass = client.getCommandClass(command) as MessageConstructor;
+			messageClass = client.getCommandClass(command)!;
 		}
 
 		message = new messageClass(client, command, params, tags, prefix);
