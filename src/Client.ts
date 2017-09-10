@@ -14,7 +14,8 @@ import { EventEmitter, Listener } from 'typed-event-emitter';
 import {
 	Ping, Pong,
 	CapabilityNegotiation, Password, UserRegistration, NickChange,
-	PrivateMessage, Notice
+	PrivateMessage, Notice,
+	ChannelJoin
 } from './Message/MessageTypes/Commands';
 
 import {
@@ -108,9 +109,9 @@ export default class Client extends EventEmitter {
 				version: '302'
 			}).then((capReply: CapabilityNegotiation[]) => {
 				if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
-					this._supportsCapabilities = false;
 					return;
 				}
+				this._supportsCapabilities = true;
 				const capLists = capReply.map(
 					line => ObjectTools.fromArray(line.params.capabilities.split(' '), (part: string) => {
 						if (!part) {
@@ -133,6 +134,8 @@ export default class Client extends EventEmitter {
 				});
 				this._negotiateCapabilityBatch(capabilitiesToNegotiate).then(() => {
 					this.sendMessage(CapabilityNegotiation, {command: 'END'});
+					this._registered = true;
+					this.emit(this.onRegister);
 				});
 			});
 			if (connection.password) {
@@ -197,12 +200,14 @@ export default class Client extends EventEmitter {
 		});
 
 		this.onMessage(Ping, ({params: {message}}: Ping) => {
-			this.createMessage(Pong, {message}).send();
+			this.sendMessage(Pong, {message});
 		});
 
 		this.onMessage(Reply001Welcome, () => {
-			this._registered = true;
-			this.emit(this.onRegister);
+			if (!this._supportsCapabilities) {
+				this._registered = true;
+				this.emit(this.onRegister);
+			}
 		});
 
 		this.onMessage(Reply004ServerInfo, ({params: {userModes}}: Reply004ServerInfo) => {
@@ -297,7 +302,7 @@ export default class Client extends EventEmitter {
 
 	public async connect(): Promise<void> {
 		this._registered = false;
-		this._supportsCapabilities = true;
+		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map;
 		await this._connection.connect();
 		this.emit(this.onConnect);
@@ -436,6 +441,12 @@ export default class Client extends EventEmitter {
 		this._collectors.splice(this._collectors.findIndex(value => value === collector), 1);
 	}
 
+	// convenience methods
+	public join(channel: string, key?: string) {
+		this.sendMessage(ChannelJoin, {channel, key});
+	}
+
+	// event helper
 	private handleEvents(message: Message): void {
 		this._collectors.some(collector => collector.collect(message));
 
@@ -444,7 +455,7 @@ export default class Client extends EventEmitter {
 			return;
 		}
 
-		for (const handler of Object.values(handlers)) {
+		for (const handler of handlers.values()) {
 			handler(message);
 		}
 	}
