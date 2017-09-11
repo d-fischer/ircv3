@@ -147,7 +147,7 @@ export default class Message<D = {}> {
 		let parsedParams = {};
 		for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(this.PARAM_SPEC)) {
 			if (paramName in params) {
-				const param = params[paramName];
+				const param = params[paramName as keyof DT];
 				if (param !== undefined) {
 					if (this.checkParam(client, param, paramSpec)) {
 						parsedParams[paramName] = new MessageParam(param, Boolean(paramSpec.trailing));
