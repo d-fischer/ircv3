@@ -8,6 +8,7 @@ export interface ConnectionInfo {
 	userName?: string;
 	realName?: string;
 	secure?: boolean;
+	reconnect?: boolean;
 }
 
 abstract class Connection extends EventEmitter {
@@ -15,6 +16,8 @@ abstract class Connection extends EventEmitter {
 	protected _port?: number;
 	protected _secure: boolean;
 	protected _connected: boolean = false;
+	protected _initialConnection: boolean = true;
+	protected _shouldReconnect: boolean = true;
 
 	private _currentLine = '';
 
@@ -23,7 +26,7 @@ abstract class Connection extends EventEmitter {
 
 	protected abstract sendRaw(line: string): void;
 
-	constructor({hostName, port, secure}: ConnectionInfo) {
+	constructor({hostName, port, secure, reconnect = true}: ConnectionInfo) {
 		super();
 		this._secure = Boolean(secure);
 		if (port) {
@@ -38,6 +41,13 @@ abstract class Connection extends EventEmitter {
 			this._host = host;
 			this._port = Number(splitPort);
 		}
+
+		this._shouldReconnect = reconnect;
+		this.on('disconnect', error => {
+			if (error && this._shouldReconnect) {
+				this.connect();
+			}
+		});
 	}
 
 	sendLine(line: string): void {

@@ -10,13 +10,15 @@ class DirectConnection extends Connection {
 		return new Promise<void>((resolve, reject) => {
 			const connectionErrorListener = (err: Error) => {
 				this.emit('disconnect', err);
-				if (!this._connected) {
+				this._connected = false;
+				if (this._initialConnection) {
 					reject(err);
 				}
 			};
 			const connectionListener = () => {
 				this._connected = true;
 				this.emit('connect');
+				this._initialConnection = false;
 				resolve();
 			};
 			if (this._secure) {
@@ -31,6 +33,7 @@ class DirectConnection extends Connection {
 			});
 			this._socket.on('close', (hadError: boolean) => {
 				this._socket = undefined;
+				this._connected = false;
 				if (!hadError) {
 					this.emit('disconnect');
 				}

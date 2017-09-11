@@ -11,6 +11,7 @@ class WebSocketConnection extends Connection {
 			this._socket.on('open', () => {
 				this._connected = true;
 				this.emit('connect');
+				this._initialConnection = false;
 				resolve();
 			});
 			this._socket.on('message', (line: string) => {
@@ -18,11 +19,12 @@ class WebSocketConnection extends Connection {
 			});
 			this._socket.onclose = ({wasClean, code, reason}) => {
 				this._socket = undefined;
+				this._connected = false;
 				if (wasClean) {
 					this.emit('disconnect');
 				} else {
 					this.emit('disconnect', new Error(`[${code}] ${reason}`));
-					if (!this._connected) {
+					if (this._initialConnection) {
 						reject();
 					}
 				}
