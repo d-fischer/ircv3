@@ -431,6 +431,10 @@ export default class Client extends EventEmitter {
 		return this._supportedChannelModes;
 	}
 
+	public get isRegistered() {
+		return this._registered;
+	}
+
 	public collect(originalMessage: Message, ...types: MessageConstructor[]) {
 		const collector = new MessageCollector(this, originalMessage, ...types);
 		this._collectors.push(collector);
