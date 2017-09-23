@@ -15,13 +15,14 @@ import {
 	Ping, Pong,
 	CapabilityNegotiation, Password, UserRegistration, NickChange,
 	PrivateMessage, Notice,
-	ChannelJoin
+	ChannelJoin, ChannelPart
 } from './Message/MessageTypes/Commands';
 
 import {
 	Reply001Welcome, Reply004ServerInfo, Reply005ISupport,
 	Error462AlreadyRegistered
 } from './Message/MessageTypes/Numerics';
+import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
@@ -40,6 +41,7 @@ export default class Client extends EventEmitter {
 
 	protected _realName: string;
 	protected _registered: boolean = false;
+	protected _manualDisconnect = false;
 
 	protected _supportsCapabilities: boolean = true;
 
@@ -264,7 +266,9 @@ export default class Client extends EventEmitter {
 		});
 
 		this._connection.on('disconnect', (reason?: Error) => {
+			this._registered = false;
 			this.emit(this.onDisconnect, reason);
+			this._manualDisconnect = false;
 		});
 
 		this._nick = connection.nick;
@@ -301,7 +305,6 @@ export default class Client extends EventEmitter {
 	}
 
 	public async connect(): Promise<void> {
-		this._registered = false;
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map;
 		await this._connection.connect();
@@ -431,6 +434,14 @@ export default class Client extends EventEmitter {
 		return this._supportedChannelModes;
 	}
 
+	public get isConnected() {
+		return this._connection.isConnected;
+	}
+
+	public get isConnecting() {
+		return this._connection.isConnecting;
+	}
+
 	public get isRegistered() {
 		return this._registered;
 	}
@@ -448,6 +459,15 @@ export default class Client extends EventEmitter {
 	// convenience methods
 	public join(channel: string, key?: string) {
 		this.sendMessage(ChannelJoin, {channel, key});
+	}
+
+	public part(channel: string) {
+		this.sendMessage(ChannelPart, {channel});
+	}
+
+	public quit(message?: string) {
+		this.sendMessage(ClientQuit, {message});
+		this._connection.disconnect();
 	}
 
 	// event helper

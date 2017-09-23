@@ -6,10 +6,12 @@ class WebSocketConnection extends Connection {
 
 	async connect() {
 		return new Promise<void>((resolve, reject) => {
+			this._connecting = true;
 			const url = `ws${this._secure ? 's' : ''}://${this._host}:${this._port || (this._secure ? 443 : 80)}`;
 			this._socket = new WebSocket(url);
 			this._socket.on('open', () => {
 				this._connected = true;
+				this._connecting = false;
 				this.emit('connect');
 				this._initialConnection = false;
 				resolve();
@@ -20,6 +22,7 @@ class WebSocketConnection extends Connection {
 			this._socket.onclose = ({wasClean, code, reason}) => {
 				this._socket = undefined;
 				this._connected = false;
+				this._connecting = false;
 				if (wasClean) {
 					this.emit('disconnect');
 				} else {
@@ -34,6 +37,7 @@ class WebSocketConnection extends Connection {
 
 	disconnect() {
 		if (this._socket) {
+			this._manualDisconnect = true;
 			this._socket.close();
 		}
 	}

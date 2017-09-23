@@ -15,9 +15,11 @@ abstract class Connection extends EventEmitter {
 	protected _host: string;
 	protected _port?: number;
 	protected _secure: boolean;
+	protected _connecting: boolean = false;
 	protected _connected: boolean = false;
 	protected _initialConnection: boolean = true;
 	protected _shouldReconnect: boolean = true;
+	protected _manualDisconnect: boolean = false;
 
 	private _currentLine = '';
 
@@ -44,7 +46,9 @@ abstract class Connection extends EventEmitter {
 
 		this._shouldReconnect = reconnect;
 		this.on('disconnect', error => {
-			if (error && this._shouldReconnect) {
+			if (this._manualDisconnect) {
+				this._manualDisconnect = false;
+			} else if (error && this._shouldReconnect) {
 				this.connect();
 			}
 		});
@@ -67,6 +71,14 @@ abstract class Connection extends EventEmitter {
 				this.emit('lineReceived', line);
 			}
 		}
+	}
+
+	get isConnecting() {
+		return this._connecting;
+	}
+
+	get isConnected() {
+		return this._connected;
 	}
 }
 

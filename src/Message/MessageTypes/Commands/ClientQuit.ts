@@ -8,7 +8,8 @@ export default class ClientQuit extends Message<ClientQuitParams> {
 	public static readonly COMMAND = 'QUIT';
 	public static readonly PARAM_SPEC: MessageParamSpec<ClientQuitParams> = {
 		message: {
-			trailing: true
+			trailing: true,
+			optional: true
 		}
 	};
 }
