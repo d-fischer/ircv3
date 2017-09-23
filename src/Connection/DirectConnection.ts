@@ -24,7 +24,7 @@ class DirectConnection extends Connection {
 				resolve();
 			};
 			if (this._secure) {
-				this._socket = tls.connect(this._port || 6697, this._host, connectionListener);
+				this._socket = tls.connect(this._port || 6697, this._host, {}, connectionListener);
 			} else {
 				this._socket = new Socket();
 				this._socket.connect(this._port || 6667, this._host, connectionListener);
