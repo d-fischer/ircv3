@@ -153,13 +153,14 @@ export default class Client extends EventEmitter {
 		});
 
 		this._connection.on('lineReceived', (line: string) => {
+			const timestamp = (new Date()).toLocaleString();
 			// tslint:disable:no-console
 			if (this._debugLevel >= 1) {
-				console.log(`> recv: \`${line}\``);
+				console.log(`[${timestamp}] > recv: \`${line}\``);
 			}
 			let parsedMessage = Message.parse(line, this);
 			if (this._debugLevel >= 2) {
-				console.log('> recv parsed:', parsedMessage);
+				console.log(`[${timestamp}] > recv parsed:`, parsedMessage);
 			}
 			this.handleEvents(parsedMessage);
 			// tslint:enable:no-console
@@ -366,9 +367,10 @@ export default class Client extends EventEmitter {
 
 	public send(message: Message): void {
 		const line = message.toString();
+		const timestamp = (new Date()).toLocaleString();
 		if (this._debugLevel >= 1) {
 			// tslint:disable-next-line:no-console
-			console.log(`< send: \`${line}\``);
+			console.log(`[${timestamp}] < send: \`${line}\``);
 		}
 		this._connection.sendLine(line);
 	}
