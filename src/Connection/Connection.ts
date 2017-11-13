@@ -9,6 +9,8 @@ export interface ConnectionInfo {
 	realName?: string;
 	secure?: boolean;
 	reconnect?: boolean;
+	pingOnInactivity?: number;
+	pingTimeout?: number;
 }
 
 abstract class Connection extends EventEmitter {

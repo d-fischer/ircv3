@@ -8,6 +8,7 @@ import MessageCollector from './Message/MessageCollector';
 import * as MessageTypes from './Message/MessageTypes';
 import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
+import randomstring = require('randomstring');
 
 import { EventEmitter, Listener } from 'typed-event-emitter';
 
@@ -41,7 +42,6 @@ export default class Client extends EventEmitter {
 
 	protected _realName: string;
 	protected _registered: boolean = false;
-	protected _manualDisconnect = false;
 
 	protected _supportsCapabilities: boolean = true;
 
@@ -83,6 +83,11 @@ export default class Client extends EventEmitter {
 
 	protected _debugLevel: number;
 
+	protected _pingOnInactivity: number;
+	protected _pingTimeout: number;
+	protected _pingCheckTimer: NodeJS.Timer;
+	protected _pingTimeoutTimer: NodeJS.Timer;
+
 	public constructor({connection, webSocket, channelTypes, debugLevel}: {
 		connection: ConnectionInfo,
 		webSocket?: boolean,
@@ -90,6 +95,9 @@ export default class Client extends EventEmitter {
 		debugLevel?: number;
 	}) {
 		super();
+
+		this._pingOnInactivity = connection.pingOnInactivity || 300;
+		this._pingTimeout = connection.pingTimeout || 120;
 
 		this._debugLevel = debugLevel || 0;
 
@@ -266,10 +274,13 @@ export default class Client extends EventEmitter {
 			this.emit(this.onNotice, target, nick, message, msg);
 		});
 
+		this.onRegister(() => this._startPingCheckTimer());
+
 		this._connection.on('disconnect', (reason?: Error) => {
 			this._registered = false;
+			clearTimeout(this._pingCheckTimer);
+			clearTimeout(this._pingTimeoutTimer);
 			this.emit(this.onDisconnect, reason);
-			this._manualDisconnect = false;
 		});
 
 		this._nick = connection.nick;
@@ -279,6 +290,24 @@ export default class Client extends EventEmitter {
 		if (channelTypes) {
 			this._channelTypes = channelTypes;
 		}
+	}
+
+	public pingCheck() {
+		const token = randomstring.generate(16);
+		const handler = this.onMessage(Pong, ({params: {message}}) => {
+			if (message === token) {
+				clearTimeout(this._pingTimeoutTimer);
+				this.removeMessageListener(handler);
+			}
+		});
+		this._pingTimeoutTimer = setTimeout(
+			() => {
+				this._connection.disconnect();
+				this.connect();
+			},
+			this._pingTimeout * 1000
+		);
+		this.sendMessage(Ping, {message: token});
 	}
 
 	public registerMessageType(cls: MessageConstructor) {
@@ -484,5 +513,12 @@ export default class Client extends EventEmitter {
 		for (const handler of handlers.values()) {
 			handler(message);
 		}
+	}
+
+	private _startPingCheckTimer() {
+		this._pingCheckTimer = setTimeout(
+			() => this.pingCheck(),
+			this._pingOnInactivity * 1000
+		);
 	}
 }
