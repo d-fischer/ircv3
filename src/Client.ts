@@ -96,8 +96,8 @@ export default class Client extends EventEmitter {
 	}) {
 		super();
 
-		this._pingOnInactivity = connection.pingOnInactivity || 300;
-		this._pingTimeout = connection.pingTimeout || 120;
+		this._pingOnInactivity = connection.pingOnInactivity || 60;
+		this._pingTimeout = connection.pingTimeout || 10;
 
 		this._debugLevel = debugLevel || 0;
 
@@ -170,6 +170,7 @@ export default class Client extends EventEmitter {
 			if (this._debugLevel >= 2) {
 				console.log(`[${timestamp}] > recv parsed:`, parsedMessage);
 			}
+			this._startPingCheckTimer();
 			this.handleEvents(parsedMessage);
 			// tslint:enable:no-console
 		});
@@ -295,19 +296,24 @@ export default class Client extends EventEmitter {
 	public pingCheck() {
 		const token = randomstring.generate(16);
 		const handler = this.onMessage(Pong, ({params: {message}}) => {
-			if (message === token) {
+			if (message !== token) {
 				clearTimeout(this._pingTimeoutTimer);
 				this.removeMessageListener(handler);
 			}
 		});
 		this._pingTimeoutTimer = setTimeout(
 			() => {
-				this._connection.disconnect();
-				this.connect();
+				this.removeMessageListener(handler);
+				this.reconnect('Ping timeout');
 			},
 			this._pingTimeout * 1000
 		);
 		this.sendMessage(Ping, {message: token});
+	}
+
+	public async reconnect(message?: string) {
+		await this.quit(message);
+		return this.connect();
 	}
 
 	public registerMessageType(cls: MessageConstructor) {
@@ -496,9 +502,16 @@ export default class Client extends EventEmitter {
 		this.sendMessage(ChannelPart, {channel});
 	}
 
-	public quit(message?: string) {
-		this.sendMessage(ClientQuit, {message});
-		this._connection.disconnect();
+	public async quit(message?: string) {
+		return new Promise<void>(resolve => {
+			this.sendMessage(ClientQuit, {message});
+			const handler = () => {
+				this._connection.removeListener('disconnect', handler);
+				resolve();
+			};
+			this._connection.addListener('disconnect', handler);
+			this._connection.disconnect();
+		});
 	}
 
 	// event helper
@@ -516,6 +529,7 @@ export default class Client extends EventEmitter {
 	}
 
 	private _startPingCheckTimer() {
+		clearTimeout(this._pingCheckTimer);
 		this._pingCheckTimer = setTimeout(
 			() => this.pingCheck(),
 			this._pingOnInactivity * 1000
