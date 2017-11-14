@@ -296,7 +296,7 @@ export default class Client extends EventEmitter {
 	public pingCheck() {
 		const token = randomstring.generate(16);
 		const handler = this.onMessage(Pong, ({params: {message}}) => {
-			if (message !== token) {
+			if (message === token) {
 				clearTimeout(this._pingTimeoutTimer);
 				this.removeMessageListener(handler);
 			}
