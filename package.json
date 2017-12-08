@@ -1,7 +1,7 @@
 {
   "name": "ircv3",
   "description": "Connect to and interact with IRC servers. IRCv3 compatible.",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "main": "lib",
   "types": "lib/index",
   "license": "MIT",
@@ -9,11 +9,17 @@
     "type": "git",
     "url": "git://github.com/d-fischer/ircv3.git"
   },
+  "scripts": {
+    "clean": "rimraf lib",
+    "prebuild": "npm run clean",
+    "build": "tsc"
+  },
   "devDependencies": {
     "@types/escape-string-regexp": "0.0.30",
     "@types/node": "^8.0.19",
     "@types/randomstring": "^1.1.6",
     "@types/ws": "3.0.0",
+    "rimraf": "^2.6.2",
     "tslint": "^5.5.0",
     "typescript": "^2.5.2"
   },
@@ -22,5 +28,8 @@
     "randomstring": "^1.1.5",
     "typed-event-emitter": "^1.0.3",
     "ws": "^3.1.0"
+  },
+  "browser": {
+    "ws": "./shim.js"
   }
 }
