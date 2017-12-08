@@ -25,7 +25,7 @@ export interface MessageParamSpecEntry {
 
 export type MessageParamSpec<D = {}> = {
 	[name in keyof D]: MessageParamSpecEntry
-};
+	};
 
 // WS doesn't pick up members of this to be actually used, so we need to turn off their inspections
 export interface MessageConstructor<T extends Message = Message, D = {}> {
@@ -34,7 +34,7 @@ export interface MessageConstructor<T extends Message = Message, D = {}> {
 	SUPPORTS_CAPTURE: boolean;
 	minParamCount: number;
 
-	new(
+	new (
 		client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>,
 		prefix?: MessagePrefix
 	): T;
@@ -65,7 +65,7 @@ export default class Message<D = {}> {
 	protected _parsedParams: D;
 	protected _client: Client;
 
-	protected _raw: string;
+	private _raw: string;
 
 	public static parse(line: string, client: Client): Message {
 		const splitLine: string[] = line.split(' ');
@@ -116,12 +116,12 @@ export default class Message<D = {}> {
 		if (hostName) {
 			let [user, host] = hostName.split('@', 2);
 			if (host) {
-				return { raw, nick, user, host };
+				return {raw, nick, user, host};
 			} else {
-				return { raw, nick, host: user };
+				return {raw, nick, host: user};
 			}
 		} else {
-			return { raw, nick };
+			return {raw, nick};
 		}
 	}
 
