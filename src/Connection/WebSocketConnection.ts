@@ -9,6 +9,12 @@ class WebSocketConnection extends Connection {
 			this._connecting = true;
 			const url = `ws${this._secure ? 's' : ''}://${this._host}:${this._port || (this._secure ? 443 : 80)}`;
 			this._socket = new WebSocket(url);
+
+			// I don't like this, but it works
+			if (typeof this._socket.on === 'undefined') {
+				this._socket.on = this._socket.addEventListener;
+			}
+
 			this._socket.on('open', () => {
 				this._connected = true;
 				this._connecting = false;
@@ -17,9 +23,10 @@ class WebSocketConnection extends Connection {
 				resolve();
 			});
 			this._socket.on('message', (line: string) => {
-				this.receiveRaw(line);
+				// I also don't loke this
+				this.receiveRaw(typeof line === 'string' ? line : line.data);
 			});
-			this._socket.onclose = ({wasClean, code, reason}) => {
+			this._socket.onclose = ({ wasClean, code, reason }) => {
 				this._socket = undefined;
 				this._connected = false;
 				this._connecting = false;
