@@ -8,4 +8,6 @@ if (typeof WebSocket !== 'undefined') {
   ws = window.WebSocket || window.MozWebSocket;
 }
 
+ws.prototype.on = ws.prototype.addEventListener;
+
 module.exports = ws;

@@ -9,12 +9,6 @@ class WebSocketConnection extends Connection {
 			this._connecting = true;
 			const url = `ws${this._secure ? 's' : ''}://${this._host}:${this._port || (this._secure ? 443 : 80)}`;
 			this._socket = new WebSocket(url);
-
-			// I don't like this, but it works
-			if (typeof this._socket.on === 'undefined') {
-				this._socket.on = this._socket.addEventListener;
-			}
-
 			this._socket.on('open', () => {
 				this._connected = true;
 				this._connecting = false;
