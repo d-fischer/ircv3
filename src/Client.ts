@@ -60,9 +60,9 @@ export default class Client extends EventEmitter {
 	onNotice: (handler: (target: string, user: string, message: string, msg: Notice) => void)
 		=> Listener = this.registerEvent();
 
-	onCtcp: (handler: (target: string, user: string, command: string, message: string, msg: PrivateMessage) => void)
+	onCtcp: (handler: (target: string, user: string, command: string, params: string, msg: PrivateMessage) => void)
 		=> Listener = this.registerEvent();
-	onCtcpReply: (handler: (target: string, user: string, command: string, message: string, msg: Notice) => void)
+	onCtcpReply: (handler: (target: string, user: string, command: string, params: string, msg: Notice) => void)
 		=> Listener = this.registerEvent();
 
 	// sane defaults based on RFC 1459
@@ -254,9 +254,9 @@ export default class Client extends EventEmitter {
 
 			if (ctcpMessage) {
 				if (ctcpMessage.command === 'ACTION') {
-					this.emit(this.onAction, target, nick, ctcpMessage.message, msg);
+					this.emit(this.onAction, target, nick, ctcpMessage.params, msg);
 				} else {
-					this.emit(this.onCtcp, target, nick, ctcpMessage.command, ctcpMessage.message, msg);
+					this.emit(this.onCtcp, target, nick, ctcpMessage.command, ctcpMessage.params, msg);
 				}
 			}
 
@@ -269,7 +269,7 @@ export default class Client extends EventEmitter {
 			const nick = msg.prefix && msg.prefix.nick;
 
 			if (ctcpMessage) {
-				this.emit(this.onCtcpReply, target, nick, ctcpMessage.command, ctcpMessage.message, msg);
+				this.emit(this.onCtcpReply, target, nick, ctcpMessage.command, ctcpMessage.params, msg);
 			}
 
 			this.emit(this.onNotice, target, nick, message, msg);

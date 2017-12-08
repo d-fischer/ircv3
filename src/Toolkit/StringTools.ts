@@ -46,7 +46,7 @@ export function isChannel(str: string, validTypes: string = '#&') {
 
 export interface ParsedCtcp {
 	command: string;
-	message: string;
+	params: string;
 }
 
 export function decodeCtcp(message: string): ParsedCtcp | false {
@@ -55,14 +55,19 @@ export function decodeCtcp(message: string): ParsedCtcp | false {
 		return false;
 	}
 
-	let strippedMessage = message.substring(1);
+	message = message.substring(1);
 	// remove trailing \x01 if present
-	if (strippedMessage.slice(-1) === '\x01') {
-		strippedMessage = strippedMessage.slice(0, -1);
+	if (message.slice(-1) === '\x01') {
+		message = message.slice(0, -1);
+	}
+
+	if (!message) {
+		// completely empty CTCPs don't exist either, I think
+		return false;
 	}
 
 	// unescape weirdly escaped stuff
-	strippedMessage = strippedMessage.replace(/\x10(.)/, (_, escapedChar) => {
+	message = message.replace(/\x10(.)/, (_, escapedChar) => {
 		return {
 			0: '\0',
 			n: '\n',
@@ -71,9 +76,8 @@ export function decodeCtcp(message: string): ParsedCtcp | false {
 		}[escapedChar] || '';
 	});
 
-	const splitMessage = strippedMessage.split(' ');
-	let command = splitMessage.shift();
+	let [command, params = ''] = message.split(' ', 2);
 	command = command ? command.toUpperCase() : '';
 
-	return {command, message: splitMessage.join(' ')};
+	return {command, params};
 }
