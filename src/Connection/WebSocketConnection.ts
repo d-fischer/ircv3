@@ -17,10 +17,9 @@ class WebSocketConnection extends Connection {
 				resolve();
 			});
 			this._socket.on('message', (line: string) => {
-				// I also don't loke this
-				this.receiveRaw(typeof line === 'string' ? line : line.data);
+				this.receiveRaw(line);
 			});
-			this._socket.onclose = ({ wasClean, code, reason }) => {
+			this._socket.onclose = ({wasClean, code, reason}) => {
 				this._socket = undefined;
 				this._connected = false;
 				this._connecting = false;
