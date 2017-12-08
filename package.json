@@ -28,5 +28,8 @@
     "randomstring": "^1.1.5",
     "typed-event-emitter": "^1.0.3",
     "ws": "^3.1.0"
+  },
+  "browser": {
+    "ws": "./shim.js"
   }
 }
