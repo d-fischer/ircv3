@@ -1,5 +1,5 @@
 import Connection from './Connection';
-import * as WebSocket from 'ws';
+import * as WebSocket from 'universal-websocket-client';
 
 class WebSocketConnection extends Connection {
 	private _socket?: WebSocket;
@@ -16,9 +16,9 @@ class WebSocketConnection extends Connection {
 				this._initialConnection = false;
 				resolve();
 			});
-			this._socket.on('message', (line: string) => {
-				this.receiveRaw(line);
-			});
+			this._socket.onmessage = ({data}: {data: WebSocket.Data}) => {
+				this.receiveRaw(data.toString());
+			};
 			this._socket.onclose = ({wasClean, code, reason}) => {
 				this._socket = undefined;
 				this._connected = false;
