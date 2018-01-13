@@ -10,7 +10,7 @@ import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
 import randomstring = require('randomstring');
 
-import { EventEmitter, Listener } from 'typed-event-emitter';
+import { EventEmitter, Listener } from './TypedEventEmitter';
 
 import {
 	Ping, Pong,

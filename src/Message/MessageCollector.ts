@@ -1,6 +1,6 @@
 import Message, { MessageConstructor } from './Message';
 import Client from '../Client';
-import { Listener } from 'typed-event-emitter';
+import { Listener } from '../TypedEventEmitter';
 
 export type MessageCollectorEndCallback = (messages: Message[]) => void;
 
