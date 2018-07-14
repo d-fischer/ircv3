@@ -25,6 +25,19 @@
 // This file was taken from https://github.com/tenry92/typed-event-emitter/blob/master/index.ts (+ added more type information)
 // We can't use the published npm package because it doesn't compile down to es5, which causes errors with the super() call we need to use
 
+export class Listener {
+	constructor(
+		public owner: EventEmitter,
+		public event: Function,
+		public listener: Function
+	) {
+	}
+
+	unbind() {
+		this.owner.removeListener(this);
+	}
+}
+
 export class EventEmitter {
 	private eventListeners: Map<Function, Function[]>;
 
@@ -54,11 +67,11 @@ export class EventEmitter {
 		if (arguments.length === 0) {
 			this.eventListeners.clear();
 		} else if (arguments.length === 1 && typeof arguments[0] === 'object') {
-			let id = arguments[0];
+			let id: Listener = arguments[0];
 			this.removeListener(id.event, id.listener);
 		} else if (arguments.length >= 1) {
-			let event = arguments[0] as Function;
-			let listener = arguments[1] as Function;
+			let event: Function = arguments[0];
+			let listener: Function = arguments[1];
 
 			if (this.eventListeners.has(event)) {
 				let listeners = this.eventListeners.get(event)!;
@@ -91,18 +104,5 @@ export class EventEmitter {
 		};
 
 		return eventBinder;
-	}
-}
-
-export class Listener {
-	constructor(
-		public owner: EventEmitter,
-		public event: Function,
-		public listener: Function
-	) {
-	}
-
-	unbind() {
-		this.owner.removeListener(this);
 	}
 }

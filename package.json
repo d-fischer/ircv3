@@ -9,6 +9,11 @@
     "type": "git",
     "url": "git://github.com/d-fischer/ircv3.git"
   },
+  "scripts": {
+    "lint": "tslint --project .",
+    "build": "tsc",
+    "prepare": "yon run lint && yon run build"
+  },
   "devDependencies": {
     "@types/escape-string-regexp": "0.0.30",
     "@types/node": "^8.0.19",
