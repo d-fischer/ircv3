@@ -25,7 +25,7 @@ export interface MessageParamSpecEntry {
 
 export type MessageParamSpec<D = {}> = {
 	[name in keyof D]: MessageParamSpecEntry
-	};
+};
 
 // WS doesn't pick up members of this to be actually used, so we need to turn off their inspections
 export interface MessageConstructor<T extends Message = Message, D = {}> {
@@ -149,8 +149,8 @@ export default class Message<D = {}> {
 			if (paramName in params) {
 				const param = params[paramName as keyof DT];
 				if (param !== undefined) {
-					if (this.checkParam(client, param, paramSpec)) {
-						parsedParams[paramName] = new MessageParam(param, Boolean(paramSpec.trailing));
+					if (this.checkParam(client, param!, paramSpec)) {
+						parsedParams[paramName] = new MessageParam(param!, Boolean(paramSpec.trailing));
 					} else if (!paramSpec.optional) {
 						throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
 					}
@@ -301,6 +301,10 @@ export default class Message<D = {}> {
 
 	public get tags(): Map<string, string> {
 		return new Map(this._tags || []);
+	}
+
+	public get rawLine() {
+		return this._raw;
 	}
 
 	public send(): void {

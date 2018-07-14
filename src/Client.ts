@@ -3,7 +3,7 @@ import WebSocketConnection from './Connection/WebSocketConnection';
 import DirectConnection from './Connection/DirectConnection';
 import { decodeCtcp, padLeft } from './Toolkit/StringTools';
 import Message, { MessageConstructor } from './Message/Message';
-import ObjectTools from './Toolkit/ObjectTools';
+import ObjectTools, { ObjMap } from './Toolkit/ObjectTools';
 import MessageCollector from './Message/MessageCollector';
 import * as MessageTypes from './Message/MessageTypes';
 import Capability, { ServerCapability } from './Capability/Capability';
@@ -34,6 +34,10 @@ export interface SupportedChannelModes {
 	paramWhenSet: string;
 	noParam: string;
 }
+
+export type MessageParams<D> = {
+	[name in keyof D]?: string;
+};
 
 export default class Client extends EventEmitter {
 	protected _connection: Connection;
@@ -295,7 +299,8 @@ export default class Client extends EventEmitter {
 
 	public pingCheck() {
 		const token = randomstring.generate(16);
-		const handler = this.onMessage(Pong, ({params: {message}}) => {
+		const handler = this.onMessage(Pong, (msg: Pong) => {
+			const {params: {message}} = msg;
 			if (message === token) {
 				clearTimeout(this._pingTimeoutTimer);
 				this.removeMessageListener(handler);
@@ -356,7 +361,7 @@ export default class Client extends EventEmitter {
 	}
 
 	protected async _negotiateCapabilities(capList: ServerCapability[]): Promise<ServerCapability[] | Error> {
-		const mappedCapList = ObjectTools.fromArray(capList, cap => ({[cap.name]: cap}));
+		const mappedCapList: ObjMap<object, ServerCapability> = ObjectTools.fromArray(capList, cap => ({[cap.name]: cap}));
 		const messages = await this.sendMessageAndCaptureReply(CapabilityNegotiation, {
 			command: 'REQ',
 			capabilities: capList.map(cap => cap.name).join(' ')
@@ -444,21 +449,21 @@ export default class Client extends EventEmitter {
 
 	public createMessage<T extends Message, D>(
 		type: MessageConstructor<T, D>,
-		params: {[name in keyof D]?: string}
+		params: MessageParams<D>
 	): T {
 		return type.create(this, params);
 	}
 
 	public sendMessage<T extends Message, D>(
 		type: MessageConstructor<T, D>,
-		params: {[name in keyof D]?: string}
+		params: MessageParams<D>
 	): void {
 		this.createMessage(type, params).send();
 	}
 
 	public async sendMessageAndCaptureReply<T extends Message, D>(
 		type: MessageConstructor<T, D>,
-		params: {[name in keyof D]?: string}
+		params: MessageParams<D>
 	): Promise<Message[]> {
 		return this.createMessage(type, params).sendAndCaptureReply();
 	}
@@ -483,12 +488,14 @@ export default class Client extends EventEmitter {
 		return this._registered;
 	}
 
+	/** @private */
 	public collect(originalMessage: Message, ...types: MessageConstructor[]) {
 		const collector = new MessageCollector(this, originalMessage, ...types);
 		this._collectors.push(collector);
 		return collector;
 	}
 
+	/** @private */
 	public stopCollect(collector: MessageCollector): void {
 		this._collectors.splice(this._collectors.findIndex(value => value === collector), 1);
 	}
