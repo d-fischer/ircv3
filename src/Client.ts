@@ -520,6 +520,10 @@ export default class Client extends EventEmitter {
 		});
 	}
 
+	public sendPrivmsg(channel: string, message: string) {
+		this.sendMessage(PrivateMessage, { target: channel, message });
+	}
+
 	// event helper
 	private handleEvents(message: Message): void {
 		this._collectors.some(collector => collector.collect(message));
