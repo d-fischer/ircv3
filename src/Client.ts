@@ -8,7 +8,6 @@ import MessageCollector from './Message/MessageCollector';
 import * as MessageTypes from './Message/MessageTypes';
 import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
-import randomstring = require('randomstring');
 
 import { EventEmitter, Listener } from './TypedEventEmitter';
 
@@ -298,7 +297,7 @@ export default class Client extends EventEmitter {
 	}
 
 	public pingCheck() {
-		const token = randomstring.generate(16);
+		const token = Date.now().toString();
 		const handler = this.onMessage(Pong, (msg: Pong) => {
 			const {params: {message}} = msg;
 			if (message === token) {

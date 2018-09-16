@@ -17,14 +17,12 @@
   "devDependencies": {
     "@types/escape-string-regexp": "0.0.30",
     "@types/node": "^8.0.19",
-    "@types/randomstring": "^1.1.6",
     "@types/ws": "3.0.0",
     "tslint": "^5.5.0",
     "typescript": "^2.5.2"
   },
   "dependencies": {
     "escape-string-regexp": "^1.0.5",
-    "randomstring": "^1.1.5",
     "universal-websocket-client": "^1.0.1",
     "ws": "^3.1.0"
   }
