@@ -99,13 +99,13 @@ export default class Client extends EventEmitter {
 
 	private _logger: Logger;
 
-	public constructor({connection, webSocket, channelTypes, logLevel = LogLevel.WARNING}: ClientOptions) {
+	public constructor({ connection, webSocket, channelTypes, logLevel = LogLevel.WARNING }: ClientOptions) {
 		super();
 
 		const { pingOnInactivity = 60, pingTimeout = 10 } = connection;
 		this._pingOnInactivity = pingOnInactivity;
 		this._pingTimeout = pingTimeout;
-		this._logger = new Logger({name: 'ircv3', emoji: true, minLevel: logLevel});
+		this._logger = new Logger({ name: 'ircv3', emoji: true, minLevel: logLevel });
 
 		if (webSocket) {
 			this._connection = new WebSocketConnection(connection);
@@ -152,15 +152,15 @@ export default class Client extends EventEmitter {
 						.map(([, cap]) => cap);
 				});
 				this._negotiateCapabilityBatch(capabilitiesToNegotiate).then(() => {
-					this.sendMessage(CapabilityNegotiation, {command: 'END'});
+					this.sendMessage(CapabilityNegotiation, { command: 'END' });
 					this._registered = true;
 					this.emit(this.onRegister);
 				});
 			});
 			if (connection.password) {
-				this.sendMessage(Password, {password: connection.password});
+				this.sendMessage(Password, { password: connection.password });
 			}
-			this.sendMessage(NickChange, {nick: this._nick});
+			this.sendMessage(NickChange, { nick: this._nick });
 			this.sendMessage(UserRegistration, {
 				user: this._userName,
 				mode: '8',
@@ -177,7 +177,7 @@ export default class Client extends EventEmitter {
 			this.handleEvents(parsedMessage);
 		});
 
-		this.onMessage(CapabilityNegotiation, ({params: {command, capabilities}}: CapabilityNegotiation) => {
+		this.onMessage(CapabilityNegotiation, ({ params: { command, capabilities } }: CapabilityNegotiation) => {
 			const caps = capabilities.split(' ');
 
 			// tslint:disable-next-line:switch-default
@@ -217,8 +217,8 @@ export default class Client extends EventEmitter {
 			}
 		});
 
-		this.onMessage(Ping, ({params: {message}}: Ping) => {
-			this.sendMessage(Pong, {message});
+		this.onMessage(Ping, ({ params: { message } }: Ping) => {
+			this.sendMessage(Pong, { message });
 		});
 
 		this.onMessage(Reply001Welcome, () => {
@@ -228,18 +228,18 @@ export default class Client extends EventEmitter {
 			}
 		});
 
-		this.onMessage(Reply004ServerInfo, ({params: {userModes}}: Reply004ServerInfo) => {
+		this.onMessage(Reply004ServerInfo, ({ params: { userModes } }: Reply004ServerInfo) => {
 			if (userModes) {
 				this._supportedUserModes = userModes;
 			}
 		});
 
-		this.onMessage(Reply005ISupport, ({params: {supports}}: Reply005ISupport) => {
+		this.onMessage(Reply005ISupport, ({ params: { supports } }: Reply005ISupport) => {
 			this._supportedFeatures = Object.assign(
 				this._supportedFeatures,
 				ObjectTools.fromArray(supports.split(' '), (part: string) => {
 					const [support, param] = part.split('=', 2);
-					return {[support]: param || true};
+					return { [support]: param || true };
 				})
 			);
 		});
@@ -255,7 +255,7 @@ export default class Client extends EventEmitter {
 		});
 
 		this.onMessage(PrivateMessage, (msg: PrivateMessage) => {
-			const {params: {target, message}} = msg;
+			const { params: { target, message } } = msg;
 			const ctcpMessage = decodeCtcp(message);
 			const nick = msg.prefix && msg.prefix.nick;
 
@@ -271,7 +271,7 @@ export default class Client extends EventEmitter {
 		});
 
 		this.onMessage(Notice, (msg: Notice) => {
-			const {params: {target, message}} = msg;
+			const { params: { target, message } } = msg;
 			const ctcpMessage = decodeCtcp(message);
 			const nick = msg.prefix && msg.prefix.nick;
 
@@ -309,7 +309,7 @@ export default class Client extends EventEmitter {
 		const now = Date.now();
 		const nowStr = now.toString();
 		const handler = this.onMessage(Pong, (msg: Pong) => {
-			const {params: {message}} = msg;
+			const { params: { message } } = msg;
 			if (message === nowStr) {
 				this._logger.debug1(`Current ping: ${Date.now() - now}ms`);
 				clearTimeout(this._pingTimeoutTimer);
@@ -324,7 +324,7 @@ export default class Client extends EventEmitter {
 			},
 			this._pingTimeout * 1000
 		);
-		this.sendMessage(Ping, {message: nowStr});
+		this.sendMessage(Ping, { message: nowStr });
 	}
 
 	public async reconnect(message?: string) {
@@ -365,6 +365,26 @@ export default class Client extends EventEmitter {
 		this.emit(this.onConnect);
 	}
 
+	public async waitForRegistration() {
+		if (this._registered) {
+			return;
+		}
+
+		return new Promise((resolve, reject) => {
+			const registerListener = this.onRegister(() => {
+				registerListener.unbind();
+				disconnectListener.unbind();
+				resolve();
+			});
+
+			const disconnectListener = this.onDisconnect(() => {
+				registerListener.unbind();
+				disconnectListener.unbind();
+				reject();
+			});
+		});
+	}
+
 	protected async _negotiateCapabilityBatch(
 		capabilities: ServerCapability[][]
 	): Promise<(ServerCapability[] | Error)[]> {
@@ -374,7 +394,7 @@ export default class Client extends EventEmitter {
 	}
 
 	protected async _negotiateCapabilities(capList: ServerCapability[]): Promise<ServerCapability[] | Error> {
-		const mappedCapList: ObjMap<object, ServerCapability> = ObjectTools.fromArray(capList, cap => ({[cap.name]: cap}));
+		const mappedCapList: ObjMap<object, ServerCapability> = ObjectTools.fromArray(capList, cap => ({ [cap.name]: cap }));
 		const messages = await this.sendMessageAndCaptureReply(CapabilityNegotiation, {
 			command: 'REQ',
 			capabilities: capList.map(cap => cap.name).join(' ')
@@ -513,11 +533,11 @@ export default class Client extends EventEmitter {
 
 	// convenience methods
 	public join(channel: string, key?: string) {
-		this.sendMessage(ChannelJoin, {channel, key});
+		this.sendMessage(ChannelJoin, { channel, key });
 	}
 
 	public part(channel: string) {
-		this.sendMessage(ChannelPart, {channel});
+		this.sendMessage(ChannelPart, { channel });
 	}
 
 	public async quit(message?: string) {
@@ -527,7 +547,7 @@ export default class Client extends EventEmitter {
 				resolve();
 			};
 			this._connection.addListener('disconnect', handler);
-			this.sendMessage(ClientQuit, {message});
+			this.sendMessage(ClientQuit, { message });
 			this._connection.disconnect();
 		});
 	}
