@@ -371,13 +371,14 @@ export default class Client extends EventEmitter {
 		}
 
 		return new Promise((resolve, reject) => {
-			const registerListener = this.onRegister(() => {
+			let registerListener: Listener, disconnectListener: Listener;
+			registerListener = this.onRegister(() => {
 				registerListener.unbind();
 				disconnectListener.unbind();
 				resolve();
 			});
 
-			const disconnectListener = this.onDisconnect(() => {
+			disconnectListener = this.onDisconnect(() => {
 				registerListener.unbind();
 				disconnectListener.unbind();
 				reject();
