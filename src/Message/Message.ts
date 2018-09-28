@@ -27,7 +27,6 @@ export type MessageParamSpec<D = {}> = {
 	[name in keyof D]: MessageParamSpecEntry
 };
 
-// WS doesn't pick up members of this to be actually used, so we need to turn off their inspections
 export interface MessageConstructor<T extends Message = Message, D = {}> {
 	COMMAND: string;
 	PARAM_SPEC: MessageParamSpec<D>;
@@ -137,7 +136,6 @@ export default class Message<D = {}> {
 		return tags;
 	}
 
-	// noinspection JSUnusedGlobalSymbols
 	public static create<T extends Message, DT>(
 		this: MessageConstructor<T>,
 		client: Client,
@@ -184,7 +182,7 @@ export default class Message<D = {}> {
 	public toString(): string {
 		const cls = this.constructor as MessageConstructor<this, D>;
 		const specKeys = Object.keys(cls.PARAM_SPEC);
-		return [this._command, ...specKeys.map((paramName: keyof D): string | void => {
+		return [this._command, ...specKeys.map((paramName: Extract<keyof D, string>): string | void => {
 			const param = this._parsedParams[paramName];
 			if (param instanceof MessageParam) {
 				return (param.trailing ? ':' : '') + param.value;
@@ -280,19 +278,16 @@ export default class Message<D = {}> {
 		return cls.checkParam(this._client, param, spec);
 	}
 
-	// noinspection JSUnusedGlobalSymbols
 	public static get minParamCount(): number {
 		return Object.values(this.PARAM_SPEC).filter((spec: MessageParamSpecEntry) => !spec.optional).length;
 	}
 
-	// WS doesn't pick this up in destructuring, so we need to turn off the inspection
-	// noinspection JSUnusedGlobalSymbols
-	public get params(): {[name in keyof D]: string} {
+	public get params(): {[name in Extract<keyof D, string>]: string} {
 		return ObjectTools.map(this._parsedParams as D, (param: MessageParam) => param.value);
 	}
 
 	public get prefix(): MessagePrefix | undefined {
-		return Object.assign({}, this._prefix);
+		return this._prefix && Object.assign({}, this._prefix);
 	}
 
 	public get command(): string {

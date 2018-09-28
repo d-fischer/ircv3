@@ -82,6 +82,14 @@ abstract class Connection extends EventEmitter {
 	get isConnected() {
 		return this._connected;
 	}
+
+	get host() {
+		return this._host;
+	}
+
+	get port() {
+		return this._port;
+	}
 }
 
 export default Connection;

@@ -14,13 +14,11 @@
     "declaration": true,
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
+    "strict": true,
+    "strictFunctionTypes": false,
+    "strictPropertyInitialization": false,
     "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true,
-    "keyofStringsOnly": true
+    "noUnusedLocals": true
   },
   "exclude": [
     "node_modules",

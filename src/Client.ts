@@ -23,6 +23,7 @@ import {
 	Error462AlreadyRegistered
 } from './Message/MessageTypes/Numerics';
 import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
+import Logger, { LogLevel } from '@d-fischer/logger';
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
@@ -37,6 +38,13 @@ export interface SupportedChannelModes {
 export type MessageParams<D> = {
 	[name in keyof D]?: string;
 };
+
+interface ClientOptions {
+	connection: ConnectionInfo;
+	webSocket?: boolean;
+	channelTypes?: string;
+	logLevel?: number;
+}
 
 export default class Client extends EventEmitter {
 	protected _connection: Connection;
@@ -84,25 +92,20 @@ export default class Client extends EventEmitter {
 	protected _serverCapabilities: Map<string, ServerCapability> = new Map;
 	protected _negotiatedCapabilities: Map<string, ServerCapability> = new Map;
 
-	protected _debugLevel: number;
-
 	protected _pingOnInactivity: number;
 	protected _pingTimeout: number;
 	protected _pingCheckTimer: NodeJS.Timer;
 	protected _pingTimeoutTimer: NodeJS.Timer;
 
-	public constructor({connection, webSocket, channelTypes, debugLevel}: {
-		connection: ConnectionInfo,
-		webSocket?: boolean,
-		channelTypes?: string,
-		debugLevel?: number;
-	}) {
+	private _logger: Logger;
+
+	public constructor({connection, webSocket, channelTypes, logLevel = LogLevel.WARNING}: ClientOptions) {
 		super();
 
-		this._pingOnInactivity = connection.pingOnInactivity || 60;
-		this._pingTimeout = connection.pingTimeout || 10;
-
-		this._debugLevel = debugLevel || 0;
+		const { pingOnInactivity = 60, pingTimeout = 10 } = connection;
+		this._pingOnInactivity = pingOnInactivity;
+		this._pingTimeout = pingTimeout;
+		this._logger = new Logger({name: 'ircv3', emoji: true, minLevel: logLevel});
 
 		if (webSocket) {
 			this._connection = new WebSocketConnection(connection);
@@ -117,11 +120,13 @@ export default class Client extends EventEmitter {
 		}
 
 		this._connection.on('connect', () => {
+			this._logger.info(`Connection to server ${this._connection.host}:${this._connection.port} established`);
 			this.sendMessageAndCaptureReply(CapabilityNegotiation, {
 				command: 'LS',
 				version: '302'
 			}).then((capReply: CapabilityNegotiation[]) => {
 				if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
+					this._logger.debug1('Server does not support capabilities');
 					return;
 				}
 				this._supportsCapabilities = true;
@@ -139,6 +144,7 @@ export default class Client extends EventEmitter {
 						};
 					}));
 				this._serverCapabilities = new Map<string, ServerCapability>(Object.entries(Object.assign({}, ...capLists)));
+				this._logger.debug1(`Capabilities supported by server: ${Array.from(this._serverCapabilities.keys()).join(', ')}`);
 				const capabilitiesToNegotiate = capLists.map(list => {
 					const capNames = Object.keys(list);
 					return Array.from(this._clientCapabilities.entries())
@@ -164,25 +170,21 @@ export default class Client extends EventEmitter {
 		});
 
 		this._connection.on('lineReceived', (line: string) => {
-			const timestamp = (new Date()).toLocaleString();
-			// tslint:disable:no-console
-			if (this._debugLevel >= 1) {
-				console.log(`[${timestamp}] > recv: \`${line}\``);
-			}
+			this._logger.debug2(`Received message: ${line}`);
 			let parsedMessage = Message.parse(line, this);
-			if (this._debugLevel >= 2) {
-				console.log(`[${timestamp}] > recv parsed:`, parsedMessage);
-			}
+			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
 			this._startPingCheckTimer();
 			this.handleEvents(parsedMessage);
-			// tslint:enable:no-console
 		});
 
 		this.onMessage(CapabilityNegotiation, ({params: {command, capabilities}}: CapabilityNegotiation) => {
+			const caps = capabilities.split(' ');
+
 			// tslint:disable-next-line:switch-default
 			switch (command.toUpperCase()) {
 				case 'NEW': {
-					const capList = ObjectTools.fromArray<string, ServerCapability, {}>(capabilities.split(' '), (part: string) => {
+					this._logger.debug1(`Server registered new capabilities: ${caps.join(', ')}`);
+					const capList = ObjectTools.fromArray<string, ServerCapability, {}>(caps, (part: string) => {
 						if (!part) {
 							return {};
 						}
@@ -205,7 +207,8 @@ export default class Client extends EventEmitter {
 				}
 
 				case 'DEL': {
-					for (const cap of capabilities.split(' ')) {
+					this._logger.debug1(`Server removed capabilities: ${caps.join(', ')}`);
+					for (const cap of caps) {
 						this._serverCapabilities.delete(cap);
 						this._negotiatedCapabilities.delete(cap);
 					}
@@ -245,6 +248,7 @@ export default class Client extends EventEmitter {
 			// what, I thought we are not registered yet?
 			if (!this._registered) {
 				// screw this, we are now.
+				this._logger.warn('We thought we\'re not registered yet, but we actually are');
 				this._registered = true;
 				this.emit(this.onRegister);
 			}
@@ -284,6 +288,11 @@ export default class Client extends EventEmitter {
 			this._registered = false;
 			clearTimeout(this._pingCheckTimer);
 			clearTimeout(this._pingTimeoutTimer);
+			if (reason) {
+				this._logger.err(`Disconnected unexpectedly: ${reason.message}`);
+			} else {
+				this._logger.info('Disconnected from the server');
+			}
 			this.emit(this.onDisconnect, reason);
 		});
 
@@ -297,22 +306,25 @@ export default class Client extends EventEmitter {
 	}
 
 	public pingCheck() {
-		const token = Date.now().toString();
+		const now = Date.now();
+		const nowStr = now.toString();
 		const handler = this.onMessage(Pong, (msg: Pong) => {
 			const {params: {message}} = msg;
-			if (message === token) {
+			if (message === nowStr) {
+				this._logger.debug1(`Current ping: ${Date.now() - now}ms`);
 				clearTimeout(this._pingTimeoutTimer);
 				this.removeMessageListener(handler);
 			}
 		});
 		this._pingTimeoutTimer = setTimeout(
 			() => {
+				this._logger.warn(`Reconnecting because the last ping took over ${this._pingTimeout} seconds`);
 				this.removeMessageListener(handler);
 				this.reconnect('Ping timeout');
 			},
 			this._pingTimeout * 1000
 		);
-		this.sendMessage(Ping, {message: token});
+		this.sendMessage(Ping, {message: nowStr});
 	}
 
 	public async reconnect(message?: string) {
@@ -322,6 +334,7 @@ export default class Client extends EventEmitter {
 
 	public registerMessageType(cls: MessageConstructor) {
 		if (cls.COMMAND !== '') {
+			this._logger.debug1(`Registering message type ${cls.COMMAND}`);
 			this._registeredMessageTypes.set(cls.COMMAND.toUpperCase(), cls);
 		}
 	}
@@ -347,6 +360,7 @@ export default class Client extends EventEmitter {
 	public async connect(): Promise<void> {
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map;
+		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
 		await this._connection.connect();
 		this.emit(this.onConnect);
 	}
@@ -373,10 +387,11 @@ export default class Client extends EventEmitter {
 		if (!(capReply instanceof CapabilityNegotiation)) {
 			throw new Error(`capability negotiation failed unexpectedly with "${capReply.command}" command`);
 		}
+		const negotiatedCapNames = capReply.params.capabilities.split(' ').filter(c => c);
 		if (capReply.params.command === 'ACK') {
 			// filter is necessary because some networks seem to add trailing spaces...
-			const newCapNames = capReply.params.capabilities.split(' ').filter(c => c);
-			const newNegotiatedCaps: ServerCapability[] = newCapNames.map(capName => mappedCapList[capName]);
+			this._logger.debug1(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
+			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(capName => mappedCapList[capName]);
 			for (const newCap of newNegotiatedCaps) {
 				let mergedCap = this._clientCapabilities.get(newCap.name) as ServerCapability;
 				mergedCap.param = newCap.param;
@@ -384,6 +399,7 @@ export default class Client extends EventEmitter {
 			}
 			return newNegotiatedCaps;
 		} else {
+			this._logger.debug1(`Failed to negotiate capabilities: ${negotiatedCapNames.join(', ')}`);
 			return new Error('capabilities failed to negotiate');
 		}
 	}
@@ -406,11 +422,7 @@ export default class Client extends EventEmitter {
 
 	public send(message: Message): void {
 		const line = message.toString();
-		const timestamp = (new Date()).toLocaleString();
-		if (this._debugLevel >= 1) {
-			// tslint:disable-next-line:no-console
-			console.log(`[${timestamp}] < send: \`${line}\``);
-		}
+		this._logger.debug2(`Sending message: ${line}`);
 		this._connection.sendLine(line);
 	}
 
@@ -510,12 +522,12 @@ export default class Client extends EventEmitter {
 
 	public async quit(message?: string) {
 		return new Promise<void>(resolve => {
-			this.sendMessage(ClientQuit, {message});
 			const handler = () => {
 				this._connection.removeListener('disconnect', handler);
 				resolve();
 			};
 			this._connection.addListener('disconnect', handler);
+			this.sendMessage(ClientQuit, {message});
 			this._connection.disconnect();
 		});
 	}
