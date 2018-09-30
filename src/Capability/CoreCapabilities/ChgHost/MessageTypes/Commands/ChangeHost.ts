@@ -6,8 +6,8 @@ export interface ChgHostParams {
 }
 
 export default class ChgHost extends Message<ChgHostParams> {
-	public static readonly COMMAND = 'CHGHOST';
-	public static readonly PARAM_SPEC: MessageParamSpec<ChgHost> = {
+	static readonly COMMAND = 'CHGHOST';
+	static readonly PARAM_SPEC: MessageParamSpec<ChgHost> = {
 		newUser: {},
 		newHost: {}
 	};

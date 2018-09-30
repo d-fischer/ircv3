@@ -8,13 +8,13 @@ export interface UserRegistrationParams {
 }
 
 export default class UserRegistration extends Message<UserRegistrationParams> {
-	public static readonly COMMAND = 'USER';
-	public static readonly PARAM_SPEC: MessageParamSpec<UserRegistration> = {
+	static readonly COMMAND = 'USER';
+	static readonly PARAM_SPEC: MessageParamSpec<UserRegistration> = {
 		user: {},
 		mode: {},
 		unused: {},
 		realName: {
 			trailing: true
-		},
+		}
 	};
 }

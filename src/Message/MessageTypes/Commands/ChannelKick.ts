@@ -7,8 +7,8 @@ export interface ChannelKickParams {
 }
 
 export default class ChannelKick extends Message<ChannelKickParams> {
-	public static readonly COMMAND = 'KICK';
-	public static readonly PARAM_SPEC: MessageParamSpec<ChannelKick> = {
+	static readonly COMMAND = 'KICK';
+	static readonly PARAM_SPEC: MessageParamSpec<ChannelKick> = {
 		channel: {
 			type: 'channel'
 		},

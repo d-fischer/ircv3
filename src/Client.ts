@@ -54,7 +54,7 @@ export default class Client extends EventEmitter {
 	protected _supportsCapabilities: boolean = true;
 
 	protected _events: Map<string, EventHandlerList> = new Map();
-	protected _registeredMessageTypes: Map<string, MessageConstructor<Message>> = new Map;
+	protected _registeredMessageTypes: Map<string, MessageConstructor> = new Map;
 
 	// emitted events
 	onConnect: (handler: () => void) => Listener = this.registerEvent();
@@ -94,9 +94,9 @@ export default class Client extends EventEmitter {
 	protected _pingCheckTimer?: NodeJS.Timer;
 	protected _pingTimeoutTimer?: NodeJS.Timer;
 
-	private _logger: Logger;
+	private readonly _logger: Logger;
 
-	public constructor({ connection, webSocket, channelTypes, logLevel = LogLevel.WARNING }: ClientOptions) {
+	constructor({ connection, webSocket, channelTypes, logLevel = LogLevel.WARNING }: ClientOptions) {
 		super();
 
 		const { pingOnInactivity = 60, pingTimeout = 10 } = connection;
@@ -104,11 +104,7 @@ export default class Client extends EventEmitter {
 		this._pingTimeout = pingTimeout;
 		this._logger = new Logger({ name: 'ircv3', emoji: true, minLevel: logLevel });
 
-		if (webSocket) {
-			this._connection = new WebSocketConnection(connection);
-		} else {
-			this._connection = new DirectConnection(connection);
-		}
+		this._connection = webSocket ? new WebSocketConnection(connection) : new DirectConnection(connection);
 
 		this.registerCoreMessageTypes();
 
@@ -168,7 +164,7 @@ export default class Client extends EventEmitter {
 
 		this._connection.on('lineReceived', (line: string) => {
 			this._logger.debug2(`Received message: ${line}`);
-			let parsedMessage = Message.parse(line, this);
+			const parsedMessage = Message.parse(line, this);
 			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
 			this._startPingCheckTimer();
 			this.handleEvents(parsedMessage);
@@ -209,7 +205,6 @@ export default class Client extends EventEmitter {
 						this._serverCapabilities.delete(cap);
 						this._negotiatedCapabilities.delete(cap);
 					}
-					break;
 				}
 			}
 		});
@@ -232,13 +227,12 @@ export default class Client extends EventEmitter {
 		});
 
 		this.onMessage(Reply005ISupport, ({ params: { supports } }) => {
-			this._supportedFeatures = Object.assign(
-				this._supportedFeatures,
-				ObjectTools.fromArray(supports.split(' '), (part: string) => {
+			this._supportedFeatures = {...this._supportedFeatures,
+				...ObjectTools.fromArray(supports.split(' '), (part: string) => {
 					const [support, param] = part.split('=', 2);
 					return { [support]: param || true };
 				})
-			);
+			};
 		});
 
 		this.onMessage(Error462AlreadyRegistered, () => {
@@ -306,7 +300,7 @@ export default class Client extends EventEmitter {
 		}
 	}
 
-	public pingCheck() {
+	pingCheck() {
 		const now = Date.now();
 		const nowStr = now.toString();
 		const handler = this.onMessage(Pong, (msg: Pong) => {
@@ -330,23 +324,23 @@ export default class Client extends EventEmitter {
 		this.sendMessage(Ping, { message: nowStr });
 	}
 
-	public async reconnect(message?: string) {
+	async reconnect(message?: string) {
 		await this.quit(message);
 		return this.connect();
 	}
 
-	public registerMessageType(cls: MessageConstructor) {
+	registerMessageType(cls: MessageConstructor) {
 		if (cls.COMMAND !== '') {
 			this._logger.debug1(`Registering message type ${cls.COMMAND}`);
 			this._registeredMessageTypes.set(cls.COMMAND.toUpperCase(), cls);
 		}
 	}
 
-	public knowsCommand(command: string): boolean {
+	knowsCommand(command: string): boolean {
 		return this._registeredMessageTypes.has(command.toUpperCase());
 	}
 
-	public getCommandClass(command: string): MessageConstructor | undefined {
+	getCommandClass(command: string): MessageConstructor | undefined {
 		return this._registeredMessageTypes.get(command.toUpperCase());
 	}
 
@@ -360,7 +354,7 @@ export default class Client extends EventEmitter {
 		});
 	}
 
-	public async connect(): Promise<void> {
+	async connect(): Promise<void> {
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map;
 		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
@@ -368,13 +362,14 @@ export default class Client extends EventEmitter {
 		this.emit(this.onConnect);
 	}
 
-	public async waitForRegistration() {
+	async waitForRegistration() {
 		if (this._registered) {
 			return;
 		}
 
 		return new Promise((resolve, reject) => {
-			let registerListener: Listener, disconnectListener: Listener;
+			let registerListener: Listener;
+			let disconnectListener: Listener;
 			registerListener = this.onRegister(() => {
 				registerListener.unbind();
 				disconnectListener.unbind();
@@ -391,7 +386,7 @@ export default class Client extends EventEmitter {
 
 	protected async _negotiateCapabilityBatch(
 		capabilities: ServerCapability[][]
-	): Promise<(ServerCapability[] | Error)[]> {
+	): Promise<Array<ServerCapability[] | Error>> {
 		return Promise.all(capabilities.filter(list => list.length).map(
 			(capList: ServerCapability[]) => this._negotiateCapabilities(capList)
 		));
@@ -417,7 +412,7 @@ export default class Client extends EventEmitter {
 			this._logger.debug1(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
 			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(capName => (mappedCapList as { [name: string]: ServerCapability })[capName]);
 			for (const newCap of newNegotiatedCaps) {
-				let mergedCap = this._clientCapabilities.get(newCap.name) as ServerCapability;
+				const mergedCap = this._clientCapabilities.get(newCap.name) as ServerCapability;
 				mergedCap.param = newCap.param;
 				this._negotiatedCapabilities.set(mergedCap.name, mergedCap);
 			}
@@ -428,7 +423,7 @@ export default class Client extends EventEmitter {
 		}
 	}
 
-	public async registerCapability(cap: Capability) {
+	async registerCapability(cap: Capability) {
 		this._clientCapabilities.set(cap.name, cap);
 
 		if (cap.messageTypes) {
@@ -444,15 +439,15 @@ export default class Client extends EventEmitter {
 		return [];
 	}
 
-	public send(message: Message): void {
+	send(message: Message): void {
 		const line = message.toString();
 		this._logger.debug2(`Sending message: ${line}`);
 		this._connection.sendLine(line);
 	}
 
-	public onMessage<C extends MessageConstructor>(type: C, handler: EventHandler<ConstructedType<C>>, handlerName?: string): string;
-	public onMessage<T extends Message>(type: string, handler: EventHandler<Message>, handlerName?: string): string;
-	public onMessage<T extends Message>(
+	onMessage<C extends MessageConstructor>(type: C, handler: EventHandler<ConstructedType<C>>, handlerName?: string): string;
+	onMessage<T extends Message>(type: string, handler: EventHandler, handlerName?: string): string;
+	onMessage<T extends Message>(
 		type: typeof Message | string,
 		handler: EventHandler<T>,
 		handlerName?: string
@@ -462,7 +457,7 @@ export default class Client extends EventEmitter {
 			this._events.set(commandName, new Map);
 		}
 
-		let handlerList: Map<string, EventHandler<T>> = this._events.get(commandName)!;
+		const handlerList: Map<string, EventHandler<T>> = this._events.get(commandName)!;
 
 		if (!handlerName) {
 			do {
@@ -475,7 +470,7 @@ export default class Client extends EventEmitter {
 		return handlerName;
 	}
 
-	public removeMessageListener(handlerName: string) {
+	removeMessageListener(handlerName: string) {
 		const [commandName] = handlerName.split(':');
 		if (!this._events.has(commandName)) {
 			return;
@@ -484,69 +479,69 @@ export default class Client extends EventEmitter {
 		this._events.get(commandName)!.delete(handlerName);
 	}
 
-	public createMessage<T extends MessageConstructor>(
+	createMessage<T extends MessageConstructor>(
 		type: T,
 		params: MessageParams<ConstructedType<T>>
 	): ConstructedType<T> {
 		return type.create(this, params) as ConstructedType<T>;
 	}
 
-	public sendMessage<T extends MessageConstructor>(
+	sendMessage<T extends MessageConstructor>(
 		type: T,
 		params: MessageParams<ConstructedType<T>>
 	): void {
 		this.createMessage(type, params).send();
 	}
 
-	public async sendMessageAndCaptureReply<T extends Message>(
+	async sendMessageAndCaptureReply<T extends Message>(
 		type: MessageConstructor<T>,
 		params: MessageParams<T>
 	): Promise<Message[]> {
 		return this.createMessage(type, params).sendAndCaptureReply();
 	}
 
-	public get channelTypes(): string {
+	get channelTypes(): string {
 		return this._channelTypes;
 	}
 
-	public get supportedChannelModes(): SupportedChannelModes {
+	get supportedChannelModes(): SupportedChannelModes {
 		return this._supportedChannelModes;
 	}
 
-	public get isConnected() {
+	get isConnected() {
 		return this._connection.isConnected;
 	}
 
-	public get isConnecting() {
+	get isConnecting() {
 		return this._connection.isConnecting;
 	}
 
-	public get isRegistered() {
+	get isRegistered() {
 		return this._registered;
 	}
 
 	/** @private */
-	public collect(originalMessage: Message, ...types: MessageConstructor[]) {
+	collect(originalMessage: Message, ...types: MessageConstructor[]) {
 		const collector = new MessageCollector(this, originalMessage, ...types);
 		this._collectors.push(collector);
 		return collector;
 	}
 
 	/** @private */
-	public stopCollect(collector: MessageCollector): void {
+	stopCollect(collector: MessageCollector): void {
 		this._collectors.splice(this._collectors.findIndex(value => value === collector), 1);
 	}
 
 	// convenience methods
-	public join(channel: string, key?: string) {
+	join(channel: string, key?: string) {
 		this.sendMessage(ChannelJoin, { channel, key });
 	}
 
-	public part(channel: string) {
+	part(channel: string) {
 		this.sendMessage(ChannelPart, { channel });
 	}
 
-	public async quit(message?: string) {
+	async quit(message?: string) {
 		return new Promise<void>(resolve => {
 			const handler = () => {
 				this._connection.removeListener('disconnect', handler);
@@ -558,7 +553,7 @@ export default class Client extends EventEmitter {
 		});
 	}
 
-	public say(target: string, message: string) {
+	say(target: string, message: string) {
 		this.sendMessage(PrivateMessage, { target, message });
 	}
 

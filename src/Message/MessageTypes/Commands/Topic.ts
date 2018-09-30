@@ -6,8 +6,8 @@ export interface TopicParams {
 }
 
 export default class Topic extends Message<TopicParams> {
-	public static readonly COMMAND = 'TOPIC';
-	public static readonly PARAM_SPEC: MessageParamSpec<Topic> = {
+	static readonly COMMAND = 'TOPIC';
+	static readonly PARAM_SPEC: MessageParamSpec<Topic> = {
 		channel: {
 			type: 'channel'
 		},

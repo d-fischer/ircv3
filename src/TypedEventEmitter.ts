@@ -1,3 +1,4 @@
+/* tslint:disable:max-classes-per-file */
 /******************************************************************************
  * The MIT License (MIT)                                                      *
  *                                                                            *
@@ -39,7 +40,7 @@ export class Listener {
 }
 
 export class EventEmitter {
-	private eventListeners: Map<Function, Function[]>;
+	private readonly eventListeners: Map<Function, Function[]>;
 
 	constructor() {
 		this.eventListeners = new Map();
@@ -67,15 +68,16 @@ export class EventEmitter {
 		if (arguments.length === 0) {
 			this.eventListeners.clear();
 		} else if (arguments.length === 1 && typeof arguments[0] === 'object') {
-			let id: Listener = arguments[0];
+			const id: Listener = arguments[0];
 			this.removeListener(id.event, id.listener);
 		} else if (arguments.length >= 1) {
-			let event: Function = arguments[0];
-			let listener: Function = arguments[1];
+			const event: Function = arguments[0];
+			const listener: Function = arguments[1];
 
 			if (this.eventListeners.has(event)) {
-				let listeners = this.eventListeners.get(event)!;
-				let idx: number = 0;
+				const listeners = this.eventListeners.get(event)!;
+				let idx = 0;
+				// tslint:disable-next-line:no-conditional-assignment
 				while (!listener || (idx = listeners.indexOf(listener)) !== -1) {
 					listeners.splice(idx, 1);
 				}
@@ -99,9 +101,8 @@ export class EventEmitter {
 	 * @typeparam T The event handler signature.
 	 */
 	registerEvent<T extends Function>() {
-		let eventBinder = (handler: T) => {
-			return this.addListener(eventBinder, handler);
-		};
+		const eventBinder = (handler: T) =>
+			this.addListener(eventBinder, handler);
 
 		return eventBinder;
 	}

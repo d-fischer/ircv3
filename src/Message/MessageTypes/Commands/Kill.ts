@@ -6,8 +6,8 @@ export interface KillParams {
 }
 
 export default class Kill extends Message<KillParams> {
-	public static readonly COMMAND = 'KILL';
-	public static readonly PARAM_SPEC: MessageParamSpec<Kill> = {
+	static readonly COMMAND = 'KILL';
+	static readonly PARAM_SPEC: MessageParamSpec<Kill> = {
 		target: {},
 		comment: {
 			trailing: true,

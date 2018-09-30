@@ -9,8 +9,8 @@ export interface Reply353NamesReplyParams {
 }
 
 export default class Reply353NamesReply extends Message<Reply353NamesReplyParams> {
-	public static readonly COMMAND = '353';
-	public static readonly PARAM_SPEC: MessageParamSpec<Reply353NamesReply> = {
+	static readonly COMMAND = '353';
+	static readonly PARAM_SPEC: MessageParamSpec<Reply353NamesReply> = {
 		me: {},
 		sentinel: {},
 		channel: {

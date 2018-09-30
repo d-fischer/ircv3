@@ -7,8 +7,8 @@ export interface Error421UnknownCommandParams {
 }
 
 export default class Error421UnknownCommand extends Message<Error421UnknownCommandParams> {
-	public static readonly COMMAND = '421';
-	public static readonly PARAM_SPEC: MessageParamSpec<Error421UnknownCommand> = {
+	static readonly COMMAND = '421';
+	static readonly PARAM_SPEC: MessageParamSpec<Error421UnknownCommand> = {
 		me: {},
 		command: {},
 		suffix: {
@@ -20,7 +20,7 @@ export default class Error421UnknownCommand extends Message<Error421UnknownComma
 		return originalMessage.command === this.params.command;
 	}
 
-	public endsResponseTo(originalMessage: Message) {
+	endsResponseTo(originalMessage: Message) {
 		return true;
 	}
 }

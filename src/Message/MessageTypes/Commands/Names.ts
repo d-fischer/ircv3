@@ -5,12 +5,12 @@ export interface NamesParams {
 }
 
 export default class Names extends Message<NamesParams> {
-	public static readonly COMMAND = 'NAMES';
-	public static readonly PARAM_SPEC: MessageParamSpec<Names> = {
+	static readonly COMMAND = 'NAMES';
+	static readonly PARAM_SPEC: MessageParamSpec<Names> = {
 		channel: {
 			type: 'channel',
 			optional: true
 		}
 	};
-	public static readonly SUPPORTS_CAPTURE = true;
+	static readonly SUPPORTS_CAPTURE = true;
 }

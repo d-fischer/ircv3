@@ -25,23 +25,23 @@ abstract class Connection extends EventEmitter {
 
 	private _currentLine = '';
 
-	public abstract async connect(): Promise<void>;
-	public abstract disconnect(): void;
+	abstract async connect(): Promise<void>;
+	abstract disconnect(): void;
 
 	protected abstract sendRaw(line: string): void;
 
-	constructor({hostName, port, secure, reconnect = true}: ConnectionInfo) {
+	constructor({ hostName, port, secure, reconnect = true }: ConnectionInfo) {
 		super();
 		this._secure = Boolean(secure);
 		if (port) {
 			this._host = hostName;
 			this._port = port;
 		} else {
-			let splitHost = hostName.split(':');
+			const splitHost = hostName.split(':');
 			if (splitHost.length > 2) {
 				throw new Error('malformed hostName');
 			}
-			let [host, splitPort] = splitHost;
+			const [host, splitPort] = splitHost;
 			this._host = host;
 			this._port = Number(splitPort);
 		}
@@ -59,12 +59,12 @@ abstract class Connection extends EventEmitter {
 	sendLine(line: string): void {
 		if (this._connected) {
 			line = line.replace(/[\0\r\n]/g, '');
-			this.sendRaw(line + '\r\n');
+			this.sendRaw(`${line}\r\n`);
 		}
 	}
 
 	receiveRaw(data: string) {
-		let receivedLines = data.split('\r\n');
+		const receivedLines = data.split('\r\n');
 		this._currentLine += receivedLines.shift() || '';
 		if (receivedLines.length) {
 			this.emit('lineReceived', this._currentLine);

@@ -16,8 +16,8 @@ export interface SingleMode {
 }
 
 export default class Mode extends Message<ModeParams> {
-	public static readonly COMMAND = 'MODE';
-	public static readonly PARAM_SPEC: MessageParamSpec<Mode> = {
+	static readonly COMMAND = 'MODE';
+	static readonly PARAM_SPEC: MessageParamSpec<Mode> = {
 		target: {},
 		modes: {
 			rest: true,
@@ -25,23 +25,23 @@ export default class Mode extends Message<ModeParams> {
 		}
 	};
 
-	public get isChannel() {
+	get isChannel() {
 		return isChannel(this._parsedParams.target.value, this._client.channelTypes);
 	}
 
-	public separate(): SingleMode[] {
-		let result: SingleMode[] = [];
+	separate(): SingleMode[] {
+		const result: SingleMode[] = [];
 		const modeRestParam = this._parsedParams.modes;
 		if (!modeRestParam) {
 			throw new Error('can\'t separate a channel mode request, just set actions');
 		}
-		let modeParams = modeRestParam.value.split(' ');
+		const modeParams = modeRestParam.value.split(' ');
 		const modes = modeParams.shift();
 		if (!modes) {
 			throw new Error('this should never happen because of the error condition above');
 		}
 		let currentModeAction: ModeAction = 'add';
-		for (let ch of modes) {
+		for (const ch of modes) {
 			let thisModeAction: ModeAction = currentModeAction;
 			switch (ch) {
 				case '+': {
@@ -74,7 +74,7 @@ export default class Mode extends Message<ModeParams> {
 						}
 					}
 					if (requiresParam && !modeParams.length) {
-						throw new Error(`mode parameter underflow`);
+						throw new Error('mode parameter underflow');
 					}
 					result.push({
 						prefix: this._prefix,

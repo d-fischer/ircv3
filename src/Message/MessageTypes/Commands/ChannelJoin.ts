@@ -6,8 +6,8 @@ export interface ChannelJoinParams {
 }
 
 export default class ChannelJoin extends Message<ChannelJoinParams> {
-	public static readonly COMMAND = 'JOIN';
-	public static readonly PARAM_SPEC: MessageParamSpec<ChannelJoin> = {
+	static readonly COMMAND = 'JOIN';
+	static readonly PARAM_SPEC: MessageParamSpec<ChannelJoin> = {
 		channel: {
 			type: 'channel'
 		},

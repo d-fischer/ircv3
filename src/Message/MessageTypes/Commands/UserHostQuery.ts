@@ -5,8 +5,8 @@ export interface UserHostQueryParams {
 }
 
 export default class UserHostQuery extends Message<UserHostQueryParams> {
-	public static readonly COMMAND = 'USERHOST';
-	public static readonly PARAM_SPEC: MessageParamSpec<UserHostQuery> = {
+	static readonly COMMAND = 'USERHOST';
+	static readonly PARAM_SPEC: MessageParamSpec<UserHostQuery> = {
 		nicks: {
 			rest: true
 		}

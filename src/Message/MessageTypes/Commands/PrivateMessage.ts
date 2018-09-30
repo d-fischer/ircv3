@@ -6,8 +6,8 @@ export interface PrivateMessageParams {
 }
 
 export default class PrivateMessage extends Message<PrivateMessageParams> {
-	public static readonly COMMAND = 'PRIVMSG';
-	public static readonly PARAM_SPEC: MessageParamSpec<PrivateMessage> = {
+	static readonly COMMAND = 'PRIVMSG';
+	static readonly PARAM_SPEC: MessageParamSpec<PrivateMessage> = {
 		target: {},
 		message: {
 			trailing: true

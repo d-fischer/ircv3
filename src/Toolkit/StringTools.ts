@@ -1,4 +1,6 @@
-export const escapeRegexString = require('escape-string-regexp');
+import escapeRegexString = require('escape-string-regexp');
+
+export { escapeRegexString };
 
 export function sanitizeParameter(param: string, spaceAllowed: boolean = false) {
 	if (spaceAllowed) {
@@ -74,12 +76,11 @@ export function decodeCtcp(message: string): ParsedCtcp | false {
 	}
 
 	// unescape weirdly escaped stuff
-	message = message.replace(/\x10(.)/, (_, escapedChar) => {
-		return (escapedChar in ctcpEscapeMap) ? ctcpEscapeMap[escapedChar] : '';
-	});
+	message = message.replace(/\x10(.)/, (_, escapedChar) =>
+		(escapedChar in ctcpEscapeMap) ? ctcpEscapeMap[escapedChar] : '');
 
 	let [command, params = ''] = message.split(' ', 2);
 	command = command ? command.toUpperCase() : '';
 
-	return {command, params};
+	return { command, params };
 }

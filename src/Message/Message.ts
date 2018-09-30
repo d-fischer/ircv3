@@ -11,9 +11,9 @@ export type MessagePrefix = {
 	host?: string;
 };
 
-export class MessageParam {
-	constructor(public value: string, public trailing: boolean) {
-	}
+export interface MessageParam {
+	value: string;
+	trailing: boolean;
 }
 
 export interface MessageParamSpecEntry {
@@ -53,10 +53,10 @@ const tagEscapeMap: { [char: string]: string } = {
 };
 
 export default class Message<D extends { [name in keyof D]?: MessageParam } = {}> {
-	public static readonly COMMAND: string = '';
-	public static readonly PARAM_SPEC = {};
+	static readonly COMMAND: string = '';
+	static readonly PARAM_SPEC = {};
 	//noinspection JSUnusedGlobalSymbols
-	public static readonly SUPPORTS_CAPTURE: boolean = false;
+	static readonly SUPPORTS_CAPTURE: boolean = false;
 
 	protected _tags?: Map<string, string>;
 	protected _prefix?: MessagePrefix;
@@ -67,29 +67,36 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 
 	private _raw?: string;
 
-	public static parse(line: string, client: Client): Message {
+	static parse(line: string, client: Client): Message {
 		const splitLine: string[] = line.split(' ');
 		let token: string;
 
 		let command: string | undefined;
-		let params: MessageParam[] = [];
+		const params: MessageParam[] = [];
 		let tags: Map<string, string> | undefined;
 		let prefix: MessagePrefix | undefined;
 
-		while ((token = splitLine[0]) !== undefined) {
+		while (splitLine.length) {
+			token = splitLine[0];
 			if (token[0] === '@' && !tags && !command) {
 				tags = Message.parseTags(token.substr(1));
 			} else if (token[0] === ':') {
 				if (!prefix && !command) {
 					prefix = Message.parsePrefix(token.substr(1));
 				} else {
-					params.push(new MessageParam(splitLine.join(' ').substr(1), true));
+					params.push({
+						value: splitLine.join(' ').substr(1),
+						trailing: true
+					});
 					break;
 				}
 			} else if (!command) {
 				command = token.toUpperCase();
 			} else {
-				params.push(new MessageParam(token, false));
+				params.push({
+					value: token,
+					trailing: false
+				});
 			}
 			splitLine.shift();
 		}
@@ -111,10 +118,10 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		return message;
 	}
 
-	public static parsePrefix(raw: string): MessagePrefix {
+	static parsePrefix(raw: string): MessagePrefix {
 		const [nick, hostName] = raw.split('!', 2);
 		if (hostName) {
-			let [user, host] = hostName.split('@', 2);
+			const [user, host] = hostName.split('@', 2);
 			if (host) {
 				return { raw, nick, user, host };
 			} else {
@@ -125,8 +132,8 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		}
 	}
 
-	public static parseTags(raw: string): Map<string, string> {
-		let tags: Map<string, string> = new Map();
+	static parseTags(raw: string): Map<string, string> {
+		const tags: Map<string, string> = new Map();
 		const tagStrings = raw.split(';');
 		for (const tagString of tagStrings) {
 			const [tagName, tagValue] = tagString.split('=', 2);
@@ -137,19 +144,22 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		return tags;
 	}
 
-	public static create<T extends Message>(
+	static create<T extends Message>(
 		this: MessageConstructor<T>,
 		client: Client,
 		params: { [name in keyof MessageDataType<T>]?: string }
 	): T {
-		let message: T = new this(client, this.COMMAND);
-		let parsedParams: { [name in keyof MessageDataType<T>]?: MessageParam } = {};
+		const message: T = new this(client, this.COMMAND);
+		const parsedParams: { [name in keyof MessageDataType<T>]?: MessageParam } = {};
 		ObjectTools.forEach(this.PARAM_SPEC, ([paramName, paramSpec]: [keyof MessageDataType<T>, MessageParamSpecEntry]) => {
 			if (paramName in params) {
-				const param = params[paramName as keyof MessageDataType<T>];
+				const param = params[paramName];
 				if (param !== undefined) {
 					if (this.checkParam(client, param!, paramSpec)) {
-						parsedParams[paramName] = new MessageParam(param!, Boolean(paramSpec.trailing));
+						parsedParams[paramName] = {
+							value: param!,
+							trailing: Boolean(paramSpec.trailing)
+						};
 					} else if (!paramSpec.optional) {
 						throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
 					}
@@ -165,7 +175,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		return message;
 	}
 
-	public static checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean {
+	static checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean {
 		if (spec.type === 'channel') {
 			if (!isChannel(param, client.channelTypes)) {
 				return false;
@@ -181,18 +191,18 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		return true;
 	}
 
-	public toString(): string {
+	toString(): string {
 		const cls = this.constructor as MessageConstructor<this>;
 		const specKeys = ObjectTools.keys(cls.PARAM_SPEC);
 		return [this._command, ...specKeys.map((paramName): string | undefined => {
 			const param = this._parsedParams[paramName];
-			if (param instanceof MessageParam) {
+			if (param) {
 				return (param.trailing ? ':' : '') + param.value;
 			}
 		}).filter((param: string | undefined) => param !== undefined)].join(' ');
 	}
 
-	public constructor(
+	constructor(
 		client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix) {
 		this._command = command;
 		this._params = params;
@@ -200,15 +210,14 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		this._prefix = prefix;
 
 		Object.defineProperty(this, '_client', {
-			get: () => {
-				return client;
-			}
+			get: () =>
+				client
 		});
 
 		this.parseParams();
 	}
 
-	public parseParams() {
+	parseParams() {
 		if (this._params) {
 			const cls = this.constructor as MessageConstructor<this>;
 			let requiredParamsLeft = cls.minParamCount;
@@ -220,8 +229,8 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 
 			const paramSpecList = cls.PARAM_SPEC;
 			let i = 0;
-			let parsedParams: { [name in keyof D]?: MessageParam } = {};
-			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList as MessageParamSpec<this>)) {
+			const parsedParams: { [name in keyof D]?: MessageParam } = {};
+			for (const [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList)) {
 				if ((this._params.length - i) <= requiredParamsLeft) {
 					if (paramSpec.optional) {
 						continue;
@@ -231,17 +240,17 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 						);
 					}
 				}
-				let param = this._params[i];
+				let param: MessageParam = this._params[i];
 				if (!param) {
 					if (paramSpec.optional) {
 						break;
 					}
 
-					throw new Error(`unexpected parameter underflow`);
+					throw new Error('unexpected parameter underflow');
 				}
 
 				if (paramSpec.rest) {
-					let restParams = [];
+					const restParams = [];
 					while (this._params[i] && !this._params[i].trailing) {
 						restParams.push(this._params[i].value);
 						++i;
@@ -252,10 +261,13 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 						}
 						throw new Error(`no parameters left for required rest parameter "${paramName}"`);
 					}
-					param = new MessageParam(restParams.join(' '), false);
+					param = {
+						value: restParams.join(' '),
+						trailing: false
+					};
 				}
 				if (this.checkParam(param.value, paramSpec)) {
-					parsedParams[paramName as keyof MessageParamSpec<this>] = new MessageParam(param.value, param.trailing);
+					parsedParams[paramName as keyof MessageParamSpec<this>] = { ...param };
 					if (!paramSpec.optional) {
 						--requiredParamsLeft;
 					}
@@ -275,40 +287,40 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		}
 	}
 
-	public checkParam(param: string, spec: MessageParamSpecEntry): boolean {
+	checkParam(param: string, spec: MessageParamSpecEntry): boolean {
 		const cls = this.constructor as MessageConstructor<this>;
 		return cls.checkParam(this._client, param, spec);
 	}
 
-	public static get minParamCount(): number {
+	static get minParamCount(): number {
 		return Object.values(this.PARAM_SPEC).filter((spec: MessageParamSpecEntry) => !spec.optional).length;
 	}
 
-	public get params(): { [name in Extract<keyof D, string>]: string } {
-		return ObjectTools.map(this._parsedParams as D, (param: MessageParam) => param.value);
+	get params(): { [name in Extract<keyof D, string>]: string } {
+		return ObjectTools.map(this._parsedParams, (param: MessageParam) => param.value);
 	}
 
-	public get prefix(): MessagePrefix | undefined {
-		return this._prefix && Object.assign({}, this._prefix);
+	get prefix(): MessagePrefix | undefined {
+		return this._prefix && { ...this._prefix };
 	}
 
-	public get command(): string {
+	get command(): string {
 		return this._command;
 	}
 
-	public get tags(): Map<string, string> {
+	get tags(): Map<string, string> {
 		return new Map(this._tags || []);
 	}
 
-	public get rawLine() {
+	get rawLine() {
 		return this._raw;
 	}
 
-	public send(): void {
+	send(): void {
 		this._client.send(this);
 	}
 
-	public async sendAndCaptureReply(): Promise<Message[]> {
+	async sendAndCaptureReply(): Promise<Message[]> {
 		const cls = this.constructor as MessageConstructor<this>;
 
 		if (!cls.SUPPORTS_CAPTURE) {
@@ -324,11 +336,11 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		return false;
 	}
 
-	public endsResponseTo(originalMessage: Message): boolean {
+	endsResponseTo(originalMessage: Message): boolean {
 		return false;
 	}
 
-	public _acceptsInReplyCollection(message: Message): boolean {
+	_acceptsInReplyCollection(message: Message): boolean {
 		// TODO implement IRCv3 labeled-response / batch here
 		return message.isResponseTo(this);
 	}

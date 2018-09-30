@@ -6,8 +6,8 @@ export interface PongParams {
 }
 
 export default class Pong extends Message<PongParams> {
-	public static readonly COMMAND = 'PONG';
-	public static readonly PARAM_SPEC: MessageParamSpec<Pong> = {
+	static readonly COMMAND = 'PONG';
+	static readonly PARAM_SPEC: MessageParamSpec<Pong> = {
 		server: {
 			optional: true
 		},

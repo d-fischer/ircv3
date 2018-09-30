@@ -5,8 +5,8 @@ export interface ChannelPartParams {
 }
 
 export default class ChannelPart extends Message<ChannelPartParams> {
-	public static readonly COMMAND = 'PART';
-	public static readonly PARAM_SPEC: MessageParamSpec<ChannelPart> = {
+	static readonly COMMAND = 'PART';
+	static readonly PARAM_SPEC: MessageParamSpec<ChannelPart> = {
 		channel: {
 			type: 'channel'
 		}

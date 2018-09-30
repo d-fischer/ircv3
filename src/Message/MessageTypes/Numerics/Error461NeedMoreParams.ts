@@ -7,8 +7,8 @@ export interface Error461NeedMoreParamsParams {
 }
 
 export default class Error461NeedMoreParams extends Message<Error461NeedMoreParamsParams> {
-	public static readonly COMMAND = '461';
-	public static readonly PARAM_SPEC: MessageParamSpec<Error461NeedMoreParams> = {
+	static readonly COMMAND = '461';
+	static readonly PARAM_SPEC: MessageParamSpec<Error461NeedMoreParams> = {
 		me: {},
 		command: {},
 		suffix: {

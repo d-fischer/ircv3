@@ -4,7 +4,7 @@ interface ObjectCtor extends ObjectConstructor {
 
 	entries<T, Obj>(o: Obj): Array<[Extract<keyof Obj, string>, T]>;
 
-	keys<Obj>(o: Obj): (keyof Obj)[];
+	keys<Obj>(o: Obj): Array<keyof Obj>;
 }
 
 declare let Object: ObjectCtor;

@@ -6,8 +6,8 @@ export interface ChannelInviteParams {
 }
 
 export default class ChannelInvite extends Message<ChannelInviteParams> {
-	public static readonly COMMAND = 'INVITE';
-	public static readonly PARAM_SPEC: MessageParamSpec<ChannelInvite> = {
+	static readonly COMMAND = 'INVITE';
+	static readonly PARAM_SPEC: MessageParamSpec<ChannelInvite> = {
 		target: {},
 		channel: {
 			type: 'channel'

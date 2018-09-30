@@ -9,14 +9,14 @@ export interface CapabilityNegotiationParams {
 }
 
 export default class CapabilityNegotiation extends Message<CapabilityNegotiationParams> {
-	public static readonly COMMAND = 'CAP';
-	public static readonly PARAM_SPEC: MessageParamSpec<CapabilityNegotiation> = {
+	static readonly COMMAND = 'CAP';
+	static readonly PARAM_SPEC: MessageParamSpec<CapabilityNegotiation> = {
 		target: {
 			match: /^(?:[a-z_\-\[\]\\^{}|`][a-z0-9_\-\[\]\\^{}|`]*|\*)$/i,
 			optional: true
 		},
 		command: {
-			match: /^(?:LS|LIST|REQ|ACK|NAK|END|NEW|DEL)$/i,
+			match: /^(?:LS|LIST|REQ|ACK|NAK|END|NEW|DEL)$/i
 		},
 		version: {
 			match: /^\d+$/,
@@ -32,7 +32,7 @@ export default class CapabilityNegotiation extends Message<CapabilityNegotiation
 		}
 	};
 
-	public static readonly SUPPORTS_CAPTURE = true;
+	static readonly SUPPORTS_CAPTURE = true;
 
 	protected isResponseTo(originalMessage: Message): boolean {
 		if (!(originalMessage instanceof CapabilityNegotiation)) {
@@ -58,7 +58,7 @@ export default class CapabilityNegotiation extends Message<CapabilityNegotiation
 		}
 	}
 
-	public endsResponseTo(originalMessage: Message): boolean {
+	endsResponseTo(originalMessage: Message): boolean {
 		if (!(originalMessage instanceof CapabilityNegotiation)) {
 			return false;
 		}

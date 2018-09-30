@@ -5,8 +5,8 @@ export interface ErrorParams {
 }
 
 export default class Error extends Message<ErrorParams> {
-	public static readonly COMMAND = 'ERROR';
-	public static readonly PARAM_SPEC: MessageParamSpec<Error> = {
+	static readonly COMMAND = 'ERROR';
+	static readonly PARAM_SPEC: MessageParamSpec<Error> = {
 		message: {
 			trailing: true
 		}

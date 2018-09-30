@@ -16,10 +16,10 @@ class WebSocketConnection extends Connection {
 				this._initialConnection = false;
 				resolve();
 			});
-			this._socket.onmessage = ({data}: {data: WebSocket.Data}) => {
+			this._socket.onmessage = ({ data }: {data: WebSocket.Data}) => {
 				this.receiveRaw(data.toString());
 			};
-			this._socket.onclose = ({wasClean, code, reason}) => {
+			this._socket.onclose = ({ wasClean, code, reason }) => {
 				this._socket = undefined;
 				this._connected = false;
 				this._connecting = false;

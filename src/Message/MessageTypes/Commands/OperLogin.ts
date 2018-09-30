@@ -6,8 +6,8 @@ export interface OperLoginParams {
 }
 
 export default class OperLogin extends Message<OperLoginParams> {
-	public static readonly COMMAND = 'OPER';
-	public static readonly PARAM_SPEC: MessageParamSpec<OperLogin> = {
+	static readonly COMMAND = 'OPER';
+	static readonly PARAM_SPEC: MessageParamSpec<OperLogin> = {
 		name: {},
 		password: {}
 	};

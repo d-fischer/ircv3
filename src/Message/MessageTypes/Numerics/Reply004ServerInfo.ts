@@ -10,8 +10,8 @@ export interface Reply004ServerInfoParams {
 }
 
 export default class Reply004ServerInfo extends Message<Reply004ServerInfoParams> {
-	public static readonly COMMAND = '004';
-	public static readonly PARAM_SPEC: MessageParamSpec<Reply004ServerInfo> = {
+	static readonly COMMAND = '004';
+	static readonly PARAM_SPEC: MessageParamSpec<Reply004ServerInfo> = {
 		me: {},
 		serverName: {},
 		version: {
@@ -25,6 +25,6 @@ export default class Reply004ServerInfo extends Message<Reply004ServerInfoParams
 		},
 		channelModesWithParam: {
 			optional: true
-		},
+		}
 	};
 }

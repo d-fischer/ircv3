@@ -6,8 +6,8 @@ export interface WhoIsQueryParams {
 }
 
 export default class WhoIsQuery extends Message<WhoIsQueryParams> {
-	public static readonly COMMAND = 'WHOIS';
-	public static readonly PARAM_SPEC: MessageParamSpec<WhoIsQuery> = {
+	static readonly COMMAND = 'WHOIS';
+	static readonly PARAM_SPEC: MessageParamSpec<WhoIsQuery> = {
 		server: {
 			optional: true
 		},
