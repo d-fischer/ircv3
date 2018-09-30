@@ -553,8 +553,8 @@ export default class Client extends EventEmitter {
 		});
 	}
 
-	public say(channel: string, message: string) {
-		this.sendMessage(PrivateMessage, { target: channel, message });
+	public say(target: string, message: string) {
+		this.sendMessage(PrivateMessage, { target, message });
 	}
 
 	// event helper
