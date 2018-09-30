@@ -1,11 +1,12 @@
 /** @private */
-declare interface ObjectCtor extends ObjectConstructor {
+interface ObjectCtor extends ObjectConstructor {
 	assign<T>(target: {}, ...source: Array<Partial<T>>): T;
 
 	entries<T, Obj>(o: Obj): Array<[Extract<keyof Obj, string>, T]>;
+
+	keys<Obj>(o: Obj): (keyof Obj)[];
 }
 
-/** @private */
 declare let Object: ObjectCtor;
 
 /** @private */
@@ -29,11 +30,15 @@ export default class ObjectTools {
 		return Object.assign<ObjMap<Obj, O>>({}, ...mapped);
 	}
 
+	static keys<Obj>(o: Obj): Array<keyof Obj> {
+		return Object.keys(o);
+	}
+
 	static fromArray<T, O, Obj>(arr: T[], fn: (value: T) => ObjMapPart<Obj, O>) {
 		return Object.assign<ObjMap<Obj, O>>({}, ...arr.map(fn));
 	}
 
 	static forEach<T, Obj>(obj: Obj, fn: (value: T, key: Extract<keyof Obj, string>) => void) {
-		Object.entries(obj).forEach(([key, value]: [Extract<keyof Obj, string>, T]) => fn(value, key));
+		Object.entries<T, Obj>(obj).forEach(([key, value]: [Extract<keyof Obj, string>, T]) => fn(value, key));
 	}
 }

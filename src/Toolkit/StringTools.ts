@@ -49,6 +49,13 @@ export interface ParsedCtcp {
 	params: string;
 }
 
+const ctcpEscapeMap: {[char: string]: string} = {
+	0: '\0',
+	n: '\n',
+	r: '\r',
+	'\x10': '\x10'
+};
+
 export function decodeCtcp(message: string): ParsedCtcp | false {
 	if (message[0] !== '\x01') {
 		// this is not a CTCP message
@@ -68,12 +75,7 @@ export function decodeCtcp(message: string): ParsedCtcp | false {
 
 	// unescape weirdly escaped stuff
 	message = message.replace(/\x10(.)/, (_, escapedChar) => {
-		return {
-			0: '\0',
-			n: '\n',
-			r: '\r',
-			'\x10': '\x10'
-		}[escapedChar] || '';
+		return (escapedChar in ctcpEscapeMap) ? ctcpEscapeMap[escapedChar] : '';
 	});
 
 	let [command, params = ''] = message.split(' ', 2);

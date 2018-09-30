@@ -91,8 +91,8 @@ export default class Client extends EventEmitter {
 
 	protected _pingOnInactivity: number;
 	protected _pingTimeout: number;
-	protected _pingCheckTimer: NodeJS.Timer;
-	protected _pingTimeoutTimer: NodeJS.Timer;
+	protected _pingCheckTimer?: NodeJS.Timer;
+	protected _pingTimeoutTimer?: NodeJS.Timer;
 
 	private _logger: Logger;
 
@@ -121,14 +121,14 @@ export default class Client extends EventEmitter {
 			this.sendMessageAndCaptureReply(CapabilityNegotiation, {
 				command: 'LS',
 				version: '302'
-			}).then((capReply: CapabilityNegotiation[]) => {
+			}).then((capReply: Message[]) => {
 				if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
 					this._logger.debug1('Server does not support capabilities');
 					return;
 				}
 				this._supportsCapabilities = true;
 				const capLists = capReply.map(
-					line => ObjectTools.fromArray(line.params.capabilities.split(' '), (part: string) => {
+					line => ObjectTools.fromArray((line as CapabilityNegotiation).params.capabilities.split(' '), (part: string) => {
 						if (!part) {
 							return {};
 						}
@@ -283,8 +283,12 @@ export default class Client extends EventEmitter {
 
 		this._connection.on('disconnect', (reason?: Error) => {
 			this._registered = false;
-			clearTimeout(this._pingCheckTimer);
-			clearTimeout(this._pingTimeoutTimer);
+			if (this._pingCheckTimer) {
+				clearTimeout(this._pingCheckTimer);
+			}
+			if (this._pingTimeoutTimer) {
+				clearTimeout(this._pingTimeoutTimer);
+			}
 			if (reason) {
 				this._logger.err(`Disconnected unexpectedly: ${reason.message}`);
 			} else {
@@ -309,7 +313,9 @@ export default class Client extends EventEmitter {
 			const { params: { message } } = msg;
 			if (message === nowStr) {
 				this._logger.debug1(`Current ping: ${Date.now() - now}ms`);
-				clearTimeout(this._pingTimeoutTimer);
+				if (this._pingTimeoutTimer) {
+					clearTimeout(this._pingTimeoutTimer);
+				}
 				this.removeMessageListener(handler);
 			}
 		});
@@ -409,7 +415,7 @@ export default class Client extends EventEmitter {
 		if (capReply.params.command === 'ACK') {
 			// filter is necessary because some networks seem to add trailing spaces...
 			this._logger.debug1(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
-			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(capName => mappedCapList[capName]);
+			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(capName => (mappedCapList as { [name: string]: ServerCapability })[capName]);
 			for (const newCap of newNegotiatedCaps) {
 				let mergedCap = this._clientCapabilities.get(newCap.name) as ServerCapability;
 				mergedCap.param = newCap.param;
@@ -456,7 +462,7 @@ export default class Client extends EventEmitter {
 			this._events.set(commandName, new Map);
 		}
 
-		let handlerList = this._events.get(commandName)!;
+		let handlerList: Map<string, EventHandler<T>> = this._events.get(commandName)!;
 
 		if (!handlerName) {
 			do {
@@ -571,7 +577,9 @@ export default class Client extends EventEmitter {
 	}
 
 	private _startPingCheckTimer() {
-		clearTimeout(this._pingCheckTimer);
+		if (this._pingCheckTimer) {
+			clearTimeout(this._pingCheckTimer);
+		}
 		this._pingCheckTimer = setTimeout(
 			() => this.pingCheck(),
 			this._pingOnInactivity * 1000

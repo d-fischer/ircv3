@@ -34,17 +34,17 @@ export interface MessageConstructor<T extends Message = Message> {
 	SUPPORTS_CAPTURE: boolean;
 	minParamCount: number;
 
-	new (
+	new(
 		client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>,
 		prefix?: MessagePrefix
 	): T;
 
-	create(this: MessageConstructor<T>, client: Client, params: {[name in keyof MessageDataType<T>]?: string}): T;
+	create(this: MessageConstructor<T>, client: Client, params: { [name in keyof MessageDataType<T>]?: string }): T;
 
 	checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean;
 }
 
-const tagEscapeMap = {
+const tagEscapeMap: { [char: string]: string } = {
 	'\\': '\\',
 	':': ';',
 	n: '\n',
@@ -52,7 +52,7 @@ const tagEscapeMap = {
 	s: ' '
 };
 
-export default class Message<D = {}> {
+export default class Message<D extends { [name in keyof D]?: MessageParam } = {}> {
 	public static readonly COMMAND: string = '';
 	public static readonly PARAM_SPEC = {};
 	//noinspection JSUnusedGlobalSymbols
@@ -62,10 +62,10 @@ export default class Message<D = {}> {
 	protected _prefix?: MessagePrefix;
 	protected _command: string;
 	protected _params?: MessageParam[] = [];
-	protected _parsedParams: D;
-	protected _client: Client;
+	protected _parsedParams!: D;
+	protected _client!: Client;
 
-	private _raw: string;
+	private _raw?: string;
 
 	public static parse(line: string, client: Client): Message {
 		const splitLine: string[] = line.split(' ');
@@ -116,12 +116,12 @@ export default class Message<D = {}> {
 		if (hostName) {
 			let [user, host] = hostName.split('@', 2);
 			if (host) {
-				return {raw, nick, user, host};
+				return { raw, nick, user, host };
 			} else {
-				return {raw, nick, host: user};
+				return { raw, nick, host: user };
 			}
 		} else {
-			return {raw, nick};
+			return { raw, nick };
 		}
 	}
 
@@ -140,11 +140,11 @@ export default class Message<D = {}> {
 	public static create<T extends Message>(
 		this: MessageConstructor<T>,
 		client: Client,
-		params: {[name in keyof MessageDataType<T>]?: string}
+		params: { [name in keyof MessageDataType<T>]?: string }
 	): T {
-		let message = new this(client, this.COMMAND);
-		let parsedParams = {};
-		for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(this.PARAM_SPEC)) {
+		let message: T = new this(client, this.COMMAND);
+		let parsedParams: { [name in keyof MessageDataType<T>]?: MessageParam } = {};
+		ObjectTools.forEach(this.PARAM_SPEC, ([paramName, paramSpec]: [keyof MessageDataType<T>, MessageParamSpecEntry]) => {
 			if (paramName in params) {
 				const param = params[paramName as keyof MessageDataType<T>];
 				if (param !== undefined) {
@@ -158,7 +158,8 @@ export default class Message<D = {}> {
 			if (!(paramName in parsedParams) && !paramSpec.optional) {
 				throw new Error(`required parameter "${paramName}" not found in command "${this.COMMAND}"`);
 			}
-		}
+		});
+
 		message._parsedParams = parsedParams;
 
 		return message;
@@ -182,8 +183,8 @@ export default class Message<D = {}> {
 
 	public toString(): string {
 		const cls = this.constructor as MessageConstructor<this>;
-		const specKeys = Object.keys(cls.PARAM_SPEC);
-		return [this._command, ...specKeys.map((paramName: Extract<keyof D, string>): string | void => {
+		const specKeys = ObjectTools.keys(cls.PARAM_SPEC);
+		return [this._command, ...specKeys.map((paramName): string | undefined => {
 			const param = this._parsedParams[paramName];
 			if (param instanceof MessageParam) {
 				return (param.trailing ? ':' : '') + param.value;
@@ -219,8 +220,8 @@ export default class Message<D = {}> {
 
 			const paramSpecList = cls.PARAM_SPEC;
 			let i = 0;
-			let parsedParams = {};
-			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList as MessageParamSpec)) {
+			let parsedParams: { [name in keyof D]?: MessageParam } = {};
+			for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList as MessageParamSpec<this>)) {
 				if ((this._params.length - i) <= requiredParamsLeft) {
 					if (paramSpec.optional) {
 						continue;
@@ -254,7 +255,7 @@ export default class Message<D = {}> {
 					param = new MessageParam(restParams.join(' '), false);
 				}
 				if (this.checkParam(param.value, paramSpec)) {
-					parsedParams[paramName] = new MessageParam(param.value, param.trailing);
+					parsedParams[paramName as keyof MessageParamSpec<this>] = new MessageParam(param.value, param.trailing);
 					if (!paramSpec.optional) {
 						--requiredParamsLeft;
 					}
@@ -283,7 +284,7 @@ export default class Message<D = {}> {
 		return Object.values(this.PARAM_SPEC).filter((spec: MessageParamSpecEntry) => !spec.optional).length;
 	}
 
-	public get params(): {[name in Extract<keyof D, string>]: string} {
+	public get params(): { [name in Extract<keyof D, string>]: string } {
 		return ObjectTools.map(this._parsedParams as D, (param: MessageParam) => param.value);
 	}
 
