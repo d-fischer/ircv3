@@ -24,7 +24,7 @@ import {
 } from './Message/MessageTypes/Numerics';
 import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
 import Logger, { LogLevel } from '@d-fischer/logger';
-import { MessageParams } from './Toolkit/TypeTools';
+import { ConstructedType, MessageParams } from './Toolkit/TypeTools';
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
@@ -444,8 +444,10 @@ export default class Client extends EventEmitter {
 		this._connection.sendLine(line);
 	}
 
+	public onMessage<C extends MessageConstructor>(type: C, handler: EventHandler<ConstructedType<C>>, handlerName?: string): string;
+	public onMessage<T extends Message>(type: string, handler: EventHandler<Message>, handlerName?: string): string;
 	public onMessage<T extends Message>(
-		type: MessageConstructor<T> | string,
+		type: typeof Message | string,
 		handler: EventHandler<T>,
 		handlerName?: string
 	): string {
