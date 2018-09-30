@@ -137,16 +137,16 @@ export default class Message<D = {}> {
 		return tags;
 	}
 
-	public static create<T extends Message, DT>(
+	public static create<T extends Message>(
 		this: MessageConstructor<T>,
 		client: Client,
-		params: {[name in keyof DT]?: string}
+		params: {[name in keyof MessageDataType<T>]?: string}
 	): T {
 		let message = new this(client, this.COMMAND);
 		let parsedParams = {};
 		for (let [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(this.PARAM_SPEC)) {
 			if (paramName in params) {
-				const param = params[paramName as keyof DT];
+				const param = params[paramName as keyof MessageDataType<T>];
 				if (param !== undefined) {
 					if (this.checkParam(client, param!, paramSpec)) {
 						parsedParams[paramName] = new MessageParam(param!, Boolean(paramSpec.trailing));
