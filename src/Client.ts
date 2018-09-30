@@ -174,7 +174,7 @@ export default class Client extends EventEmitter {
 			this.handleEvents(parsedMessage);
 		});
 
-		this.onMessage(CapabilityNegotiation, ({ params: { command, capabilities } }: CapabilityNegotiation) => {
+		this.onMessage(CapabilityNegotiation, ({ params: { command, capabilities } }) => {
 			const caps = capabilities.split(' ');
 
 			// tslint:disable-next-line:switch-default
@@ -214,7 +214,7 @@ export default class Client extends EventEmitter {
 			}
 		});
 
-		this.onMessage(Ping, ({ params: { message } }: Ping) => {
+		this.onMessage(Ping, ({ params: { message } }) => {
 			this.sendMessage(Pong, { message });
 		});
 
@@ -225,13 +225,13 @@ export default class Client extends EventEmitter {
 			}
 		});
 
-		this.onMessage(Reply004ServerInfo, ({ params: { userModes } }: Reply004ServerInfo) => {
+		this.onMessage(Reply004ServerInfo, ({ params: { userModes } }) => {
 			if (userModes) {
 				this._supportedUserModes = userModes;
 			}
 		});
 
-		this.onMessage(Reply005ISupport, ({ params: { supports } }: Reply005ISupport) => {
+		this.onMessage(Reply005ISupport, ({ params: { supports } }) => {
 			this._supportedFeatures = Object.assign(
 				this._supportedFeatures,
 				ObjectTools.fromArray(supports.split(' '), (part: string) => {
@@ -251,7 +251,7 @@ export default class Client extends EventEmitter {
 			}
 		});
 
-		this.onMessage(PrivateMessage, (msg: PrivateMessage) => {
+		this.onMessage(PrivateMessage, msg => {
 			const { params: { target, message } } = msg;
 			const ctcpMessage = decodeCtcp(message);
 			const nick = msg.prefix && msg.prefix.nick;
@@ -267,7 +267,7 @@ export default class Client extends EventEmitter {
 			this.emit(this.onPrivmsg, target, nick, message, msg);
 		});
 
-		this.onMessage(Notice, (msg: Notice) => {
+		this.onMessage(Notice, msg => {
 			const { params: { target, message } } = msg;
 			const ctcpMessage = decodeCtcp(message);
 			const nick = msg.prefix && msg.prefix.nick;
@@ -478,16 +478,16 @@ export default class Client extends EventEmitter {
 		this._events.get(commandName)!.delete(handlerName);
 	}
 
-	public createMessage<T extends Message>(
-		type: MessageConstructor<T>,
-		params: MessageParams<T>
-	): T {
-		return type.create(this, params);
+	public createMessage<T extends MessageConstructor>(
+		type: T,
+		params: MessageParams<ConstructedType<T>>
+	): ConstructedType<T> {
+		return type.create(this, params) as ConstructedType<T>;
 	}
 
-	public sendMessage<T extends Message>(
-		type: MessageConstructor<T>,
-		params: MessageParams<T>
+	public sendMessage<T extends MessageConstructor>(
+		type: T,
+		params: MessageParams<ConstructedType<T>>
 	): void {
 		this.createMessage(type, params).send();
 	}
