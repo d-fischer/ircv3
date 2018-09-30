@@ -33,7 +33,7 @@ export function padLeft(str: string | number, length: number, padding?: string) 
 		if (length) {
 			padding += padding;
 		}
-		// tslint:enabled:no-bitwise
+		// tslint:enable:no-bitwise
 	} while (length);
 
 	return paddingStr + str;
