@@ -7,7 +7,7 @@ export interface ServerQuitParams {
 
 export default class ServerQuit extends Message<ServerQuitParams> {
 	public static readonly COMMAND = 'SQUIT';
-	public static readonly PARAM_SPEC: MessageParamSpec<ServerQuitParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<ServerQuit> = {
 		server: {},
 		message: {
 			trailing: true

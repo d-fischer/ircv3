@@ -9,7 +9,7 @@ export interface Reply366EndOfNamesParams {
 
 export default class Reply366EndOfNames extends Message<Reply366EndOfNamesParams> {
 	public static readonly COMMAND = '366';
-	public static readonly PARAM_SPEC: MessageParamSpec<Reply366EndOfNamesParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<Reply366EndOfNames> = {
 		me: {},
 		channel: {
 			type: 'channel'

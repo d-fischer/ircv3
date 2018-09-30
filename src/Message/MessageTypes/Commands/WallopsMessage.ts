@@ -6,7 +6,7 @@ export interface WallopsMessageParams {
 
 export default class WallopsMessage extends Message<WallopsMessageParams> {
 	public static readonly COMMAND = 'WALLOPS';
-	public static readonly PARAM_SPEC: MessageParamSpec<WallopsMessageParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<WallopsMessage> = {
 		message: {
 			trailing: true
 		}

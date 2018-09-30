@@ -10,7 +10,7 @@ export interface CapabilityNegotiationParams {
 
 export default class CapabilityNegotiation extends Message<CapabilityNegotiationParams> {
 	public static readonly COMMAND = 'CAP';
-	public static readonly PARAM_SPEC: MessageParamSpec<CapabilityNegotiationParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<CapabilityNegotiation> = {
 		target: {
 			match: /^(?:[a-z_\-\[\]\\^{}|`][a-z0-9_\-\[\]\\^{}|`]*|\*)$/i,
 			optional: true

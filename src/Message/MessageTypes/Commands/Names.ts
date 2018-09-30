@@ -6,7 +6,7 @@ export interface NamesParams {
 
 export default class Names extends Message<NamesParams> {
 	public static readonly COMMAND = 'NAMES';
-	public static readonly PARAM_SPEC: MessageParamSpec<NamesParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<Names> = {
 		channel: {
 			type: 'channel',
 			optional: true

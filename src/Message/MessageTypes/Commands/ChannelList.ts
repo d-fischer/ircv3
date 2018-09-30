@@ -7,7 +7,7 @@ export interface ChannelListParams {
 
 export default class ChannelList extends Message<ChannelListParams> {
 	public static readonly COMMAND = 'LIST';
-	public static readonly PARAM_SPEC: MessageParamSpec<ChannelListParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<ChannelList> = {
 		channel: {
 			type: 'channel',
 			optional: true

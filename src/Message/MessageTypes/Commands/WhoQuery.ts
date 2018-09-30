@@ -7,7 +7,7 @@ export interface WhoQueryParams {
 
 export default class WhoQuery extends Message<WhoQueryParams> {
 	public static readonly COMMAND = 'WHO';
-	public static readonly PARAM_SPEC: MessageParamSpec<WhoQueryParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<WhoQuery> = {
 		mask: {
 			optional: true
 		},

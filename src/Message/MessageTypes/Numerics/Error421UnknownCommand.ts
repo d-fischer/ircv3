@@ -8,7 +8,7 @@ export interface Error421UnknownCommandParams {
 
 export default class Error421UnknownCommand extends Message<Error421UnknownCommandParams> {
 	public static readonly COMMAND = '421';
-	public static readonly PARAM_SPEC: MessageParamSpec<Error421UnknownCommandParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<Error421UnknownCommand> = {
 		me: {},
 		command: {},
 		suffix: {

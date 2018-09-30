@@ -17,7 +17,7 @@ export interface SingleMode {
 
 export default class Mode extends Message<ModeParams> {
 	public static readonly COMMAND = 'MODE';
-	public static readonly PARAM_SPEC: MessageParamSpec<ModeParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<Mode> = {
 		target: {},
 		modes: {
 			rest: true,

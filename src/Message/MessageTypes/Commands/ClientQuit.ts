@@ -6,7 +6,7 @@ export interface ClientQuitParams {
 
 export default class ClientQuit extends Message<ClientQuitParams> {
 	public static readonly COMMAND = 'QUIT';
-	public static readonly PARAM_SPEC: MessageParamSpec<ClientQuitParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<ClientQuit> = {
 		message: {
 			trailing: true,
 			optional: true

@@ -6,7 +6,7 @@ export interface PasswordParams {
 
 export default class Password extends Message<PasswordParams> {
 	public static readonly COMMAND = 'PASS';
-	public static readonly PARAM_SPEC: MessageParamSpec<PasswordParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<Password> = {
 		password: {}
 	};
 }

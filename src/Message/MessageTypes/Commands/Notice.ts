@@ -7,7 +7,7 @@ export interface NoticeParams {
 
 export default class Notice extends Message<NoticeParams> {
 	public static readonly COMMAND = 'NOTICE';
-	public static readonly PARAM_SPEC: MessageParamSpec<NoticeParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<Notice> = {
 		target: {},
 		message: {
 			trailing: true

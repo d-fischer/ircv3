@@ -6,7 +6,7 @@ export interface IsOnQueryParams {
 
 export default class IsOnQuery extends Message<IsOnQueryParams> {
 	public static readonly COMMAND = 'ISON';
-	public static readonly PARAM_SPEC: MessageParamSpec<IsOnQueryParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<IsOnQuery> = {
 		nicks: {
 			rest: true
 		}

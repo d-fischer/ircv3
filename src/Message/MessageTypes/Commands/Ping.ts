@@ -6,7 +6,7 @@ export interface PingParams {
 
 export default class Ping extends Message<PingParams> {
 	public static readonly COMMAND = 'PING';
-	public static readonly PARAM_SPEC: MessageParamSpec<PingParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<Ping> = {
 		message: {
 			trailing: true
 		}

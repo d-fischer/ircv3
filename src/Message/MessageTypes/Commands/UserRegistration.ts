@@ -9,7 +9,7 @@ export interface UserRegistrationParams {
 
 export default class UserRegistration extends Message<UserRegistrationParams> {
 	public static readonly COMMAND = 'USER';
-	public static readonly PARAM_SPEC: MessageParamSpec<UserRegistrationParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<UserRegistration> = {
 		user: {},
 		mode: {},
 		unused: {},

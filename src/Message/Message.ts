@@ -2,6 +2,7 @@ import Client from '../Client';
 
 import ObjectTools from '../Toolkit/ObjectTools';
 import { isChannel } from '../Toolkit/StringTools';
+import { MessageDataType } from '../Toolkit/TypeTools';
 
 export type MessagePrefix = {
 	raw: string;
@@ -23,13 +24,13 @@ export interface MessageParamSpecEntry {
 	match?: RegExp;
 }
 
-export type MessageParamSpec<D = {}> = {
-	[name in keyof D]: MessageParamSpecEntry
+export type MessageParamSpec<T extends Message = Message> = {
+	[name in keyof MessageDataType<T>]: MessageParamSpecEntry
 };
 
-export interface MessageConstructor<T extends Message = Message, D = {}> {
+export interface MessageConstructor<T extends Message = Message> {
 	COMMAND: string;
-	PARAM_SPEC: MessageParamSpec<D>;
+	PARAM_SPEC: MessageParamSpec<T>;
 	SUPPORTS_CAPTURE: boolean;
 	minParamCount: number;
 
@@ -38,7 +39,7 @@ export interface MessageConstructor<T extends Message = Message, D = {}> {
 		prefix?: MessagePrefix
 	): T;
 
-	create(this: MessageConstructor<T>, client: Client, params: {[name in keyof D]?: string}): T;
+	create(this: MessageConstructor<T>, client: Client, params: {[name in keyof MessageDataType<T>]?: string}): T;
 
 	checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean;
 }
@@ -180,7 +181,7 @@ export default class Message<D = {}> {
 	}
 
 	public toString(): string {
-		const cls = this.constructor as MessageConstructor<this, D>;
+		const cls = this.constructor as MessageConstructor<this>;
 		const specKeys = Object.keys(cls.PARAM_SPEC);
 		return [this._command, ...specKeys.map((paramName: Extract<keyof D, string>): string | void => {
 			const param = this._parsedParams[paramName];
@@ -208,7 +209,7 @@ export default class Message<D = {}> {
 
 	public parseParams() {
 		if (this._params) {
-			const cls = this.constructor as MessageConstructor<this, D>;
+			const cls = this.constructor as MessageConstructor<this>;
 			let requiredParamsLeft = cls.minParamCount;
 			if (requiredParamsLeft > this._params.length) {
 				throw new Error(
@@ -274,7 +275,7 @@ export default class Message<D = {}> {
 	}
 
 	public checkParam(param: string, spec: MessageParamSpecEntry): boolean {
-		const cls = this.constructor as MessageConstructor<this, D>;
+		const cls = this.constructor as MessageConstructor<this>;
 		return cls.checkParam(this._client, param, spec);
 	}
 
@@ -307,7 +308,7 @@ export default class Message<D = {}> {
 	}
 
 	public async sendAndCaptureReply(): Promise<Message[]> {
-		const cls = this.constructor as MessageConstructor<this, D>;
+		const cls = this.constructor as MessageConstructor<this>;
 
 		if (!cls.SUPPORTS_CAPTURE) {
 			throw new Error(`The command "${cls.COMMAND}" does not support reply capture`);

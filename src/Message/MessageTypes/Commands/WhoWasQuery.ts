@@ -8,7 +8,7 @@ export interface WhoWasQueryParams {
 
 export default class WhoWasQuery extends Message<WhoWasQueryParams> {
 	public static readonly COMMAND = 'WHOWAS';
-	public static readonly PARAM_SPEC: MessageParamSpec<WhoWasQueryParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<WhoWasQuery> = {
 		nickname: {},
 		count: {
 			optional: true

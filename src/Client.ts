@@ -24,6 +24,7 @@ import {
 } from './Message/MessageTypes/Numerics';
 import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
 import Logger, { LogLevel } from '@d-fischer/logger';
+import { MessageParams } from './Toolkit/TypeTools';
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
@@ -34,10 +35,6 @@ export interface SupportedChannelModes {
 	paramWhenSet: string;
 	noParam: string;
 }
-
-export type MessageParams<D> = {
-	[name in keyof D]?: string;
-};
 
 interface ClientOptions {
 	connection: ConnectionInfo;
@@ -479,23 +476,23 @@ export default class Client extends EventEmitter {
 		this._events.get(commandName)!.delete(handlerName);
 	}
 
-	public createMessage<T extends Message, D>(
-		type: MessageConstructor<T, D>,
-		params: MessageParams<D>
+	public createMessage<T extends Message>(
+		type: MessageConstructor<T>,
+		params: MessageParams<T>
 	): T {
 		return type.create(this, params);
 	}
 
-	public sendMessage<T extends Message, D>(
-		type: MessageConstructor<T, D>,
-		params: MessageParams<D>
+	public sendMessage<T extends Message>(
+		type: MessageConstructor<T>,
+		params: MessageParams<T>
 	): void {
 		this.createMessage(type, params).send();
 	}
 
-	public async sendMessageAndCaptureReply<T extends Message, D>(
-		type: MessageConstructor<T, D>,
-		params: MessageParams<D>
+	public async sendMessageAndCaptureReply<T extends Message>(
+		type: MessageConstructor<T>,
+		params: MessageParams<T>
 	): Promise<Message[]> {
 		return this.createMessage(type, params).sendAndCaptureReply();
 	}

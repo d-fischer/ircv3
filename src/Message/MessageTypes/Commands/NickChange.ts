@@ -6,7 +6,7 @@ export interface NickChangeParams {
 
 export default class NickChange extends Message<NickChangeParams> {
 	public static readonly COMMAND = 'NICK';
-	public static readonly PARAM_SPEC: MessageParamSpec<NickChangeParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<NickChange> = {
 		nick: {}
 	};
 }

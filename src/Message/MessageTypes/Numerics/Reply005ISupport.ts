@@ -8,7 +8,7 @@ export interface Reply005ISupportParams {
 
 export default class Reply005ISupport extends Message<Reply005ISupportParams> {
 	public static readonly COMMAND = '005';
-	public static readonly PARAM_SPEC: MessageParamSpec<Reply005ISupportParams> = {
+	public static readonly PARAM_SPEC: MessageParamSpec<Reply005ISupport> = {
 		me: {},
 		supports: {
 			rest: true
