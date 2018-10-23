@@ -151,7 +151,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 	): T {
 		const message: T = new this(client, this.COMMAND);
 		const parsedParams: { [name in keyof MessageDataType<T>]?: MessageParam } = {};
-		ObjectTools.forEach(this.PARAM_SPEC, ([paramName, paramSpec]: [keyof MessageDataType<T>, MessageParamSpecEntry]) => {
+		ObjectTools.forEach(this.PARAM_SPEC, (paramSpec: MessageParamSpecEntry, paramName: keyof MessageDataType<T>) => {
 			if (paramName in params) {
 				const param = params[paramName];
 				if (param !== undefined) {
