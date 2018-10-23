@@ -29,6 +29,7 @@ abstract class Connection extends EventEmitter {
 	abstract disconnect(): void;
 
 	protected abstract sendRaw(line: string): void;
+	abstract get port(): number;
 
 	constructor({ hostName, port, secure, reconnect = true }: ConnectionInfo) {
 		super();
@@ -43,7 +44,9 @@ abstract class Connection extends EventEmitter {
 			}
 			const [host, splitPort] = splitHost;
 			this._host = host;
-			this._port = Number(splitPort);
+			if (splitPort) {
+				this._port = Number(splitPort);
+			}
 		}
 
 		this._shouldReconnect = reconnect;
@@ -85,10 +88,6 @@ abstract class Connection extends EventEmitter {
 
 	get host() {
 		return this._host;
-	}
-
-	get port() {
-		return this._port;
 	}
 }
 

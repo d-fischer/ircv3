@@ -1,9 +1,9 @@
 import Capability from '../../Capability';
-import ChangeHost from './MessageTypes/Commands/ChangeHost';
+import ChgHost from './MessageTypes/Commands/ChangeHost';
 
 const ChgHostCapability: Capability = {
 	name: 'chghost',
-	messageTypes: [ChangeHost]
+	messageTypes: [ChgHost]
 };
 
 export default ChgHostCapability;

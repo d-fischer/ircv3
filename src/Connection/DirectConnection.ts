@@ -6,6 +6,10 @@ import * as tls from 'tls';
 class DirectConnection extends Connection {
 	private _socket?: Socket;
 
+	get port() {
+		return this._port || (this._secure ? 6697 : 6667);
+	}
+
 	async connect() {
 		return new Promise<void>((resolve, reject) => {
 			this._connecting = true;
@@ -24,10 +28,10 @@ class DirectConnection extends Connection {
 				resolve();
 			};
 			if (this._secure) {
-				this._socket = tls.connect(this._port || 6697, this._host, {}, connectionListener);
+				this._socket = tls.connect(this.port, this._host, {}, connectionListener);
 			} else {
 				this._socket = new Socket();
-				this._socket.connect(this._port || 6667, this._host, connectionListener);
+				this._socket.connect(this.port, this._host, connectionListener);
 			}
 			this._socket.on('error', connectionErrorListener);
 			this._socket.on('data', (data: Buffer) => {

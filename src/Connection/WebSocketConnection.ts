@@ -4,10 +4,14 @@ import * as WebSocket from 'universal-websocket-client';
 class WebSocketConnection extends Connection {
 	private _socket?: WebSocket;
 
+	get port() {
+		return this._port || (this._secure ? 443 : 80);
+	}
+
 	async connect() {
 		return new Promise<void>((resolve, reject) => {
 			this._connecting = true;
-			const url = `ws${this._secure ? 's' : ''}://${this._host}:${this._port || (this._secure ? 443 : 80)}`;
+			const url = `ws${this._secure ? 's' : ''}://${this._host}:${this.port}`;
 			this._socket = new WebSocket(url);
 			this._socket.on('open', () => {
 				this._connected = true;
