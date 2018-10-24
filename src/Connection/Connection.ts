@@ -56,6 +56,7 @@ abstract class Connection extends EventEmitter {
 		if (this._manualDisconnect) {
 			this._manualDisconnect = false;
 		} else if (error && this._shouldReconnect) {
+			// tslint:disable-next-line:no-floating-promises
 			this.connect();
 		}
 	}

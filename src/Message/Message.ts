@@ -112,6 +112,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 			messageClass = client.getCommandClass(command)!;
 		}
 
+		// tslint:disable-next-line:no-inferred-empty-object-type
 		message = new messageClass(client, command, params, tags, prefix);
 		message._raw = line;
 
@@ -154,15 +155,13 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		ObjectTools.forEach(this.PARAM_SPEC, (paramSpec: MessageParamSpecEntry, paramName: keyof MessageDataType<T>) => {
 			if (paramName in params) {
 				const param = params[paramName];
-				if (param !== undefined) {
-					if (this.checkParam(client, param!, paramSpec)) {
-						parsedParams[paramName] = {
-							value: param!,
-							trailing: Boolean(paramSpec.trailing)
-						};
-					} else if (!paramSpec.optional) {
-						throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
-					}
+				if (this.checkParam(client, param!, paramSpec)) {
+					parsedParams[paramName] = {
+						value: param!,
+						trailing: Boolean(paramSpec.trailing)
+					};
+				} else if (!paramSpec.optional) {
+					throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
 				}
 			}
 			if (!(paramName in parsedParams) && !paramSpec.optional) {

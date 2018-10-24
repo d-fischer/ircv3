@@ -26,6 +26,8 @@ import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
 import Logger, { LogLevel } from '@d-fischer/logger';
 import { ConstructedType, MessageParams } from './Toolkit/TypeTools';
 
+// tslint:disable:no-floating-promises
+
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
 
@@ -367,7 +369,7 @@ export default class Client extends EventEmitter {
 			return;
 		}
 
-		return new Promise((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			let registerListener: Listener;
 			let disconnectListener: Listener;
 			registerListener = this.onRegister(() => {
@@ -388,7 +390,7 @@ export default class Client extends EventEmitter {
 		capabilities: ServerCapability[][]
 	): Promise<Array<ServerCapability[] | Error>> {
 		return Promise.all(capabilities.filter(list => list.length).map(
-			(capList: ServerCapability[]) => this._negotiateCapabilities(capList)
+			async (capList: ServerCapability[]) => this._negotiateCapabilities(capList)
 		));
 	}
 

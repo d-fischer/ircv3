@@ -21,7 +21,7 @@ export default class MessageCollector {
 		this._endEventHandlers.set(eventType, listener);
 	}
 
-	promise(): Promise<Message[]> {
+	async promise() {
 		if (!this._promise) {
 			this._promise = new Promise(resolve => this._promiseResolve = resolve);
 		}
