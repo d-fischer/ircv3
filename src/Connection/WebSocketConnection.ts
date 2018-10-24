@@ -29,8 +29,11 @@ class WebSocketConnection extends Connection {
 				this._connecting = false;
 				if (wasClean) {
 					this.emit('disconnect');
+					this._handleReconnect();
 				} else {
-					this.emit('disconnect', new Error(`[${code}] ${reason}`));
+					const err = new Error(`[${code}] ${reason}`);
+					this.emit('disconnect', err);
+					this._handleReconnect(err);
 					if (this._initialConnection) {
 						reject();
 					}

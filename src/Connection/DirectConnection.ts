@@ -14,8 +14,14 @@ class DirectConnection extends Connection {
 		return new Promise<void>((resolve, reject) => {
 			this._connecting = true;
 			const connectionErrorListener = (err: Error) => {
+				if (this._socket) {
+					this._socket.destroy();
+					this._socket = undefined;
+				}
 				this._connected = false;
+				this._connecting = false;
 				this.emit('disconnect', err);
+				this._handleReconnect(err);
 				if (this._initialConnection) {
 					reject(err);
 				}
@@ -38,11 +44,15 @@ class DirectConnection extends Connection {
 				this.receiveRaw(data.toString());
 			});
 			this._socket.on('close', (hadError: boolean) => {
-				this._socket = undefined;
-				this._connected = false;
-				this._connecting = false;
 				if (!hadError) {
+					if (this._socket) {
+						this._socket.destroy();
+						this._socket = undefined;
+					}
+					this._connected = false;
+					this._connecting = false;
 					this.emit('disconnect');
+					this._handleReconnect();
 				}
 			});
 		});
@@ -52,6 +62,7 @@ class DirectConnection extends Connection {
 		if (this._socket) {
 			this._manualDisconnect = true;
 			this._socket.destroy();
+			this._socket = undefined;
 		}
 	}
 

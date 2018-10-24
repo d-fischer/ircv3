@@ -50,13 +50,14 @@ abstract class Connection extends EventEmitter {
 		}
 
 		this._shouldReconnect = reconnect;
-		this.on('disconnect', error => {
-			if (this._manualDisconnect) {
-				this._manualDisconnect = false;
-			} else if (error && this._shouldReconnect) {
-				this.connect();
-			}
-		});
+	}
+
+	protected _handleReconnect(error?: Error) {
+		if (this._manualDisconnect) {
+			this._manualDisconnect = false;
+		} else if (error && this._shouldReconnect) {
+			this.connect();
+		}
 	}
 
 	sendLine(line: string): void {

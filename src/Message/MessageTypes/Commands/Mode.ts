@@ -36,10 +36,7 @@ export default class Mode extends Message<ModeParams> {
 			throw new Error('can\'t separate a channel mode request, just set actions');
 		}
 		const modeParams = modeRestParam.value.split(' ');
-		const modes = modeParams.shift();
-		if (!modes) {
-			throw new Error('this should never happen because of the error condition above');
-		}
+		const modes = modeParams.shift()!;
 		let currentModeAction: ModeAction = 'add';
 		for (const ch of modes) {
 			let thisModeAction: ModeAction = currentModeAction;
