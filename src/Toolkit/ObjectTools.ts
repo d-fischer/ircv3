@@ -10,7 +10,7 @@ interface ObjectCtor extends ObjectConstructor {
 declare let Object: ObjectCtor;
 
 /** @private */
-export type ObjMap<Obj, T> = { [name in Extract<keyof Obj, string>]: T };
+export type ObjMap<Obj, T> = Record<Extract<keyof Obj, string>, T>;
 /** @private */
 export type ObjMapPart<Obj, T> = Partial<ObjMap<Obj, T>>;
 
@@ -32,6 +32,16 @@ export default class ObjectTools {
 
 	static keys<Obj>(o: Obj): Array<keyof Obj> {
 		return Object.keys(o);
+	}
+
+	static indexBy<T>(arr: T[], key: Extract<keyof T, string>): UniformObject<T>;
+	static indexBy<T>(arr: T[], keyFn: KeyMapper<T>): UniformObject<T>;
+	static indexBy<T>(arr: T[], keyFn: Extract<keyof T, string> | KeyMapper<T>): UniformObject<T> {
+		if (typeof keyFn !== 'function') {
+			const key = keyFn;
+			keyFn = ((value: T) => value[key].toString()) as KeyMapper<T>;
+		}
+		return this.fromArray<T, T, UniformObject<T>>(arr, val => ({ [(keyFn as KeyMapper<T>)(val)]: val }));
 	}
 
 	static fromArray<T, O, Obj>(arr: T[], fn: (value: T) => ObjMapPart<Obj, O>) {

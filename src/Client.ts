@@ -8,6 +8,7 @@ import MessageCollector from './Message/MessageCollector';
 import * as MessageTypes from './Message/MessageTypes';
 import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
+import * as clone from 'clone';
 
 import { EventEmitter, Listener } from './TypedEventEmitter';
 
@@ -45,6 +46,24 @@ interface ClientOptions {
 	logLevel?: number;
 }
 
+export interface ServerProperties {
+	channelTypes: string;
+	supportedUserModes: string;
+	supportedChannelModes: SupportedChannelModes;
+}
+
+// sane defaults based on RFC 1459
+export const defaultServerProperties: ServerProperties = {
+	channelTypes: '#&',
+	supportedUserModes: 'iwso',
+	supportedChannelModes: {
+		list: 'b',
+		alwaysWithParam: 'ovk',
+		paramWhenSet: 'l',
+		noParam: 'imnpst'
+	}
+};
+
 export default class Client extends EventEmitter {
 	protected _connection: Connection;
 	protected _nick: string;
@@ -75,15 +94,7 @@ export default class Client extends EventEmitter {
 	onCtcpReply: (handler: (target: string, user: string, command: string, params: string, msg: Notice) => void)
 		=> Listener = this.registerEvent();
 
-	// sane defaults based on RFC 1459
-	protected _channelTypes: string = '#&';
-	protected _supportedUserModes: string = 'iwso';
-	protected _supportedChannelModes: SupportedChannelModes = {
-		list: 'b',
-		alwaysWithParam: 'ovk',
-		paramWhenSet: 'l',
-		noParam: 'imnpst'
-	};
+	protected _serverProperties: ServerProperties = clone(defaultServerProperties, false);
 	protected _supportedFeatures: { [feature: string]: true | string } = {};
 	protected _collectors: MessageCollector[] = [];
 
@@ -166,7 +177,7 @@ export default class Client extends EventEmitter {
 
 		this._connection.on('lineReceived', (line: string) => {
 			this._logger.debug2(`Received message: ${line}`);
-			const parsedMessage = Message.parse(line, this);
+			const parsedMessage = Message.parse(line, this._serverProperties);
 			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
 			this._startPingCheckTimer();
 			this.handleEvents(parsedMessage);
@@ -224,7 +235,7 @@ export default class Client extends EventEmitter {
 
 		this.onMessage(Reply004ServerInfo, ({ params: { userModes } }) => {
 			if (userModes) {
-				this._supportedUserModes = userModes;
+				this._serverProperties.supportedUserModes = userModes;
 			}
 		});
 
@@ -298,8 +309,12 @@ export default class Client extends EventEmitter {
 		this._realName = connection.realName || connection.nick;
 
 		if (channelTypes) {
-			this._channelTypes = channelTypes;
+			this._serverProperties.channelTypes = channelTypes;
 		}
+	}
+
+	get serverProperties(): ServerProperties {
+		return clone(this._serverProperties, false);
 	}
 
 	pingCheck() {
@@ -485,29 +500,28 @@ export default class Client extends EventEmitter {
 		type: T,
 		params: MessageParams<ConstructedType<T>>
 	): ConstructedType<T> {
-		return type.create(this, params) as ConstructedType<T>;
+		return type.create(params, this.serverProperties) as ConstructedType<T>;
 	}
 
 	sendMessage<T extends MessageConstructor>(
 		type: T,
 		params: MessageParams<ConstructedType<T>>
 	): void {
-		this.createMessage(type, params).send();
+		this.send(this.createMessage(type, params));
 	}
 
 	async sendMessageAndCaptureReply<T extends Message>(
 		type: MessageConstructor<T>,
 		params: MessageParams<T>
 	): Promise<Message[]> {
-		return this.createMessage(type, params).sendAndCaptureReply();
-	}
+		if (!type.SUPPORTS_CAPTURE) {
+			throw new Error(`The command "${type.COMMAND}" does not support reply capture`);
+		}
 
-	get channelTypes(): string {
-		return this._channelTypes;
-	}
-
-	get supportedChannelModes(): SupportedChannelModes {
-		return this._supportedChannelModes;
+		const message = this.createMessage(type, params);
+		const promise = this.collect(message).promise();
+		this.send(message);
+		return promise;
 	}
 
 	get isConnected() {

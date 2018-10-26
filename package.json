@@ -26,6 +26,8 @@
   },
   "dependencies": {
     "@d-fischer/logger": "^0.1.1",
+    "@types/clone": "^0.1.30",
+    "clone": "^2.1.2",
     "escape-string-regexp": "^1.0.5",
     "universal-websocket-client": "^1.0.1",
     "ws": "^3.1.0"

@@ -1,8 +1,9 @@
-import Client from '../Client';
+import { defaultServerProperties, ServerProperties } from '../Client';
 
 import ObjectTools from '../Toolkit/ObjectTools';
 import { isChannel } from '../Toolkit/StringTools';
 import { MessageDataType } from '../Toolkit/TypeTools';
+import { all as coreMessageTypes } from './MessageTypes';
 
 export type MessagePrefix = {
 	raw: string;
@@ -34,14 +35,11 @@ export interface MessageConstructor<T extends Message = Message> {
 	SUPPORTS_CAPTURE: boolean;
 	minParamCount: number;
 
-	new(
-		client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>,
-		prefix?: MessagePrefix
-	): T;
+	new(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties?: ServerProperties): T;
 
-	create(this: MessageConstructor<T>, client: Client, params: { [name in keyof MessageDataType<T>]?: string }): T;
+	create(this: MessageConstructor<T>, params: { [name in keyof MessageDataType<T>]?: string }, serverProperties: ServerProperties): T;
 
-	checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean;
+	checkParam(param: string, spec: MessageParamSpecEntry, serverProperties?: ServerProperties): boolean;
 }
 
 const tagEscapeMap: { [char: string]: string } = {
@@ -63,11 +61,11 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 	protected _command: string;
 	protected _params?: MessageParam[] = [];
 	protected _parsedParams!: D;
-	protected _client!: Client;
+	protected _serverProperties: ServerProperties = defaultServerProperties;
 
 	private _raw?: string;
 
-	static parse(line: string, client: Client): Message {
+	static parse(line: string, serverProperties: ServerProperties = defaultServerProperties, knownCommands: Record<string, MessageConstructor> = coreMessageTypes): Message {
 		const splitLine: string[] = line.split(' ');
 		let token: string;
 
@@ -108,12 +106,12 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		let message: Message;
 
 		let messageClass: MessageConstructor = Message;
-		if (client.knowsCommand(command)) {
-			messageClass = client.getCommandClass(command)!;
+		if (knownCommands.hasOwnProperty(command)) {
+			messageClass = knownCommands[command];
 		}
 
 		// tslint:disable-next-line:no-inferred-empty-object-type
-		message = new messageClass(client, command, params, tags, prefix);
+		message = new messageClass(command, params, tags, prefix, defaultServerProperties);
 		message._raw = line;
 
 		return message;
@@ -147,15 +145,15 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 
 	static create<T extends Message>(
 		this: MessageConstructor<T>,
-		client: Client,
-		params: { [name in keyof MessageDataType<T>]?: string }
+		params: { [name in keyof MessageDataType<T>]?: string },
+		serverProperties: ServerProperties = defaultServerProperties
 	): T {
-		const message: T = new this(client, this.COMMAND);
+		const message: T = new this(this.COMMAND, undefined, undefined, undefined, serverProperties);
 		const parsedParams: { [name in keyof MessageDataType<T>]?: MessageParam } = {};
 		ObjectTools.forEach(this.PARAM_SPEC, (paramSpec: MessageParamSpecEntry, paramName: keyof MessageDataType<T>) => {
 			if (paramName in params) {
 				const param = params[paramName];
-				if (this.checkParam(client, param!, paramSpec)) {
+				if (this.checkParam(param!, paramSpec, serverProperties)) {
 					parsedParams[paramName] = {
 						value: param!,
 						trailing: Boolean(paramSpec.trailing)
@@ -174,9 +172,9 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		return message;
 	}
 
-	static checkParam(client: Client, param: string, spec: MessageParamSpecEntry): boolean {
+	static checkParam(param: string, spec: MessageParamSpecEntry, serverProperties: ServerProperties = defaultServerProperties): boolean {
 		if (spec.type === 'channel') {
-			if (!isChannel(param, client.channelTypes)) {
+			if (!isChannel(param, serverProperties.channelTypes)) {
 				return false;
 			}
 		}
@@ -201,17 +199,12 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		}).filter((param: string | undefined) => param !== undefined)].join(' ');
 	}
 
-	constructor(
-		client: Client, command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix) {
+	constructor(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties: ServerProperties = defaultServerProperties) {
 		this._command = command;
 		this._params = params;
 		this._tags = tags;
 		this._prefix = prefix;
-
-		Object.defineProperty(this, '_client', {
-			get: () =>
-				client
-		});
+		this._serverProperties = serverProperties;
 
 		this.parseParams();
 	}
@@ -265,7 +258,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 						trailing: false
 					};
 				}
-				if (this.checkParam(param.value, paramSpec)) {
+				if (Message.checkParam(param.value, paramSpec)) {
 					parsedParams[paramName as keyof MessageParamSpec<this>] = { ...param };
 					if (!paramSpec.optional) {
 						--requiredParamsLeft;
@@ -284,11 +277,6 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 
 			this._parsedParams = parsedParams as D;
 		}
-	}
-
-	checkParam(param: string, spec: MessageParamSpecEntry): boolean {
-		const cls = this.constructor as MessageConstructor<this>;
-		return cls.checkParam(this._client, param, spec);
 	}
 
 	static get minParamCount(): number {
@@ -313,22 +301,6 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 
 	get rawLine() {
 		return this._raw;
-	}
-
-	send(): void {
-		this._client.send(this);
-	}
-
-	async sendAndCaptureReply(): Promise<Message[]> {
-		const cls = this.constructor as MessageConstructor<this>;
-
-		if (!cls.SUPPORTS_CAPTURE) {
-			throw new Error(`The command "${cls.COMMAND}" does not support reply capture`);
-		}
-
-		const promise = this._client.collect(this).promise();
-		this.send();
-		return promise;
 	}
 
 	protected isResponseTo(originalMessage: Message): boolean {

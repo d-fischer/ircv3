@@ -26,7 +26,7 @@ export default class Mode extends Message<ModeParams> {
 	};
 
 	get isChannel() {
-		return isChannel(this._parsedParams.target.value, this._client.channelTypes);
+		return isChannel(this._parsedParams.target.value, this._serverProperties.channelTypes);
 	}
 
 	separate(): SingleMode[] {
@@ -52,19 +52,19 @@ export default class Mode extends Message<ModeParams> {
 				default: {
 					let requiresParam = false;
 					if (this.isChannel) {
-						if (this._client.supportedChannelModes.alwaysWithParam.includes(ch)) {
+						if (this._serverProperties.supportedChannelModes.alwaysWithParam.includes(ch)) {
 							requiresParam = true;
-						} else if (this._client.supportedChannelModes.paramWhenSet.includes(ch)) {
+						} else if (this._serverProperties.supportedChannelModes.paramWhenSet.includes(ch)) {
 							if (currentModeAction === 'add') {
 								requiresParam = true;
 							}
-						} else if (this._client.supportedChannelModes.list.includes(ch)) {
+						} else if (this._serverProperties.supportedChannelModes.list.includes(ch)) {
 							if (modeParams.length) {
 								requiresParam = true;
 							} else {
 								thisModeAction = 'getList';
 							}
-						} else if (this._client.supportedChannelModes.noParam.includes(ch)) {
+						} else if (this._serverProperties.supportedChannelModes.noParam.includes(ch)) {
 							// whatever
 						} else {
 							throw new Error(`unknown mode character: ${ch}`);
