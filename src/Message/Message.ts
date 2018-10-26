@@ -35,7 +35,7 @@ export interface MessageConstructor<T extends Message = Message> {
 
 	new(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties?: ServerProperties, rawLine?: string): T;
 
-	create(this: MessageConstructor<T>, params: { [name in keyof MessageDataType<T>]?: string }, serverProperties: ServerProperties): T;
+	create(this: MessageConstructor<T>, params: { [name in keyof MessageDataType<T>]?: string }, prefix?: MessagePrefix, serverProperties?: ServerProperties): T;
 
 	checkParam(param: string, spec: MessageParamSpecEntry, serverProperties?: ServerProperties): boolean;
 }
@@ -58,6 +58,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 	static create<T extends Message>(
 		this: MessageConstructor<T>,
 		params: { [name in keyof MessageDataType<T>]?: string },
+		prefix?: MessagePrefix,
 		serverProperties: ServerProperties = defaultServerProperties
 	): T {
 		const message: T = new this(this.COMMAND, undefined, undefined, undefined, serverProperties);

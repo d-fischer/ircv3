@@ -469,7 +469,7 @@ export default class Client extends EventEmitter {
 		type: T,
 		params: MessageParams<ConstructedType<T>>
 	): ConstructedType<T> {
-		return type.create(params, this.serverProperties) as ConstructedType<T>;
+		return type.create(params, undefined, this.serverProperties) as ConstructedType<T>;
 	}
 
 	sendMessage<T extends MessageConstructor>(
