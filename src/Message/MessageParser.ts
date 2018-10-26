@@ -58,16 +58,16 @@ export function parsePrefix(raw: string): MessagePrefix {
 	if (hostName) {
 		const [user, host] = hostName.split('@', 2);
 		if (host) {
-			return { raw, nick, user, host };
+			return { nick, user, host };
 		} else {
-			return { raw, nick, host: user };
+			return { nick, host: user };
 		}
 	} else {
-		return { raw, nick };
+		return { nick };
 	}
 }
 
-const tagEscapeMap: { [char: string]: string } = {
+const tagUnescapeMap: { [char: string]: string } = {
 	'\\': '\\',
 	':': ';',
 	n: '\n',
@@ -81,7 +81,7 @@ export function parseTags(raw: string): Map<string, string> {
 	for (const tagString of tagStrings) {
 		const [tagName, tagValue] = tagString.split('=', 2);
 		// unescape according to http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
-		tags.set(tagName, tagValue.replace(/\\([\\:nrs])/g, (_, match) => tagEscapeMap[match]));
+		tags.set(tagName, tagValue.replace(/\\([\\:nrs])/g, (_, match) => tagUnescapeMap[match]));
 	}
 
 	return tags;

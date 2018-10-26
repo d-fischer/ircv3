@@ -467,9 +467,10 @@ export default class Client extends EventEmitter {
 
 	createMessage<T extends MessageConstructor>(
 		type: T,
-		params: MessageParams<ConstructedType<T>>
+		params: MessageParams<ConstructedType<T>>,
+		tags?: Map<string, string>
 	): ConstructedType<T> {
-		return type.create(params, undefined, this.serverProperties) as ConstructedType<T>;
+		return type.create(params, undefined, tags, this.serverProperties) as ConstructedType<T>;
 	}
 
 	sendMessage<T extends MessageConstructor>(

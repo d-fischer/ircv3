@@ -4,7 +4,6 @@ import { MessageDataType } from '../Toolkit/TypeTools';
 import { ServerProperties, defaultServerProperties } from '../ServerProperties';
 
 export type MessagePrefix = {
-	raw: string;
 	nick: string;
 	user?: string;
 	host?: string;
@@ -35,9 +34,21 @@ export interface MessageConstructor<T extends Message = Message> {
 
 	new(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties?: ServerProperties, rawLine?: string): T;
 
-	create(this: MessageConstructor<T>, params: { [name in keyof MessageDataType<T>]?: string }, prefix?: MessagePrefix, serverProperties?: ServerProperties): T;
+	create(this: MessageConstructor<T>, params: { [name in keyof MessageDataType<T>]?: string }, prefix?: MessagePrefix, tags?: Map<string, string>, serverProperties?: ServerProperties): T;
 
 	checkParam(param: string, spec: MessageParamSpecEntry, serverProperties?: ServerProperties): boolean;
+}
+
+const tagEscapeMap: { [char: string]: string } = {
+	'\\': '\\',
+	';': ':',
+	'\n': 'n',
+	'\r': 'r',
+	' ': 's'
+};
+
+function escapeTag(str: string) {
+	return str.replace(/[\\;\n\r ]/g, match => `\\${tagEscapeMap[match]}`);
 }
 
 export default class Message<D extends { [name in keyof D]?: MessageParam } = {}> {
@@ -59,6 +70,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		this: MessageConstructor<T>,
 		params: { [name in keyof MessageDataType<T>]?: string },
 		prefix?: MessagePrefix,
+		tags?: Map<string, string>,
 		serverProperties: ServerProperties = defaultServerProperties
 	): T {
 		const message: T = new this(this.COMMAND, undefined, undefined, undefined, serverProperties);
@@ -82,6 +94,9 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 
 		message._parsedParams = parsedParams;
 
+		message._prefix = prefix;
+		message._tags = tags;
+
 		return message;
 	}
 
@@ -101,15 +116,57 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		return true;
 	}
 
-	toString(): string {
+	prefixToString() {
+		if (!this._prefix) {
+			return '';
+		}
+
+		let prefix = `${this._prefix.nick}`;
+		if (this._prefix.user) {
+			prefix += `!${this._prefix.user}`;
+		}
+		if (this._prefix.host) {
+			prefix += `@${this._prefix.host}`;
+		}
+
+		return prefix;
+	}
+
+	tagsToString() {
+		if (!this._tags) {
+			return '';
+		}
+
+		return [...this._tags.entries()].map(([key, value]) => `${escapeTag(key)}=${escapeTag(value)}`).join(';');
+	}
+
+	toString(complete: boolean = false): string {
 		const cls = this.constructor as MessageConstructor<this>;
 		const specKeys = ObjectTools.keys(cls.PARAM_SPEC);
-		return [this._command, ...specKeys.map((paramName): string | undefined => {
+		const fullCommand = [this._command, ...specKeys.map((paramName): string | undefined => {
 			const param = this._parsedParams[paramName];
 			if (param) {
 				return (param.trailing ? ':' : '') + param.value;
 			}
 		}).filter((param: string | undefined) => param !== undefined)].join(' ');
+
+		if (!complete) {
+			return fullCommand;
+		}
+
+		const parts = [fullCommand];
+
+		const prefix = this.prefixToString();
+		if (prefix) {
+			parts.unshift(`:${prefix}`);
+		}
+
+		const tags = this.tagsToString();
+		if (tags) {
+			parts.unshift(`@${tags}`);
+		}
+
+		return parts.join(' ');
 	}
 
 	constructor(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties: ServerProperties = defaultServerProperties, rawLine?: string) {
