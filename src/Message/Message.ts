@@ -65,7 +65,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 
 	private _raw?: string;
 
-	static parse(line: string, serverProperties: ServerProperties = defaultServerProperties, knownCommands: Record<string, MessageConstructor> = coreMessageTypes): Message {
+	static parse(line: string, serverProperties: ServerProperties = defaultServerProperties, knownCommands: Map<string, MessageConstructor> = coreMessageTypes): Message {
 		const splitLine: string[] = line.split(' ');
 		let token: string;
 
@@ -106,8 +106,8 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		let message: Message;
 
 		let messageClass: MessageConstructor = Message;
-		if (knownCommands.hasOwnProperty(command)) {
-			messageClass = knownCommands[command];
+		if (knownCommands.has(command)) {
+			messageClass = knownCommands.get(command)!;
 		}
 
 		// tslint:disable-next-line:no-inferred-empty-object-type
