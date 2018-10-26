@@ -1,9 +1,7 @@
-import { defaultServerProperties, ServerProperties } from '../Client';
-
 import ObjectTools from '../Toolkit/ObjectTools';
 import { isChannel } from '../Toolkit/StringTools';
 import { MessageDataType } from '../Toolkit/TypeTools';
-import { all as coreMessageTypes } from './MessageTypes';
+import { ServerProperties, defaultServerProperties } from '../ServerProperties';
 
 export type MessagePrefix = {
 	raw: string;
@@ -35,20 +33,12 @@ export interface MessageConstructor<T extends Message = Message> {
 	SUPPORTS_CAPTURE: boolean;
 	minParamCount: number;
 
-	new(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties?: ServerProperties): T;
+	new(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties?: ServerProperties, rawLine?: string): T;
 
 	create(this: MessageConstructor<T>, params: { [name in keyof MessageDataType<T>]?: string }, serverProperties: ServerProperties): T;
 
 	checkParam(param: string, spec: MessageParamSpecEntry, serverProperties?: ServerProperties): boolean;
 }
-
-const tagEscapeMap: { [char: string]: string } = {
-	'\\': '\\',
-	':': ';',
-	n: '\n',
-	r: '\r',
-	s: ' '
-};
 
 export default class Message<D extends { [name in keyof D]?: MessageParam } = {}> {
 	static readonly COMMAND: string = '';
@@ -63,85 +53,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 	protected _parsedParams!: D;
 	protected _serverProperties: ServerProperties = defaultServerProperties;
 
-	private _raw?: string;
-
-	static parse(line: string, serverProperties: ServerProperties = defaultServerProperties, knownCommands: Map<string, MessageConstructor> = coreMessageTypes): Message {
-		const splitLine: string[] = line.split(' ');
-		let token: string;
-
-		let command: string | undefined;
-		const params: MessageParam[] = [];
-		let tags: Map<string, string> | undefined;
-		let prefix: MessagePrefix | undefined;
-
-		while (splitLine.length) {
-			token = splitLine[0];
-			if (token[0] === '@' && !tags && !command) {
-				tags = Message.parseTags(token.substr(1));
-			} else if (token[0] === ':') {
-				if (!prefix && !command) {
-					prefix = Message.parsePrefix(token.substr(1));
-				} else {
-					params.push({
-						value: splitLine.join(' ').substr(1),
-						trailing: true
-					});
-					break;
-				}
-			} else if (!command) {
-				command = token.toUpperCase();
-			} else {
-				params.push({
-					value: token,
-					trailing: false
-				});
-			}
-			splitLine.shift();
-		}
-
-		if (!command) {
-			throw new Error(`line without command received: ${line}`);
-		}
-
-		let message: Message;
-
-		let messageClass: MessageConstructor = Message;
-		if (knownCommands.has(command)) {
-			messageClass = knownCommands.get(command)!;
-		}
-
-		// tslint:disable-next-line:no-inferred-empty-object-type
-		message = new messageClass(command, params, tags, prefix, defaultServerProperties);
-		message._raw = line;
-
-		return message;
-	}
-
-	static parsePrefix(raw: string): MessagePrefix {
-		const [nick, hostName] = raw.split('!', 2);
-		if (hostName) {
-			const [user, host] = hostName.split('@', 2);
-			if (host) {
-				return { raw, nick, user, host };
-			} else {
-				return { raw, nick, host: user };
-			}
-		} else {
-			return { raw, nick };
-		}
-	}
-
-	static parseTags(raw: string): Map<string, string> {
-		const tags: Map<string, string> = new Map();
-		const tagStrings = raw.split(';');
-		for (const tagString of tagStrings) {
-			const [tagName, tagValue] = tagString.split('=', 2);
-			// unescape according to http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
-			tags.set(tagName, tagValue.replace(/\\([\\:nrs])/g, (_, match) => tagEscapeMap[match]));
-		}
-
-		return tags;
-	}
+	private readonly _raw?: string;
 
 	static create<T extends Message>(
 		this: MessageConstructor<T>,
@@ -199,12 +111,13 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		}).filter((param: string | undefined) => param !== undefined)].join(' ');
 	}
 
-	constructor(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties: ServerProperties = defaultServerProperties) {
+	constructor(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties: ServerProperties = defaultServerProperties, rawLine?: string) {
 		this._command = command;
 		this._params = params;
 		this._tags = tags;
 		this._prefix = prefix;
 		this._serverProperties = serverProperties;
+		this._raw = rawLine;
 
 		this.parseParams();
 	}

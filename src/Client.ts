@@ -12,32 +12,19 @@ import * as clone from 'clone';
 
 import { EventEmitter, Listener } from './TypedEventEmitter';
 
-import {
-	Ping, Pong,
-	CapabilityNegotiation, Password, UserRegistration, NickChange,
-	PrivateMessage, Notice,
-	ChannelJoin, ChannelPart
-} from './Message/MessageTypes/Commands';
+import { CapabilityNegotiation, ChannelJoin, ChannelPart, NickChange, Notice, Password, Ping, Pong, PrivateMessage, UserRegistration } from './Message/MessageTypes/Commands';
 
-import {
-	Reply001Welcome, Reply004ServerInfo, Reply005ISupport,
-	Error462AlreadyRegistered
-} from './Message/MessageTypes/Numerics';
+import { Error462AlreadyRegistered, Reply001Welcome, Reply004ServerInfo, Reply005ISupport } from './Message/MessageTypes/Numerics';
 import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
 import Logger, { LogLevel } from '@d-fischer/logger';
 import { ConstructedType, MessageParams } from './Toolkit/TypeTools';
+import parseMessage from './Message/MessageParser';
+import { defaultServerProperties, ServerProperties } from './ServerProperties';
 
 // tslint:disable:no-floating-promises
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
-
-export interface SupportedChannelModes {
-	list: string;
-	alwaysWithParam: string;
-	paramWhenSet: string;
-	noParam: string;
-}
 
 interface ClientOptions {
 	connection: ConnectionInfo;
@@ -45,24 +32,6 @@ interface ClientOptions {
 	channelTypes?: string;
 	logLevel?: number;
 }
-
-export interface ServerProperties {
-	channelTypes: string;
-	supportedUserModes: string;
-	supportedChannelModes: SupportedChannelModes;
-}
-
-// sane defaults based on RFC 1459
-export const defaultServerProperties: ServerProperties = {
-	channelTypes: '#&',
-	supportedUserModes: 'iwso',
-	supportedChannelModes: {
-		list: 'b',
-		alwaysWithParam: 'ovk',
-		paramWhenSet: 'l',
-		noParam: 'imnpst'
-	}
-};
 
 export default class Client extends EventEmitter {
 	protected _connection: Connection;
@@ -177,7 +146,7 @@ export default class Client extends EventEmitter {
 
 		this._connection.on('lineReceived', (line: string) => {
 			this._logger.debug2(`Received message: ${line}`);
-			const parsedMessage = Message.parse(line, this._serverProperties, this._registeredMessageTypes);
+			const parsedMessage = parseMessage(line, this._serverProperties, this._registeredMessageTypes);
 			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
 			this._startPingCheckTimer();
 			this.handleEvents(parsedMessage);
