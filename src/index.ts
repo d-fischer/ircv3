@@ -9,3 +9,5 @@ export { Message, MessageTypes, MessageParam, MessageParamSpec, MessagePrefix };
 export { Capability, CoreCapabilities };
 export { defaultServerProperties } from './ServerProperties';
 export { ServerProperties } from './ServerProperties';
+
+export { default as NotEnoughParametersError } from './Errors/NotEnoughParametersError';
