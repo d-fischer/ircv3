@@ -1,5 +1,5 @@
 export default class NotEnoughParametersError extends Error {
-	constructor(private _command: string, private _expectedParams: number, private _actualParams: number) {
+	constructor(private readonly _command: string, private readonly _expectedParams: number, private readonly _actualParams: number) {
 		super(`command "${_command}" expected ${_expectedParams} or more parameters, got ${_actualParams}`);
 
 		Object.setPrototypeOf(this, NotEnoughParametersError.prototype);
