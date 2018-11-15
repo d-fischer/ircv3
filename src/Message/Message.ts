@@ -2,6 +2,7 @@ import ObjectTools from '../Toolkit/ObjectTools';
 import { isChannel } from '../Toolkit/StringTools';
 import { MessageDataType } from '../Toolkit/TypeTools';
 import { ServerProperties, defaultServerProperties } from '../ServerProperties';
+import NotEnoughParametersError from '../Errors/NotEnoughParametersError';
 
 export type MessagePrefix = {
 	nick: string;
@@ -185,9 +186,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 			const cls = this.constructor as MessageConstructor<this>;
 			let requiredParamsLeft = cls.minParamCount;
 			if (requiredParamsLeft > this._params.length) {
-				throw new Error(
-					`command "${this._command}" expected ${requiredParamsLeft} or more parameters, got ${this._params.length}`
-				);
+				throw new NotEnoughParametersError(this._command, requiredParamsLeft, this._params.length);
 			}
 
 			const paramSpecList = cls.PARAM_SPEC;
