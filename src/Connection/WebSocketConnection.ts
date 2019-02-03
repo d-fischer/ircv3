@@ -13,13 +13,13 @@ class WebSocketConnection extends Connection {
 			this._connecting = true;
 			const url = `ws${this._secure ? 's' : ''}://${this._host}:${this.port}`;
 			this._socket = new WebSocket(url);
-			this._socket.on('open', () => {
+			this._socket.onopen = () => {
 				this._connected = true;
 				this._connecting = false;
 				this.emit('connect');
 				this._initialConnection = false;
 				resolve();
-			});
+			};
 			this._socket.onmessage = ({ data }: {data: WebSocket.Data}) => {
 				this.receiveRaw(data.toString());
 			};
