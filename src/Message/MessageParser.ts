@@ -2,7 +2,12 @@ import Message, { MessageConstructor, MessageParam, MessagePrefix } from './Mess
 import { all as coreMessageTypes } from './MessageTypes';
 import { ServerProperties, defaultServerProperties } from '../ServerProperties';
 
-export default function parseMessage(line: string, serverProperties: ServerProperties = defaultServerProperties, knownCommands: Map<string, MessageConstructor> = coreMessageTypes): Message {
+export default function parseMessage(
+	line: string,
+	serverProperties: ServerProperties = defaultServerProperties,
+	knownCommands: Map<string, MessageConstructor> = coreMessageTypes,
+	isServer: boolean = false
+): Message {
 	const splitLine: string[] = line.split(' ');
 	let token: string;
 
@@ -48,7 +53,7 @@ export default function parseMessage(line: string, serverProperties: ServerPrope
 	}
 
 	// tslint:disable-next-line:no-inferred-empty-object-type
-	message = new messageClass(command, params, tags, prefix, serverProperties, line);
+	message = new messageClass(command, params, tags, prefix, serverProperties, line, isServer);
 
 	return message;
 }

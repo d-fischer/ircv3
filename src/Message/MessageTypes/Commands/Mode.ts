@@ -1,5 +1,6 @@
 import Message, { MessageParam, MessageParamSpec, MessagePrefix } from '../../Message';
 import { isChannel } from '../../../Toolkit/StringTools';
+import UnknownChannelModeCharError from '../../../Errors/UnknownChannelModeCharError';
 
 export interface ModeParams {
 	target: MessageParam;
@@ -11,8 +12,9 @@ export type ModeAction = 'getList' | 'add' | 'remove';
 export interface SingleMode {
 	prefix?: MessagePrefix;
 	action: ModeAction;
-	mode: string;
+	letter: string;
 	param?: string;
+	known: boolean;
 }
 
 export default class Mode extends Message<ModeParams> {
@@ -51,8 +53,9 @@ export default class Mode extends Message<ModeParams> {
 				}
 				default: {
 					let requiresParam = false;
+					let known = true;
 					if (this.isChannel) {
-						if (this._serverProperties.supportedChannelModes.alwaysWithParam.includes(ch)) {
+						if (this._serverProperties.supportedChannelModes.alwaysWithParam.includes(ch) || this._serverProperties.supportedChannelModes.prefix.includes(ch)) {
 							requiresParam = true;
 						} else if (this._serverProperties.supportedChannelModes.paramWhenSet.includes(ch)) {
 							if (currentModeAction === 'add') {
@@ -67,17 +70,22 @@ export default class Mode extends Message<ModeParams> {
 						} else if (this._serverProperties.supportedChannelModes.noParam.includes(ch)) {
 							// whatever
 						} else {
-							throw new Error(`unknown mode character: ${ch}`);
+							throw new UnknownChannelModeCharError(ch);
 						}
+					} else {
+						// user modes never have a param
+						// also, they don't break the whole command if invalid mode letters are given
+						known = this._serverProperties.supportedUserModes.includes(ch);
 					}
 					if (requiresParam && !modeParams.length) {
-						throw new Error('mode parameter underflow');
+						continue;
 					}
 					result.push({
 						prefix: this._prefix,
 						action: thisModeAction,
-						mode: ch,
-						param: requiresParam ? modeParams.shift() : undefined
+						letter: ch,
+						param: requiresParam ? modeParams.shift() : undefined,
+						known
 					});
 				}
 			}

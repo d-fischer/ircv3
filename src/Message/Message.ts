@@ -3,6 +3,7 @@ import { isChannel } from '../Toolkit/StringTools';
 import { MessageDataType } from '../Toolkit/TypeTools';
 import { ServerProperties, defaultServerProperties } from '../ServerProperties';
 import NotEnoughParametersError from '../Errors/NotEnoughParametersError';
+import ParameterRequirementMismatchError from '../Errors/ParameterRequirementMismatchError';
 
 export type MessagePrefix = {
 	nick: string;
@@ -19,7 +20,9 @@ export interface MessageParamSpecEntry {
 	trailing?: boolean;
 	rest?: boolean;
 	optional?: boolean;
-	type?: 'channel';
+	noClient?: boolean;
+	noServer?: boolean;
+	type?: 'channel' | 'channelList';
 	match?: RegExp;
 }
 
@@ -31,9 +34,9 @@ export interface MessageConstructor<T extends Message = Message> {
 	COMMAND: string;
 	PARAM_SPEC: MessageParamSpec<T>;
 	SUPPORTS_CAPTURE: boolean;
-	minParamCount: number;
+	getMinParamCount(isServer?: boolean): number;
 
-	new(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties?: ServerProperties, rawLine?: string): T;
+	new(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties?: ServerProperties, rawLine?: string, isServer?: boolean): T;
 
 	create(this: MessageConstructor<T>, params: { [name in keyof MessageDataType<T>]?: string }, prefix?: MessagePrefix, tags?: Map<string, string>, serverProperties?: ServerProperties): T;
 
@@ -52,10 +55,21 @@ function escapeTag(str: string) {
 	return str.replace(/[\\;\n\r ]/g, match => `\\${tagEscapeMap[match]}`);
 }
 
+export function prefixToString(prefix: MessagePrefix) {
+	let result = `${prefix.nick}`;
+	if (prefix.user) {
+		result += `!${prefix.user}`;
+	}
+	if (prefix.host) {
+		result += `@${prefix.host}`;
+	}
+
+	return result;
+}
+
 export default class Message<D extends { [name in keyof D]?: MessageParam } = {}> {
 	static readonly COMMAND: string = '';
 	static readonly PARAM_SPEC = {};
-	//noinspection JSUnusedGlobalSymbols
 	static readonly SUPPORTS_CAPTURE: boolean = false;
 
 	protected _tags?: Map<string, string>;
@@ -108,6 +122,13 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 			}
 		}
 
+		if (spec.type === 'channelList') {
+			const channels = param.split(',');
+			if (!channels.every(chan => isChannel(chan, serverProperties.channelTypes))) {
+				return false;
+			}
+		}
+
 		if (spec.match) {
 			if (!spec.match.test(param)) {
 				return false;
@@ -122,15 +143,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 			return '';
 		}
 
-		let prefix = `${this._prefix.nick}`;
-		if (this._prefix.user) {
-			prefix += `!${this._prefix.user}`;
-		}
-		if (this._prefix.host) {
-			prefix += `@${this._prefix.host}`;
-		}
-
-		return prefix;
+		return prefixToString(this._prefix);
 	}
 
 	tagsToString() {
@@ -170,7 +183,15 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		return parts.join(' ');
 	}
 
-	constructor(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties: ServerProperties = defaultServerProperties, rawLine?: string) {
+	constructor(
+		command: string,
+		params?: MessageParam[],
+		tags?: Map<string, string>,
+		prefix?: MessagePrefix,
+		serverProperties: ServerProperties = defaultServerProperties,
+		rawLine?: string,
+		isServer: boolean = false
+	) {
 		this._command = command;
 		this._params = params;
 		this._tags = tags;
@@ -178,13 +199,13 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		this._serverProperties = serverProperties;
 		this._raw = rawLine;
 
-		this.parseParams();
+		this.parseParams(isServer);
 	}
 
-	parseParams() {
+	parseParams(isServer: boolean = false) {
 		if (this._params) {
 			const cls = this.constructor as MessageConstructor<this>;
-			let requiredParamsLeft = cls.minParamCount;
+			let requiredParamsLeft = cls.getMinParamCount(isServer);
 			if (requiredParamsLeft > this._params.length) {
 				throw new NotEnoughParametersError(this._command, requiredParamsLeft, this._params.length);
 			}
@@ -193,6 +214,12 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 			let i = 0;
 			const parsedParams: { [name in keyof D]?: MessageParam } = {};
 			for (const [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList)) {
+				if (paramSpec.noServer && isServer) {
+					continue;
+				}
+				if (paramSpec.noClient && !isServer) {
+					continue;
+				}
 				if ((this._params.length - i) <= requiredParamsLeft) {
 					if (paramSpec.optional) {
 						continue;
@@ -237,7 +264,7 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 						++i;
 					}
 				} else if (!paramSpec.optional) {
-					throw new Error(`required parameter "${paramName}" (index ${i}) did not suit requirements: "${param.value}"`);
+					throw new ParameterRequirementMismatchError(this._command, paramName, paramSpec, param.value);
 				}
 
 				if (paramSpec.trailing) {
@@ -249,8 +276,16 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		}
 	}
 
-	static get minParamCount(): number {
-		return Object.values(this.PARAM_SPEC).filter((spec: MessageParamSpecEntry) => !spec.optional).length;
+	static getMinParamCount(isServer: boolean = false): number {
+		return Object.values(this.PARAM_SPEC).filter((spec: MessageParamSpecEntry) => {
+			if (spec.noServer && isServer) {
+				return false;
+			}
+			if (spec.noClient && !isServer) {
+				return false;
+			}
+			return !spec.optional;
+		}).length;
 	}
 
 	get params(): { [name in Extract<keyof D, string>]: string } {

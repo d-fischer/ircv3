@@ -1,9 +1,9 @@
 import Message, { MessageParam, MessageParamSpec } from '../../Message';
-import { Names } from '../Commands';
+import Names from '../Commands/Names';
 
 export interface Reply353NamesReplyParams {
 	me: MessageParam;
-	sentinel: MessageParam;
+	channelType: MessageParam;
 	channel: MessageParam;
 	names: MessageParam;
 }
@@ -12,7 +12,7 @@ export default class Reply353NamesReply extends Message<Reply353NamesReplyParams
 	static readonly COMMAND = '353';
 	static readonly PARAM_SPEC: MessageParamSpec<Reply353NamesReply> = {
 		me: {},
-		sentinel: {},
+		channelType: {},
 		channel: {
 			type: 'channel'
 		},

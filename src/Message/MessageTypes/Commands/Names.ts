@@ -8,7 +8,7 @@ export default class Names extends Message<NamesParams> {
 	static readonly COMMAND = 'NAMES';
 	static readonly PARAM_SPEC: MessageParamSpec<Names> = {
 		channel: {
-			type: 'channel',
+			type: 'channelList',
 			optional: true
 		}
 	};

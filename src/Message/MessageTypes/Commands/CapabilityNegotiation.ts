@@ -12,8 +12,9 @@ export default class CapabilityNegotiation extends Message<CapabilityNegotiation
 	static readonly COMMAND = 'CAP';
 	static readonly PARAM_SPEC: MessageParamSpec<CapabilityNegotiation> = {
 		target: {
-			match: /^(?:[a-z_\-\[\]\\^{}|`][a-z0-9_\-\[\]\\^{}|`]*|\*)$/i,
-			optional: true
+			match: /^(?:[a-z_\-\[\]\\^{}|`][a-z0-9_\-\[\]\\^{}|`]+|\*)$/i,
+			optional: true,
+			noClient: true
 		},
 		command: {
 			match: /^(?:LS|LIST|REQ|ACK|NAK|END|NEW|DEL)$/i

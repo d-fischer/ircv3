@@ -9,7 +9,7 @@ export default class Pong extends Message<PongParams> {
 	static readonly COMMAND = 'PONG';
 	static readonly PARAM_SPEC: MessageParamSpec<Pong> = {
 		server: {
-			optional: true
+			noClient: true
 		},
 		message: {
 			trailing: true

@@ -2,7 +2,7 @@ import Message, { MessageParam, MessageParamSpec } from '../../Message';
 
 export interface WhoQueryParams {
 	mask: MessageParam;
-	flag: MessageParam;
+	flags: MessageParam;
 }
 
 export default class WhoQuery extends Message<WhoQueryParams> {
@@ -11,9 +11,8 @@ export default class WhoQuery extends Message<WhoQueryParams> {
 		mask: {
 			optional: true
 		},
-		flag: {
-			match: /^o$/,
-			optional: true
+		flags: {
+			rest: true
 		}
 	};
 }

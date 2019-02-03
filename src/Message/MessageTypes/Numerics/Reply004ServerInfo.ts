@@ -14,15 +14,9 @@ export default class Reply004ServerInfo extends Message<Reply004ServerInfoParams
 	static readonly PARAM_SPEC: MessageParamSpec<Reply004ServerInfo> = {
 		me: {},
 		serverName: {},
-		version: {
-			optional: true
-		},
-		userModes: {
-			optional: true
-		},
-		channelModes: {
-			optional: true
-		},
+		version: {},
+		userModes: {},
+		channelModes: {},
 		channelModesWithParam: {
 			optional: true
 		}

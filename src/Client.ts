@@ -146,7 +146,7 @@ export default class Client extends EventEmitter {
 
 		this._connection.on('lineReceived', (line: string) => {
 			this._logger.debug2(`Received message: ${line}`);
-			const parsedMessage = parseMessage(line, this._serverProperties, this._registeredMessageTypes);
+			const parsedMessage = parseMessage(line, this._serverProperties, this._registeredMessageTypes, true);
 			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
 			this._startPingCheckTimer();
 			this.handleEvents(parsedMessage);
@@ -209,11 +209,13 @@ export default class Client extends EventEmitter {
 		});
 
 		this.onMessage(Reply005ISupport, ({ params: { supports } }) => {
-			this._supportedFeatures = {...this._supportedFeatures,
-				...ObjectTools.fromArray(supports.split(' '), (part: string) => {
-					const [support, param] = part.split('=', 2);
-					return { [support]: param || true };
-				})
+			const newFeatures = ObjectTools.fromArray(supports.split(' '), (part: string) => {
+				const [support, param] = part.split('=', 2);
+				return { [support]: param || true };
+			});
+			this._supportedFeatures = {
+				...this._supportedFeatures,
+				...newFeatures
 			};
 		});
 
