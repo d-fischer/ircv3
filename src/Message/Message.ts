@@ -95,11 +95,18 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		params: { [name in keyof MessageDataType<T>]?: string },
 		prefix?: MessagePrefix,
 		tags?: Map<string, string>,
-		serverProperties: ServerProperties = defaultServerProperties
+		serverProperties: ServerProperties = defaultServerProperties,
+		isServer: boolean = false
 	): T {
 		const message: T = new this(this.COMMAND, undefined, undefined, undefined, serverProperties);
 		const parsedParams: { [name in keyof MessageDataType<T>]?: MessageParam } = {};
 		ObjectTools.forEach(this.PARAM_SPEC, (paramSpec: MessageParamSpecEntry, paramName: keyof MessageDataType<T>) => {
+			if (isServer && paramSpec.noServer) {
+				return;
+			}
+			if (!isServer && paramSpec.noClient) {
+				return;
+			}
 			if (paramName in params) {
 				const param = params[paramName];
 				if (this.checkParam(param!, paramSpec, serverProperties)) {
