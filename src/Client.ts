@@ -146,7 +146,14 @@ export default class Client extends EventEmitter {
 
 		this._connection.on('lineReceived', (line: string) => {
 			this._logger.debug2(`Received message: ${line}`);
-			const parsedMessage = parseMessage(line, this._serverProperties, this._registeredMessageTypes, true);
+			let parsedMessage;
+			try {
+				parsedMessage = parseMessage(line, this._serverProperties, this._registeredMessageTypes, true);
+			} catch (e) {
+				this._logger.err('Error parsing message:');
+				this._logger.err(e);
+				return;
+			}
 			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
 			this._startPingCheckTimer();
 			this.handleEvents(parsedMessage);
