@@ -301,7 +301,12 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 	}
 
 	get params(): { [name in Extract<keyof D, string>]: string } {
-		return ObjectTools.map(this._parsedParams, (param: MessageParam) => param.value);
+		if (this._parsedParams) {
+			return ObjectTools.map(this._parsedParams, (param: MessageParam) => param.value);
+		}
+
+		// tslint:disable-next-line:no-object-literal-type-assertion
+		return {} as { [name in Extract<keyof D, string>]: string };
 	}
 
 	get prefix(): MessagePrefix | undefined {
