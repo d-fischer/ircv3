@@ -36,7 +36,16 @@ export interface MessageConstructor<T extends Message = Message> {
 	SUPPORTS_CAPTURE: boolean;
 	getMinParamCount(isServer?: boolean): number;
 
-	new(command: string, params?: MessageParam[], tags?: Map<string, string>, prefix?: MessagePrefix, serverProperties?: ServerProperties, rawLine?: string, isServer?: boolean): T;
+	new(
+		command: string,
+		params?: MessageParam[],
+		tags?: Map<string, string>,
+		prefix?: MessagePrefix,
+		serverProperties?: ServerProperties,
+		rawLine?: string,
+		isServer?: boolean,
+		shouldParseParams?: boolean
+	): T;
 
 	create(this: MessageConstructor<T>, params: { [name in keyof MessageDataType<T>]?: string }, prefix?: MessagePrefix, tags?: Map<string, string>, serverProperties?: ServerProperties): T;
 
@@ -190,7 +199,8 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		prefix?: MessagePrefix,
 		serverProperties: ServerProperties = defaultServerProperties,
 		rawLine?: string,
-		isServer: boolean = false
+		isServer: boolean = false,
+		shouldParseParams: boolean = true
 	) {
 		this._command = command;
 		this._params = params;
@@ -199,7 +209,9 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 		this._serverProperties = serverProperties;
 		this._raw = rawLine;
 
-		this.parseParams(isServer);
+		if (shouldParseParams) {
+			this.parseParams(isServer);
+		}
 	}
 
 	parseParams(isServer: boolean = false) {

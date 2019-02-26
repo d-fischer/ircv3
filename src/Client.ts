@@ -31,6 +31,7 @@ interface ClientOptions {
 	webSocket?: boolean;
 	channelTypes?: string;
 	logLevel?: number;
+	nonConformingCommands?: string[];
 }
 
 export default class Client extends EventEmitter {
@@ -78,7 +79,7 @@ export default class Client extends EventEmitter {
 
 	private readonly _logger: Logger;
 
-	constructor({ connection, webSocket, channelTypes, logLevel = LogLevel.WARNING }: ClientOptions) {
+	constructor({ connection, webSocket, channelTypes, logLevel = LogLevel.WARNING, nonConformingCommands = [] }: ClientOptions) {
 		super();
 
 		const { pingOnInactivity = 60, pingTimeout = 10 } = connection;
@@ -148,7 +149,7 @@ export default class Client extends EventEmitter {
 			this._logger.debug2(`Received message: ${line}`);
 			let parsedMessage;
 			try {
-				parsedMessage = parseMessage(line, this._serverProperties, this._registeredMessageTypes, true);
+				parsedMessage = parseMessage(line, this._serverProperties, this._registeredMessageTypes, true, nonConformingCommands);
 			} catch (e) {
 				this._logger.err('Error parsing message:');
 				this._logger.err(e);
