@@ -108,14 +108,16 @@ export default class Message<D extends { [name in keyof D]?: MessageParam } = {}
 				return;
 			}
 			if (paramName in params) {
-				const param = params[paramName];
-				if (this.checkParam(param!, paramSpec, serverProperties)) {
-					parsedParams[paramName] = {
-						value: param!,
-						trailing: Boolean(paramSpec.trailing)
-					};
-				} else if (!paramSpec.optional) {
-					throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
+				const param: string | undefined = params[paramName];
+				if (param !== undefined) {
+					if (this.checkParam(param, paramSpec, serverProperties)) {
+						parsedParams[paramName] = {
+							value: param,
+							trailing: Boolean(paramSpec.trailing)
+						};
+					} else if (!paramSpec.optional) {
+						throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
+					}
 				}
 			}
 			if (!(paramName in parsedParams) && !paramSpec.optional) {
