@@ -14,7 +14,7 @@ export interface SingleMode {
 }
 
 @MessageType('MODE')
-export default class Mode extends Message<Mode> {
+export default class Mode extends Message<Mode, 'isChannel' | 'separate'> {
 	@MessageParamDefinition({})
 	target!: MessageParam;
 
