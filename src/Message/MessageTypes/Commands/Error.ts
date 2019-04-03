@@ -1,14 +1,10 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface ErrorParams {
-	message: MessageParam;
-}
-
-export default class Error extends Message<ErrorParams> {
-	static readonly COMMAND = 'ERROR';
-	static readonly PARAM_SPEC: MessageParamSpec<Error> = {
-		message: {
-			trailing: true
-		}
-	};
+@MessageType('ERROR')
+export default class Error extends Message<Error> {
+	@MessageParamDefinition({
+		trailing: true
+	})
+	message!: MessageParam;
 }

@@ -1,20 +1,18 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply324ChannelModeIsParams {
-	me: MessageParam;
-	channel: MessageParam;
-	modes: MessageParam;
-}
+@MessageType('324')
+export default class Reply324ChannelModeIs extends Message<Reply324ChannelModeIs> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply324ChannelModeIs extends Message<Reply324ChannelModeIsParams> {
-	static readonly COMMAND = '324';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply324ChannelModeIs> = {
-		me: {},
-		channel: {
-			type: 'channel'
-		},
-		modes: {
-			rest: true
-		}
-	};
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
+
+	@MessageParamDefinition({
+		rest: true
+	})
+	modes!: MessageParam;
 }

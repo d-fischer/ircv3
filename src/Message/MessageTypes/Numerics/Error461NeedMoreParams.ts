@@ -1,18 +1,16 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error461NeedMoreParamsParams {
-	me: MessageParam;
-	command: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('461')
+export default class Error461NeedMoreParams extends Message<Error461NeedMoreParams> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error461NeedMoreParams extends Message<Error461NeedMoreParamsParams> {
-	static readonly COMMAND = '461';
-	static readonly PARAM_SPEC: MessageParamSpec<Error461NeedMoreParams> = {
-		me: {},
-		command: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({})
+	originalCommand!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

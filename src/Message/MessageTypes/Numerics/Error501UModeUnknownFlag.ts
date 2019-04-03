@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error501UModeUnknownFlagParams {
-	me: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('501')
+export default class Error501UModeUnknownFlag extends Message<Error501UModeUnknownFlag> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error501UModeUnknownFlag extends Message<Error501UModeUnknownFlagParams> {
-	static readonly COMMAND = '501';
-	static readonly PARAM_SPEC: MessageParamSpec<Error501UModeUnknownFlag> = {
-		me: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

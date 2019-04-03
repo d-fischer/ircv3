@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error422NoMOTDParams {
-	me: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('422')
+export default class Error422NoMOTD extends Message<Error422NoMOTD> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error422NoMOTD extends Message<Error422NoMOTDParams> {
-	static readonly COMMAND = '422';
-	static readonly PARAM_SPEC: MessageParamSpec<Error422NoMOTD> = {
-		me: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

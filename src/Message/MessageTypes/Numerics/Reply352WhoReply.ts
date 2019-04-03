@@ -1,49 +1,51 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
 import WhoQuery from '../Commands/WhoQuery';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply352WhoReplyParams {
-	me: MessageParam;
-	channel: MessageParam;
-	host: MessageParam;
-	server: MessageParam;
-	nick: MessageParam;
-	flags: MessageParam;
-	hopsAndRealName: MessageParam;
-}
+@MessageType('352')
+export default class Reply352WhoReply extends Message<Reply352WhoReply> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply352WhoReply extends Message<Reply352WhoReplyParams> {
-	static readonly COMMAND = '352';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply352WhoReply> = {
-		me: {},
-		channel: {},
-		host: {},
-		server: {},
-		nick: {},
-		flags: {},
-		hopsAndRealName: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({})
+	channel!: MessageParam;
+
+	@MessageParamDefinition({})
+	host!: MessageParam;
+
+	@MessageParamDefinition({})
+	server!: MessageParam;
+
+	@MessageParamDefinition({})
+	nick!: MessageParam;
+
+	@MessageParamDefinition({})
+	flags!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	hopsAndRealName!: MessageParam;
 
 	/**
 	 * Checks whether the found user is /away.
 	 */
 	get isAway() {
-		return this._parsedParams.flags.value.includes('G');
+		return this.params.flags.includes('G');
 	}
 
 	/**
 	 * Checks whether the found user is an IRCOp.
 	 */
 	get isOper() {
-		return this._parsedParams.flags.value.includes('*');
+		return this.params.flags.includes('*');
 	}
 
 	/**
 	 * Checks whether the found user is a bot.
 	 */
 	get isBot() {
-		return this._parsedParams.flags.value.includes('B');
+		return this.params.flags.includes('B');
 	}
 
 	protected isResponseTo(originalMessage: Message): boolean {

@@ -1,20 +1,18 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface WhoWasQueryParams {
-	nickname: MessageParam;
-	count: MessageParam;
-	server: MessageParam;
-}
+@MessageType('WHOWAS')
+export default class WhoWasQuery extends Message<WhoWasQuery> {
+	@MessageParamDefinition({})
+	nickname!: MessageParam;
 
-export default class WhoWasQuery extends Message<WhoWasQueryParams> {
-	static readonly COMMAND = 'WHOWAS';
-	static readonly PARAM_SPEC: MessageParamSpec<WhoWasQuery> = {
-		nickname: {},
-		count: {
-			optional: true
-		},
-		server: {
-			optional: true
-		}
-	};
+	@MessageParamDefinition({
+		optional: true
+	})
+	count!: MessageParam;
+
+	@MessageParamDefinition({
+		optional: true
+	})
+	server!: MessageParam;
 }

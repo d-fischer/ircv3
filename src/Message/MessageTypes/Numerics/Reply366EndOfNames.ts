@@ -1,23 +1,21 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
 import Names from '../Commands/Names';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply366EndOfNamesParams {
-	me: MessageParam;
-	channel: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('366')
+export default class Reply366EndOfNames extends Message<Reply366EndOfNames> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply366EndOfNames extends Message<Reply366EndOfNamesParams> {
-	static readonly COMMAND = '366';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply366EndOfNames> = {
-		me: {},
-		channel: {
-			type: 'channel'
-		},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 
 	protected isResponseTo(originalMessage: Message): boolean {
 		return originalMessage instanceof Names;

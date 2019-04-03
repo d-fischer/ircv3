@@ -1,20 +1,19 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface UserRegistrationParams {
-	user: MessageParam;
-	mode: MessageParam;
-	unused: MessageParam;
-	realName: MessageParam;
-}
+@MessageType('USER')
+export default class UserRegistration extends Message<UserRegistration> {
+	@MessageParamDefinition({})
+	user!: MessageParam;
 
-export default class UserRegistration extends Message<UserRegistrationParams> {
-	static readonly COMMAND = 'USER';
-	static readonly PARAM_SPEC: MessageParamSpec<UserRegistration> = {
-		user: {},
-		mode: {},
-		unused: {},
-		realName: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({})
+	mode!: MessageParam;
+
+	@MessageParamDefinition({})
+	unused!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	realName!: MessageParam;
 }

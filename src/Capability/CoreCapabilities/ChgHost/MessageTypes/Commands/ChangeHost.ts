@@ -1,14 +1,11 @@
-import Message, { MessageParam, MessageParamSpec } from '../../../../../Message/Message';
+import Message, { MessageParam } from '../../../../../Message/Message';
+import { MessageParamDefinition, MessageType } from '../../../../../Message/MessageDefinition';
 
-export interface ChgHostParams {
-	newUser: MessageParam;
-	newHost: MessageParam;
-}
+@MessageType('CHGHOST')
+export default class ChgHost extends Message<ChgHost> {
+	@MessageParamDefinition()
+	newUser!: MessageParam;
 
-export default class ChgHost extends Message<ChgHostParams> {
-	static readonly COMMAND = 'CHGHOST';
-	static readonly PARAM_SPEC: MessageParamSpec<ChgHost> = {
-		newUser: {},
-		newHost: {}
-	};
+	@MessageParamDefinition()
+	newHost!: MessageParam;
 }

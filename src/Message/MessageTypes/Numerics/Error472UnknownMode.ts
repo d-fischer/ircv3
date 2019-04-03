@@ -1,18 +1,16 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error472UnknownModeParams {
-	me: MessageParam;
-	char: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('472')
+export default class Error472UnknownMode extends Message<Error472UnknownMode> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error472UnknownMode extends Message<Error472UnknownModeParams> {
-	static readonly COMMAND = '472';
-	static readonly PARAM_SPEC: MessageParamSpec<Error472UnknownMode> = {
-		me: {},
-		char: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({})
+	char!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

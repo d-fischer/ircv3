@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply375MOTDStartParams {
-	me: MessageParam;
-	message: MessageParam;
-}
+@MessageType('375')
+export default class Reply375MOTDStart extends Message<Reply375MOTDStart> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply375MOTDStart extends Message<Reply375MOTDStartParams> {
-	static readonly COMMAND = '375';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply375MOTDStart> = {
-		me: {},
-		message: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	message!: MessageParam;
 }

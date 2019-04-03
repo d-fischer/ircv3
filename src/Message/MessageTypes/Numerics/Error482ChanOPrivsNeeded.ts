@@ -1,18 +1,16 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error482ChanOPrivsNeededParams {
-	me: MessageParam;
-	channel: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('482')
+export default class Error482ChanOPrivsNeeded extends Message<Error482ChanOPrivsNeeded> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error482ChanOPrivsNeeded extends Message<Error482ChanOPrivsNeededParams> {
-	static readonly COMMAND = '482';
-	static readonly PARAM_SPEC: MessageParamSpec<Error482ChanOPrivsNeeded> = {
-		me: {},
-		channel: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({})
+	channel!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

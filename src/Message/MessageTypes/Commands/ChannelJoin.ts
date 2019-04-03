@@ -1,18 +1,15 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface ChannelJoinParams {
-	channel: MessageParam;
-	key: MessageParam;
-}
+@MessageType('JOIN')
+export default class ChannelJoin extends Message<ChannelJoin> {
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
 
-export default class ChannelJoin extends Message<ChannelJoinParams> {
-	static readonly COMMAND = 'JOIN';
-	static readonly PARAM_SPEC: MessageParamSpec<ChannelJoin> = {
-		channel: {
-			type: 'channel'
-		},
-		key: {
-			optional: true
-		}
-	};
+	@MessageParamDefinition({
+		optional: true
+	})
+	key?: MessageParam;
 }

@@ -1,14 +1,10 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface IsOnQueryParams {
-	nicks: MessageParam;
-}
-
-export default class IsOnQuery extends Message<IsOnQueryParams> {
-	static readonly COMMAND = 'ISON';
-	static readonly PARAM_SPEC: MessageParamSpec<IsOnQuery> = {
-		nicks: {
-			rest: true
-		}
-	};
+@MessageType('ISON')
+export default class IsOnQuery extends Message<IsOnQuery> {
+	@MessageParamDefinition({
+		rest: true
+	})
+	nicks!: MessageParam;
 }

@@ -1,15 +1,11 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface ClientQuitParams {
-	message: MessageParam;
-}
-
-export default class ClientQuit extends Message<ClientQuitParams> {
-	static readonly COMMAND = 'QUIT';
-	static readonly PARAM_SPEC: MessageParamSpec<ClientQuit> = {
-		message: {
-			trailing: true,
-			optional: true
-		}
-	};
+@MessageType('QUIT')
+export default class ClientQuit extends Message<ClientQuit> {
+	@MessageParamDefinition({
+		trailing: true,
+		optional: true
+	})
+	message!: MessageParam;
 }

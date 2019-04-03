@@ -1,14 +1,10 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface UserHostQueryParams {
-	nicks: MessageParam;
-}
-
-export default class UserHostQuery extends Message<UserHostQueryParams> {
-	static readonly COMMAND = 'USERHOST';
-	static readonly PARAM_SPEC: MessageParamSpec<UserHostQuery> = {
-		nicks: {
-			rest: true
-		}
-	};
+@MessageType('USERHOST')
+export default class UserHostQuery extends Message<UserHostQuery> {
+	@MessageParamDefinition({
+		rest: true
+	})
+	nicks!: MessageParam;
 }

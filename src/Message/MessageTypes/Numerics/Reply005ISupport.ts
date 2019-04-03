@@ -1,20 +1,18 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply005ISupportParams {
-	me: MessageParam;
-	supports: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('005')
+export default class Reply005ISupport extends Message<Reply005ISupport> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply005ISupport extends Message<Reply005ISupportParams> {
-	static readonly COMMAND = '005';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply005ISupport> = {
-		me: {},
-		supports: {
-			rest: true
-		},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		rest: true
+	})
+	supports!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

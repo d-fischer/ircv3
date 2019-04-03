@@ -1,14 +1,10 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface PingParams {
-	message: MessageParam;
-}
-
-export default class Ping extends Message<PingParams> {
-	static readonly COMMAND = 'PING';
-	static readonly PARAM_SPEC: MessageParamSpec<Ping> = {
-		message: {
-			trailing: true
-		}
-	};
+@MessageType('PING')
+export default class Ping extends Message<Ping> {
+	@MessageParamDefinition({
+		trailing: true
+	})
+	message!: MessageParam;
 }

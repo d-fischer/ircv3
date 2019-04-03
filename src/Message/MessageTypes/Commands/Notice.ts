@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface NoticeParams {
-	target: MessageParam;
-	message: MessageParam;
-}
+@MessageType('NOTICE')
+export default class Notice extends Message<Notice> {
+	@MessageParamDefinition({})
+	target!: MessageParam;
 
-export default class Notice extends Message<NoticeParams> {
-	static readonly COMMAND = 'NOTICE';
-	static readonly PARAM_SPEC: MessageParamSpec<Notice> = {
-		target: {},
-		message: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	message!: MessageParam;
 }

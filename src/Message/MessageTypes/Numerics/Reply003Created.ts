@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply003CreatedParams {
-	me: MessageParam;
-	createdText: MessageParam;
-}
+@MessageType('003')
+export default class Reply003Created extends Message<Reply003Created> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply003Created extends Message<Reply003CreatedParams> {
-	static readonly COMMAND = '003';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply003Created> = {
-		me: {},
-		createdText: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	createdText!: MessageParam;
 }

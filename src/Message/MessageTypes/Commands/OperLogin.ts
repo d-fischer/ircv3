@@ -1,14 +1,11 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface OperLoginParams {
-	name: MessageParam;
-	password: MessageParam;
-}
+@MessageType('OPER')
+export default class OperLogin extends Message<OperLogin> {
+	@MessageParamDefinition({})
+	name!: MessageParam;
 
-export default class OperLogin extends Message<OperLoginParams> {
-	static readonly COMMAND = 'OPER';
-	static readonly PARAM_SPEC: MessageParamSpec<OperLogin> = {
-		name: {},
-		password: {}
-	};
+	@MessageParamDefinition({})
+	password!: MessageParam;
 }

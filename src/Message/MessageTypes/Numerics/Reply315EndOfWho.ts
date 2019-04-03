@@ -1,21 +1,19 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
 import WhoQuery from '../Commands/WhoQuery';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply315EndOfWhoParams {
-	me: MessageParam;
-	query: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('315')
+export default class Reply315EndOfWho extends Message<Reply315EndOfWho> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply315EndOfWho extends Message<Reply315EndOfWhoParams> {
-	static readonly COMMAND = '315';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply315EndOfWho> = {
-		me: {},
-		query: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({})
+	query!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 
 	protected isResponseTo(originalMessage: Message): boolean {
 		return originalMessage instanceof WhoQuery;

@@ -1,18 +1,15 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface WhoQueryParams {
-	mask: MessageParam;
-	flags: MessageParam;
-}
+@MessageType('WHO')
+export default class WhoQuery extends Message<WhoQuery> {
+	@MessageParamDefinition({
+		optional: true
+	})
+	mask!: MessageParam;
 
-export default class WhoQuery extends Message<WhoQueryParams> {
-	static readonly COMMAND = 'WHO';
-	static readonly PARAM_SPEC: MessageParamSpec<WhoQuery> = {
-		mask: {
-			optional: true
-		},
-		flags: {
-			rest: true
-		}
-	};
+	@MessageParamDefinition({
+		rest: true
+	})
+	flags!: MessageParam;
 }

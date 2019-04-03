@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error462AlreadyRegisteredParams {
-	me: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('462')
+export default class Error462AlreadyRegistered extends Message<Error462AlreadyRegistered> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error462AlreadyRegistered extends Message<Error462AlreadyRegisteredParams> {
-	static readonly COMMAND = '462';
-	static readonly PARAM_SPEC: MessageParamSpec<Error462AlreadyRegistered> = {
-		me: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

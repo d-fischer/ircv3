@@ -2,7 +2,7 @@ import Connection, { ConnectionInfo } from './Connection/Connection';
 import WebSocketConnection from './Connection/WebSocketConnection';
 import DirectConnection from './Connection/DirectConnection';
 import { decodeCtcp, padLeft } from './Toolkit/StringTools';
-import Message, { MessageConstructor } from './Message/Message';
+import Message, { createMessage, MessageConstructor, MessageParamValues } from './Message/Message';
 import ObjectTools, { ObjMap } from './Toolkit/ObjectTools';
 import MessageCollector from './Message/MessageCollector';
 import * as MessageTypes from './Message/MessageTypes';
@@ -17,7 +17,7 @@ import { CapabilityNegotiation, ChannelJoin, ChannelPart, NickChange, Notice, Pa
 import { Error462AlreadyRegistered, Reply001Welcome, Reply004ServerInfo, Reply005ISupport } from './Message/MessageTypes/Numerics';
 import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
 import Logger, { LogLevel } from '@d-fischer/logger';
-import { ConstructedType, MessageParams } from './Toolkit/TypeTools';
+import { ConstructedType } from './Toolkit/TypeTools';
 import parseMessage from './Message/MessageParser';
 import { defaultServerProperties, ServerProperties } from './ServerProperties';
 
@@ -98,7 +98,7 @@ export default class Client extends EventEmitter {
 		this._connection.on('connect', () => {
 			this._logger.info(`Connection to server ${this._connection.host}:${this._connection.port} established`);
 			this.sendMessageAndCaptureReply(CapabilityNegotiation, {
-				command: 'LS',
+				subCommand: 'LS',
 				version: '302'
 			}).then((capReply: Message[]) => {
 				if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
@@ -128,7 +128,7 @@ export default class Client extends EventEmitter {
 						.map(([, cap]) => cap);
 				});
 				this._negotiateCapabilityBatch(capabilitiesToNegotiate).then(() => {
-					this.sendMessage(CapabilityNegotiation, { command: 'END' });
+					this.sendMessage(CapabilityNegotiation, { subCommand: 'END' });
 					this._registered = true;
 					this.emit(this.onRegister);
 				});
@@ -151,8 +151,8 @@ export default class Client extends EventEmitter {
 			try {
 				parsedMessage = parseMessage(line, this._serverProperties, this._registeredMessageTypes, true, nonConformingCommands);
 			} catch (e) {
-				this._logger.err('Error parsing message:');
-				this._logger.err(e);
+				this._logger.err(`Error parsing message: ${e.message}`);
+				this._logger.debug1(e.stack);
 				return;
 			}
 			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
@@ -160,11 +160,11 @@ export default class Client extends EventEmitter {
 			this.handleEvents(parsedMessage);
 		});
 
-		this.onMessage(CapabilityNegotiation, ({ params: { command, capabilities } }) => {
+		this.onMessage(CapabilityNegotiation, ({ params: { subCommand, capabilities } }) => {
 			const caps = capabilities.split(' ');
 
 			// tslint:disable-next-line:switch-default
-			switch (command.toUpperCase()) {
+			switch (subCommand.toUpperCase()) {
 				case 'NEW': {
 					this._logger.debug1(`Server registered new capabilities: ${caps.join(', ')}`);
 					const capList = ObjectTools.fromArray<string, ServerCapability, {}>(caps, (part: string) => {
@@ -391,7 +391,7 @@ export default class Client extends EventEmitter {
 	protected async _negotiateCapabilities(capList: ServerCapability[]): Promise<ServerCapability[] | Error> {
 		const mappedCapList: ObjMap<object, ServerCapability> = ObjectTools.fromArray(capList, cap => ({ [cap.name]: cap }));
 		const messages = await this.sendMessageAndCaptureReply(CapabilityNegotiation, {
-			command: 'REQ',
+			subCommand: 'REQ',
 			capabilities: capList.map(cap => cap.name).join(' ')
 		});
 
@@ -403,7 +403,7 @@ export default class Client extends EventEmitter {
 			throw new Error(`capability negotiation failed unexpectedly with "${capReply.command}" command`);
 		}
 		const negotiatedCapNames = capReply.params.capabilities.split(' ').filter(c => c);
-		if (capReply.params.command === 'ACK') {
+		if (capReply.params.subCommand === 'ACK') {
 			// filter is necessary because some networks seem to add trailing spaces...
 			this._logger.debug1(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
 			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(capName => (mappedCapList as { [name: string]: ServerCapability })[capName]);
@@ -475,24 +475,24 @@ export default class Client extends EventEmitter {
 		this._events.get(commandName)!.delete(handlerName);
 	}
 
-	createMessage<T extends MessageConstructor>(
-		type: T,
-		params: MessageParams<ConstructedType<T>>,
+	createMessage<T extends Message<T, X>, X extends Exclude<keyof T, keyof Message>>(
+		type: MessageConstructor<T, X>,
+		params: Partial<MessageParamValues<T>>,
 		tags?: Map<string, string>
-	): ConstructedType<T> {
-		return type.create(params, undefined, tags, this.serverProperties) as ConstructedType<T>;
+	) {
+		return createMessage(type, params, undefined, tags, this.serverProperties);
 	}
 
-	sendMessage<T extends MessageConstructor>(
-		type: T,
-		params: MessageParams<ConstructedType<T>>
+	sendMessage<T extends Message<T, X>, X extends Exclude<keyof T, keyof Message>>(
+		type: MessageConstructor<T, X>,
+		params: Partial<MessageParamValues<T>>
 	): void {
 		this.send(this.createMessage(type, params));
 	}
 
-	async sendMessageAndCaptureReply<T extends Message>(
-		type: MessageConstructor<T>,
-		params: MessageParams<T>
+	async sendMessageAndCaptureReply<T extends Message<T, X>, X extends Exclude<keyof T, keyof Message>>(
+		type: MessageConstructor<T, X>,
+		params: Partial<MessageParamValues<T>>
 	): Promise<Message[]> {
 		if (!type.SUPPORTS_CAPTURE) {
 			throw new Error(`The command "${type.COMMAND}" does not support reply capture`);

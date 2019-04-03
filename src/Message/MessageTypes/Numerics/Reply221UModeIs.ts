@@ -1,14 +1,11 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply221UModeIsParams {
-	me: MessageParam;
-	modes: MessageParam;
-}
+@MessageType('221')
+export default class Reply221UModeIs extends Message<Reply221UModeIs> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply221UModeIs extends Message<Reply221UModeIsParams> {
-	static readonly COMMAND = '221';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply221UModeIs> = {
-		me: {},
-		modes: {}
-	};
+	@MessageParamDefinition({})
+	modes!: MessageParam;
 }

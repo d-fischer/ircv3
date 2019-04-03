@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply002YourHostParams {
-	me: MessageParam;
-	yourHost: MessageParam;
-}
+@MessageType('002')
+export default class Reply002YourHost extends Message<Reply002YourHost> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply002YourHost extends Message<Reply002YourHostParams> {
-	static readonly COMMAND = '002';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply002YourHost> = {
-		me: {},
-		yourHost: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	yourHost!: MessageParam;
 }

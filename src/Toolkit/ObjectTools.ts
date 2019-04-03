@@ -48,7 +48,8 @@ export default class ObjectTools {
 		return Object.assign<ObjMap<Obj, O>>({}, ...arr.map(fn));
 	}
 
-	static forEach<T, Obj>(obj: Obj, fn: (value: T, key: Extract<keyof Obj, string>) => void) {
-		Object.entries<T, Obj>(obj).forEach(([key, value]: [Extract<keyof Obj, string>, T]) => fn(value, key));
+	// tslint:disable-next-line:no-any
+	static forEach<T, Obj>(obj: Obj, fn: (value: T, key: keyof Obj) => void) {
+		Object.entries<T, Obj>(obj).forEach(([key, value]: [keyof Obj, T]) => fn(value, key));
 	}
 }

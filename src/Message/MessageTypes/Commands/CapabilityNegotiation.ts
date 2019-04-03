@@ -1,37 +1,37 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface CapabilityNegotiationParams {
-	target: MessageParam;
-	command: MessageParam;
-	version: MessageParam;
-	continued: MessageParam;
-	capabilities: MessageParam;
-}
+@MessageType('CAP')
+export default class CapabilityNegotiation extends Message<CapabilityNegotiation> {
+	@MessageParamDefinition({
+		match: /^(?:[a-z_\-\[\]\\^{}|`][a-z0-9_\-\[\]\\^{}|`]+|\*)$/i,
+		optional: true,
+		noClient: true
+	})
+	target!: MessageParam;
 
-export default class CapabilityNegotiation extends Message<CapabilityNegotiationParams> {
-	static readonly COMMAND = 'CAP';
-	static readonly PARAM_SPEC: MessageParamSpec<CapabilityNegotiation> = {
-		target: {
-			match: /^(?:[a-z_\-\[\]\\^{}|`][a-z0-9_\-\[\]\\^{}|`]+|\*)$/i,
-			optional: true,
-			noClient: true
-		},
-		command: {
-			match: /^(?:LS|LIST|REQ|ACK|NAK|END|NEW|DEL)$/i
-		},
-		version: {
-			match: /^\d+$/,
-			optional: true
-		},
-		continued: {
-			match: /^\*$/,
-			optional: true
-		},
-		capabilities: {
-			trailing: true,
-			optional: true
-		}
-	};
+	@MessageParamDefinition({
+		match: /^(?:LS|LIST|REQ|ACK|NAK|END|NEW|DEL)$/i
+	})
+	subCommand!: MessageParam;
+
+	@MessageParamDefinition({
+		match: /^\d+$/,
+		optional: true
+	})
+	version!: MessageParam;
+
+	@MessageParamDefinition({
+		match: /^\*$/,
+		optional: true
+	})
+	continued!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true,
+		optional: true
+	})
+	capabilities!: MessageParam;
 
 	static readonly SUPPORTS_CAPTURE = true;
 
@@ -40,17 +40,17 @@ export default class CapabilityNegotiation extends Message<CapabilityNegotiation
 			return false;
 		}
 
-		switch (this.params.command) {
+		switch (this.params.subCommand) {
 			case 'ACK':
 			case 'NAK': {
 				// trim is necessary because some networks seem to add trailing spaces (looking at you, Freenode)...
-				return originalMessage.params.command === 'REQ'
+				return originalMessage.params.subCommand === 'REQ'
 					&& originalMessage.params.capabilities === this.params.capabilities.trim();
 			}
 
 			case 'LS':
 			case 'LIST': {
-				return originalMessage.params.command === this.params.command;
+				return originalMessage.params.subCommand === this.params.subCommand;
 			}
 
 			default: {
@@ -64,7 +64,7 @@ export default class CapabilityNegotiation extends Message<CapabilityNegotiation
 			return false;
 		}
 
-		switch (this.params.command) {
+		switch (this.params.subCommand) {
 			case 'LS':
 			case 'LIST': {
 				return !this.params.continued;

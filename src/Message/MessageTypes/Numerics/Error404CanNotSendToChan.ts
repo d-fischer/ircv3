@@ -1,20 +1,18 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error404CanNotSendToChanParams {
-	me: MessageParam;
-	channel: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('404')
+export default class Error404CanNotSendToChan extends Message<Error404CanNotSendToChan> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error404CanNotSendToChan extends Message<Error404CanNotSendToChanParams> {
-	static readonly COMMAND = '404';
-	static readonly PARAM_SPEC: MessageParamSpec<Error404CanNotSendToChan> = {
-		me: {},
-		channel: {
-			type: 'channel'
-		},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

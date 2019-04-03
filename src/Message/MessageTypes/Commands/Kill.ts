@@ -1,17 +1,14 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface KillParams {
-	target: MessageParam;
-	comment: MessageParam;
-}
+@MessageType('KILL')
+export default class Kill extends Message<Kill> {
+	@MessageParamDefinition({})
+	target!: MessageParam;
 
-export default class Kill extends Message<KillParams> {
-	static readonly COMMAND = 'KILL';
-	static readonly PARAM_SPEC: MessageParamSpec<Kill> = {
-		target: {},
-		comment: {
-			trailing: true,
-			optional: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true,
+		optional: true
+	})
+	comment!: MessageParam;
 }

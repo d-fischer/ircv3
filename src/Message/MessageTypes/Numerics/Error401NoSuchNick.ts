@@ -1,18 +1,16 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error401NoSuchNickParams {
-	me: MessageParam;
-	nick: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('401')
+export default class Error401NoSuchNick extends Message<Error401NoSuchNick> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error401NoSuchNick extends Message<Error401NoSuchNickParams> {
-	static readonly COMMAND = '401';
-	static readonly PARAM_SPEC: MessageParamSpec<Error401NoSuchNick> = {
-		me: {},
-		nick: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({})
+	nick!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

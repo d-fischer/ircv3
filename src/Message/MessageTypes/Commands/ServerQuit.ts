@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface ServerQuitParams {
-	server: MessageParam;
-	message: MessageParam;
-}
+@MessageType('SQUIT')
+export default class ServerQuit extends Message<ServerQuit> {
+	@MessageParamDefinition({})
+	server!: MessageParam;
 
-export default class ServerQuit extends Message<ServerQuitParams> {
-	static readonly COMMAND = 'SQUIT';
-	static readonly PARAM_SPEC: MessageParamSpec<ServerQuit> = {
-		server: {},
-		message: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	message!: MessageParam;
 }

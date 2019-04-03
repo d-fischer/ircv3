@@ -1,21 +1,19 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface ChannelKickParams {
-	channel: MessageParam;
-	target: MessageParam;
-	comment: MessageParam;
-}
+@MessageType('KICK')
+export default class ChannelKick extends Message<ChannelKick> {
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
 
-export default class ChannelKick extends Message<ChannelKickParams> {
-	static readonly COMMAND = 'KICK';
-	static readonly PARAM_SPEC: MessageParamSpec<ChannelKick> = {
-		channel: {
-			type: 'channel'
-		},
-		target: {},
-		comment: {
-			trailing: true,
-			optional: true
-		}
-	};
+	@MessageParamDefinition({})
+	target!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true,
+		optional: true
+	})
+	comment!: MessageParam;
 }

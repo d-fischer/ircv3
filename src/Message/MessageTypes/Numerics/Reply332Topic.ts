@@ -1,20 +1,18 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply332TopicParams {
-	me: MessageParam;
-	channel: MessageParam;
-	topic: MessageParam;
-}
+@MessageType('332')
+export default class Reply332Topic extends Message<Reply332Topic> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply332Topic extends Message<Reply332TopicParams> {
-	static readonly COMMAND = '332';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply332Topic> = {
-		me: {},
-		channel: {
-			type: 'channel'
-		},
-		topic: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	topic!: MessageParam;
 }

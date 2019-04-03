@@ -1,16 +1,12 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface NamesParams {
-	channel: MessageParam;
-}
-
-export default class Names extends Message<NamesParams> {
-	static readonly COMMAND = 'NAMES';
-	static readonly PARAM_SPEC: MessageParamSpec<Names> = {
-		channel: {
-			type: 'channelList',
-			optional: true
-		}
-	};
+@MessageType('NAMES')
+export default class Names extends Message<Names> {
+	@MessageParamDefinition({
+		type: 'channelList',
+		optional: true
+	})
+	channel!: MessageParam;
 	static readonly SUPPORTS_CAPTURE = true;
 }

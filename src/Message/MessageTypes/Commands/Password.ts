@@ -1,12 +1,8 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface PasswordParams {
-	password: MessageParam;
-}
-
-export default class Password extends Message<PasswordParams> {
-	static readonly COMMAND = 'PASS';
-	static readonly PARAM_SPEC: MessageParamSpec<Password> = {
-		password: {}
-	};
+@MessageType('PASS')
+export default class Password extends Message<Password> {
+	@MessageParamDefinition({})
+	password!: MessageParam;
 }

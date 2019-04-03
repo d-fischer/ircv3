@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface PrivateMessageParams {
-	target: MessageParam;
-	message: MessageParam;
-}
+@MessageType('PRIVMSG')
+export default class PrivateMessage extends Message<PrivateMessage> {
+	@MessageParamDefinition({})
+	target!: MessageParam;
 
-export default class PrivateMessage extends Message<PrivateMessageParams> {
-	static readonly COMMAND = 'PRIVMSG';
-	static readonly PARAM_SPEC: MessageParamSpec<PrivateMessage> = {
-		target: {},
-		message: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	message!: MessageParam;
 }

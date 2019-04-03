@@ -1,20 +1,18 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply331NoTopicParams {
-	me: MessageParam;
-	channel: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('331')
+export default class Reply331NoTopic extends Message<Reply331NoTopic> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply331NoTopic extends Message<Reply331NoTopicParams> {
-	static readonly COMMAND = '331';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply331NoTopic> = {
-		me: {},
-		channel: {
-			type: 'channel'
-		},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

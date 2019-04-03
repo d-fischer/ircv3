@@ -1,24 +1,25 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply004ServerInfoParams {
-	me: MessageParam;
-	serverName: MessageParam;
-	version: MessageParam;
-	userModes: MessageParam;
-	channelModes: MessageParam;
-	channelModesWithParam: MessageParam;
-}
+@MessageType('004')
+export default class Reply004ServerInfo extends Message<Reply004ServerInfo> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply004ServerInfo extends Message<Reply004ServerInfoParams> {
-	static readonly COMMAND = '004';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply004ServerInfo> = {
-		me: {},
-		serverName: {},
-		version: {},
-		userModes: {},
-		channelModes: {},
-		channelModesWithParam: {
-			optional: true
-		}
-	};
+	@MessageParamDefinition({})
+	serverName!: MessageParam;
+
+	@MessageParamDefinition({})
+	version!: MessageParam;
+
+	@MessageParamDefinition({})
+	userModes!: MessageParam;
+
+	@MessageParamDefinition({})
+	channelModes!: MessageParam;
+
+	@MessageParamDefinition({
+		optional: true
+	})
+	channelModesWithParam!: MessageParam;
 }

@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface ChannelInviteParams {
-	target: MessageParam;
-	channel: MessageParam;
-}
+@MessageType('INVITE')
+export default class ChannelInvite extends Message<ChannelInvite> {
+	@MessageParamDefinition({})
+	target!: MessageParam;
 
-export default class ChannelInvite extends Message<ChannelInviteParams> {
-	static readonly COMMAND = 'INVITE';
-	static readonly PARAM_SPEC: MessageParamSpec<ChannelInvite> = {
-		target: {},
-		channel: {
-			type: 'channel'
-		}
-	};
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
 }

@@ -1,5 +1,5 @@
 import Message from '../../Message';
+import { MessageType } from '../../MessageDefinition';
 
-export default class Rehash extends Message {
-	static readonly COMMAND = 'REHASH';
-}
+@MessageType('REHASH')
+export default class Rehash extends Message {}

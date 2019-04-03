@@ -1,18 +1,15 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error431NoNickNameGivenParams {
-	me: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('431')
+export default class Error431NoNickNameGiven extends Message<Error431NoNickNameGiven> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error431NoNickNameGiven extends Message<Error431NoNickNameGivenParams> {
-	static readonly COMMAND = '431';
-	static readonly PARAM_SPEC: MessageParamSpec<Error431NoNickNameGiven> = {
-		me: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 
 	protected isResponseTo(originalMessage: Message) {
 		return originalMessage.command === 'NICK';

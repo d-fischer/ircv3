@@ -1,14 +1,10 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface ChannelPartParams {
-	channel: MessageParam;
-}
-
-export default class ChannelPart extends Message<ChannelPartParams> {
-	static readonly COMMAND = 'PART';
-	static readonly PARAM_SPEC: MessageParamSpec<ChannelPart> = {
-		channel: {
-			type: 'channel'
-		}
-	};
+@MessageType('PART')
+export default class ChannelPart extends Message<ChannelPart> {
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
 }

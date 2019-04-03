@@ -11,7 +11,8 @@
     "declaration": true,
     "strict": true,
     "noUnusedLocals": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true
   },
   "exclude": [
     "node_modules",

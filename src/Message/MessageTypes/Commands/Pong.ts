@@ -1,18 +1,15 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface PongParams {
-	server: MessageParam;
-	message: MessageParam;
-}
+@MessageType('PONG')
+export default class Pong extends Message<Pong> {
+	@MessageParamDefinition({
+		noClient: true
+	})
+	server!: MessageParam;
 
-export default class Pong extends Message<PongParams> {
-	static readonly COMMAND = 'PONG';
-	static readonly PARAM_SPEC: MessageParamSpec<Pong> = {
-		server: {
-			noClient: true
-		},
-		message: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	message!: MessageParam;
 }

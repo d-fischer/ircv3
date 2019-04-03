@@ -1,19 +1,16 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface ChannelListParams {
-	channel: MessageParam;
-	server: MessageParam;
-}
+@MessageType('LIST')
+export default class ChannelList extends Message<ChannelList> {
+	@MessageParamDefinition({
+		type: 'channel',
+		optional: true
+	})
+	channel!: MessageParam;
 
-export default class ChannelList extends Message<ChannelListParams> {
-	static readonly COMMAND = 'LIST';
-	static readonly PARAM_SPEC: MessageParamSpec<ChannelList> = {
-		channel: {
-			type: 'channel',
-			optional: true
-		},
-		server: {
-			optional: true
-		}
-	};
+	@MessageParamDefinition({
+		optional: true
+	})
+	server!: MessageParam;
 }

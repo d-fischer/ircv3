@@ -1,18 +1,16 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply341InvitingParams {
-	me: MessageParam;
-	nick: MessageParam;
-	channel: MessageParam;
-}
+@MessageType('341')
+export default class Reply341Inviting extends Message<Reply341Inviting> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply341Inviting extends Message<Reply341InvitingParams> {
-	static readonly COMMAND = '341';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply341Inviting> = {
-		me: {},
-		nick: {},
-		channel: {
-			type: 'channel'
-		}
-	};
+	@MessageParamDefinition({})
+	nick!: MessageParam;
+
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
 }

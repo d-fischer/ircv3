@@ -1,19 +1,16 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface TopicParams {
-	channel: MessageParam;
-	newTopic: MessageParam;
-}
+@MessageType('TOPIC')
+export default class Topic extends Message<Topic> {
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
 
-export default class Topic extends Message<TopicParams> {
-	static readonly COMMAND = 'TOPIC';
-	static readonly PARAM_SPEC: MessageParamSpec<Topic> = {
-		channel: {
-			type: 'channel'
-		},
-		newTopic: {
-			optional: true,
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		optional: true,
+		trailing: true
+	})
+	newTopic!: MessageParam;
 }

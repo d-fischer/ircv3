@@ -1,12 +1,8 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface NickChangeParams {
-	nick: MessageParam;
-}
-
-export default class NickChange extends Message<NickChangeParams> {
-	static readonly COMMAND = 'NICK';
-	static readonly PARAM_SPEC: MessageParamSpec<NickChange> = {
-		nick: {}
-	};
+@MessageType('NICK')
+export default class NickChange extends Message<NickChange> {
+	@MessageParamDefinition({})
+	nick!: MessageParam;
 }

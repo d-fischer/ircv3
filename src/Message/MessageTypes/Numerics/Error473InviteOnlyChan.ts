@@ -1,18 +1,16 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error473InviteOnlyChanParams {
-	me: MessageParam;
-	channel: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('473')
+export default class Error473InviteOnlyChan extends Message<Error473InviteOnlyChan> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error473InviteOnlyChan extends Message<Error473InviteOnlyChanParams> {
-	static readonly COMMAND = '473';
-	static readonly PARAM_SPEC: MessageParamSpec<Error473InviteOnlyChan> = {
-		me: {},
-		channel: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({})
+	channel!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }

@@ -1,14 +1,10 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface WallopsMessageParams {
-	message: MessageParam;
-}
-
-export default class WallopsMessage extends Message<WallopsMessageParams> {
-	static readonly COMMAND = 'WALLOPS';
-	static readonly PARAM_SPEC: MessageParamSpec<WallopsMessage> = {
-		message: {
-			trailing: true
-		}
-	};
+@MessageType('WALLOPS')
+export default class WallopsMessage extends Message<WallopsMessage> {
+	@MessageParamDefinition({
+		trailing: true
+	})
+	message!: MessageParam;
 }

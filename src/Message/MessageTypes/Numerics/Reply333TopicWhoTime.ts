@@ -1,20 +1,19 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Reply333TopicWhoTimeParams {
-	me: MessageParam;
-	channel: MessageParam;
-	who: MessageParam;
-	ts: MessageParam;
-}
+@MessageType('333')
+export default class Reply333TopicWhoTime extends Message<Reply333TopicWhoTime> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Reply333TopicWhoTime extends Message<Reply333TopicWhoTimeParams> {
-	static readonly COMMAND = '333';
-	static readonly PARAM_SPEC: MessageParamSpec<Reply333TopicWhoTime> = {
-		me: {},
-		channel: {
-			type: 'channel'
-		},
-		who: {},
-		ts: {}
-	};
+	@MessageParamDefinition({
+		type: 'channel'
+	})
+	channel!: MessageParam;
+
+	@MessageParamDefinition({})
+	who!: MessageParam;
+
+	@MessageParamDefinition({})
+	ts!: MessageParam;
 }

@@ -1,16 +1,13 @@
-import Message, { MessageParam, MessageParamSpec } from '../../Message';
+import Message, { MessageParam } from '../../Message';
+import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-export interface Error451NotRegisteredParams {
-	me: MessageParam;
-	suffix: MessageParam;
-}
+@MessageType('451')
+export default class Error451NotRegistered extends Message<Error451NotRegistered> {
+	@MessageParamDefinition({})
+	me!: MessageParam;
 
-export default class Error451NotRegistered extends Message<Error451NotRegisteredParams> {
-	static readonly COMMAND = '451';
-	static readonly PARAM_SPEC: MessageParamSpec<Error451NotRegistered> = {
-		me: {},
-		suffix: {
-			trailing: true
-		}
-	};
+	@MessageParamDefinition({
+		trailing: true
+	})
+	suffix!: MessageParam;
 }
