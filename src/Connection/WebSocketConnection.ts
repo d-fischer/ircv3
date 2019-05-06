@@ -13,6 +13,7 @@ class WebSocketConnection extends Connection {
 			this._connecting = true;
 			const url = `ws${this._secure ? 's' : ''}://${this._host}:${this.port}`;
 			this._socket = new WebSocket(url);
+
 			this._socket.onopen = () => {
 				this._connected = true;
 				this._connecting = false;
@@ -20,9 +21,15 @@ class WebSocketConnection extends Connection {
 				this._initialConnection = false;
 				resolve();
 			};
+
 			this._socket.onmessage = ({ data }: {data: WebSocket.Data}) => {
 				this.receiveRaw(data.toString());
 			};
+
+			// The following empty error callback needs to exist so connection errors are passed down to `onclose` down below - otherwise the process just crashes instead
+			// tslint:disable-next-line
+			this._socket.onerror = () => {};
+
 			this._socket.onclose = ({ wasClean, code, reason }) => {
 				this._socket = undefined;
 				this._connected = false;
@@ -35,7 +42,7 @@ class WebSocketConnection extends Connection {
 					this.emit('disconnect', err);
 					this._handleReconnect(err);
 					if (this._initialConnection) {
-						reject();
+						reject(err);
 					}
 				}
 			};
