@@ -20,3 +20,5 @@ export { default as ParameterRequirementMismatchError } from './Errors/Parameter
 export { default as UnknownChannelModeCharError } from './Errors/UnknownChannelModeCharError';
 
 export { SingleMode } from './Message/MessageTypes/Commands/Mode';
+
+export { MessageType, MessageParamDefinition } from './Message/MessageDefinition';
