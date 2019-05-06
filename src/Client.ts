@@ -321,7 +321,7 @@ export default class Client extends EventEmitter {
 	}
 
 	async reconnect(message?: string) {
-		await this.quit(message);
+		this.quit(message);
 		return this.connect();
 	}
 
@@ -537,16 +537,9 @@ export default class Client extends EventEmitter {
 		this.sendMessage(ChannelPart, { channel });
 	}
 
-	async quit(message?: string) {
-		return new Promise<void>(resolve => {
-			const handler = () => {
-				this._connection.removeListener('disconnect', handler);
-				resolve();
-			};
-			this._connection.addListener('disconnect', handler);
-			this.sendMessage(ClientQuit, { message });
-			this._connection.disconnect();
-		});
+	quit(message?: string) {
+		this.sendMessage(ClientQuit, { message });
+		this._connection.disconnect();
 	}
 
 	say(target: string, message: string) {
