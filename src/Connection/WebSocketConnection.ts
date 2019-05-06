@@ -8,7 +8,7 @@ class WebSocketConnection extends Connection {
 		return this._port || (this._secure ? 443 : 80);
 	}
 
-	async connect() {
+	async doConnect() {
 		return new Promise<void>((resolve, reject) => {
 			this._connecting = true;
 			const url = `ws${this._secure ? 's' : ''}://${this._host}:${this.port}`;
@@ -49,7 +49,7 @@ class WebSocketConnection extends Connection {
 		});
 	}
 
-	disconnect() {
+	doDisconnect() {
 		if (this._socket) {
 			this._manualDisconnect = true;
 			this._socket.close();

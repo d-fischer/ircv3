@@ -10,7 +10,7 @@ class DirectConnection extends Connection {
 		return this._port || (this._secure ? 6697 : 6667);
 	}
 
-	async connect() {
+	async doConnect() {
 		return new Promise<void>((resolve, reject) => {
 			this._connecting = true;
 			const connectionErrorListener = (err: Error) => {
@@ -20,7 +20,7 @@ class DirectConnection extends Connection {
 				}
 				this._connected = false;
 				this._connecting = false;
-				this.emit('disconnect', err);
+				this.emit('doDisconnect', err);
 				this._handleReconnect(err);
 				if (this._initialConnection) {
 					reject(err);
@@ -58,7 +58,7 @@ class DirectConnection extends Connection {
 		});
 	}
 
-	disconnect() {
+	doDisconnect() {
 		if (this._socket) {
 			this._manualDisconnect = true;
 			this._socket.destroy();
