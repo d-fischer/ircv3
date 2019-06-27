@@ -12,4 +12,4 @@ export type PickType<Base, Condition> =
 	Record<AllowedNames<Base, Condition>, Condition>;
 
 // tslint:disable-next-line:no-any
-export type ConstructedType<C> = C extends { new(...params: any[]): infer T } ? T : never;
+export type ConstructedType<C> = C extends new(...params: any[]) => infer T ? T : never;

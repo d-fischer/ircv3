@@ -83,7 +83,7 @@ export { default as Ping } from './Ping';
 export { default as Pong } from './Pong';
 
 // 4.6.4 Error message
-export { default as Error } from './Error';
+export { default as ErrorMessage } from './ErrorMessage';
 // endregion
 // endregion
 

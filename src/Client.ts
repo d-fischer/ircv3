@@ -20,6 +20,7 @@ import Logger, { LogLevel } from '@d-fischer/logger';
 import { ConstructedType } from './Toolkit/TypeTools';
 import parseMessage from './Message/MessageParser';
 import { defaultServerProperties, ServerProperties } from './ServerProperties';
+import MessageError from './Toolkit/MessageError';
 
 // tslint:disable:no-floating-promises
 
@@ -30,7 +31,7 @@ interface ClientOptions {
 	connection: ConnectionInfo;
 	webSocket?: boolean;
 	channelTypes?: string;
-	logLevel?: number;
+	logLevel?: LogLevel;
 	nonConformingCommands?: string[];
 }
 
@@ -365,17 +366,28 @@ export default class Client extends EventEmitter {
 
 		return new Promise<void>((resolve, reject) => {
 			let registerListener: Listener;
+			let errorListener: string;
 			let disconnectListener: Listener;
+
 			registerListener = this.onRegister(() => {
 				registerListener.unbind();
+				this.removeMessageListener(errorListener);
 				disconnectListener.unbind();
 				resolve();
 			});
 
-			disconnectListener = this.onDisconnect(() => {
+			errorListener = this.onMessage(MessageTypes.Commands.ErrorMessage, msg => {
 				registerListener.unbind();
+				this.removeMessageListener(errorListener);
 				disconnectListener.unbind();
-				reject();
+				reject(new MessageError(msg));
+			});
+
+			disconnectListener = this.onDisconnect(reason => {
+				registerListener.unbind();
+				this.removeMessageListener(errorListener);
+				disconnectListener.unbind();
+				reject(reason);
 			});
 		});
 	}
