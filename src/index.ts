@@ -10,7 +10,7 @@ export { Capability, CoreCapabilities };
 
 export { isChannel } from './Toolkit/StringTools';
 
-export { default as Client } from './Client';
+export { default } from './IRCClient';
 export { default as parseMessage, parsePrefix, parseTags } from './Message/MessageParser';
 export { AccessLevelDefinition, defaultServerProperties } from './ServerProperties';
 export { SupportedModesByType, ServerProperties } from './ServerProperties';

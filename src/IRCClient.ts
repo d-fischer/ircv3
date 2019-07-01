@@ -21,27 +21,34 @@ import { ConstructedType } from './Toolkit/TypeTools';
 import parseMessage from './Message/MessageParser';
 import { defaultServerProperties, ServerProperties } from './ServerProperties';
 import MessageError from './Toolkit/MessageError';
+import { NonEnumerable } from './Toolkit/NonEnumerable';
 
 // tslint:disable:no-floating-promises
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
 
-interface ClientOptions {
+export interface IRCCredentials {
+	nick: string;
+	password?: string;
+	userName?: string;
+	realName?: string;
+}
+
+export interface IRCClientOptions {
 	connection: ConnectionInfo;
+	credentials: IRCCredentials;
 	webSocket?: boolean;
 	channelTypes?: string;
 	logLevel?: LogLevel;
 	nonConformingCommands?: string[];
 }
 
-export default class Client extends EventEmitter {
+export default class IRCClient extends EventEmitter {
 	protected _connection: Connection;
-	protected _nick: string;
-	protected _userName: string;
-
-	protected _realName: string;
 	protected _registered: boolean = false;
+
+	@NonEnumerable protected _credentials: IRCCredentials;
 
 	protected _supportsCapabilities: boolean = true;
 
@@ -80,7 +87,7 @@ export default class Client extends EventEmitter {
 
 	private readonly _logger: Logger;
 
-	constructor({ connection, webSocket, channelTypes, logLevel = LogLevel.WARNING, nonConformingCommands = [] }: ClientOptions) {
+	constructor({ connection, credentials, webSocket, channelTypes, logLevel = LogLevel.WARNING, nonConformingCommands = [] }: IRCClientOptions) {
 		super();
 
 		const { pingOnInactivity = 60, pingTimeout = 10 } = connection;
@@ -134,15 +141,15 @@ export default class Client extends EventEmitter {
 					this.emit(this.onRegister);
 				});
 			});
-			if (connection.password) {
-				this.sendMessage(Password, { password: connection.password });
+			if (this._credentials.password) {
+				this.sendMessage(Password, { password: this._credentials.password });
 			}
-			this.sendMessage(NickChange, { nick: this._nick });
+			this.sendMessage(NickChange, { nick: this._credentials.nick });
 			this.sendMessage(UserRegistration, {
-				user: this._userName,
+				user: this._credentials.userName,
 				mode: '8',
 				unused: '*',
-				realName: this._realName
+				realName: this._credentials.realName
 			});
 		});
 
@@ -284,9 +291,12 @@ export default class Client extends EventEmitter {
 			this.emit(this.onDisconnect, reason);
 		});
 
-		this._nick = connection.nick;
-		this._userName = connection.userName || connection.nick;
-		this._realName = connection.realName || connection.nick;
+		this._credentials = {
+			nick: credentials.nick,
+			userName: credentials.userName || credentials.nick,
+			realName: credentials.realName || credentials.nick,
+			password: credentials.password
+		};
 
 		if (channelTypes) {
 			this._serverProperties.channelTypes = channelTypes;
@@ -580,5 +590,9 @@ export default class Client extends EventEmitter {
 			() => this.pingCheck(),
 			this._pingOnInactivity * 1000
 		);
+	}
+
+	protected _updateCredentials(newCredentials: Partial<IRCCredentials>) {
+		this._credentials = { ...this._credentials, ...newCredentials };
 	}
 }

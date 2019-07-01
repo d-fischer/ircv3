@@ -3,10 +3,6 @@ import { EventEmitter } from 'events';
 export interface ConnectionInfo {
 	hostName: string;
 	port?: number;
-	nick: string;
-	password?: string;
-	userName?: string;
-	realName?: string;
 	secure?: boolean;
 	reconnect?: boolean;
 	pingOnInactivity?: number;
