@@ -146,10 +146,10 @@ export default class IRCClient extends EventEmitter {
 			}
 			this.sendMessage(NickChange, { nick: this._credentials.nick });
 			this.sendMessage(UserRegistration, {
-				user: this._credentials.userName,
+				user: this._credentials.userName || this._credentials.nick,
 				mode: '8',
 				unused: '*',
-				realName: this._credentials.realName
+				realName: this._credentials.realName || this._credentials.nick
 			});
 		});
 
@@ -291,12 +291,7 @@ export default class IRCClient extends EventEmitter {
 			this.emit(this.onDisconnect, reason);
 		});
 
-		this._credentials = {
-			nick: credentials.nick,
-			userName: credentials.userName || credentials.nick,
-			realName: credentials.realName || credentials.nick,
-			password: credentials.password
-		};
+		this._credentials = { ...credentials };
 
 		if (channelTypes) {
 			this._serverProperties.channelTypes = channelTypes;
