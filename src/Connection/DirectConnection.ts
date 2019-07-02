@@ -20,7 +20,7 @@ class DirectConnection extends Connection {
 				}
 				this._connected = false;
 				this._connecting = false;
-				this.emit('doDisconnect', err);
+				this.emit('disconnect', err);
 				this._handleReconnect(err);
 				if (this._initialConnection) {
 					reject(err);
