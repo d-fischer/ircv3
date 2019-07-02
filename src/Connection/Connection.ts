@@ -58,7 +58,7 @@ abstract class Connection extends EventEmitter {
 	protected _handleReconnect(error?: Error) {
 		if (this._manualDisconnect) {
 			this._manualDisconnect = false;
-		} else if (error && this._shouldReconnect) {
+		} else if (this._shouldReconnect) {
 			// tslint:disable-next-line:no-floating-promises
 			if (!this._retryDelayGenerator) {
 				this._retryDelayGenerator = Connection._getReconnectWaitTime();
