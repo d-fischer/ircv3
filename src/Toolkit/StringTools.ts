@@ -58,6 +58,11 @@ const ctcpEscapeMap: {[char: string]: string} = {
 	'\x10': '\x10'
 };
 
+export function splitWithLimit(str: string, delim: string, count: number) {
+	const parts = str.split(delim);
+	return [...parts.slice(0, count - 1), parts.slice(count - 1).join(delim)];
+}
+
 export function decodeCtcp(message: string): ParsedCtcp | false {
 	if (message[0] !== '\x01') {
 		// this is not a CTCP message
@@ -79,7 +84,7 @@ export function decodeCtcp(message: string): ParsedCtcp | false {
 	message = message.replace(/\x10(.)/, (_, escapedChar) =>
 		(escapedChar in ctcpEscapeMap) ? ctcpEscapeMap[escapedChar] : '');
 
-	let [command, params = ''] = message.split(' ', 2);
+	let [command, params = ''] = splitWithLimit(message, ' ', 2);
 	command = command ? command.toUpperCase() : '';
 
 	return { command, params };

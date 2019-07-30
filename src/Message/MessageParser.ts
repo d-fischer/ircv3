@@ -1,6 +1,7 @@
 import Message, { MessageConstructor, MessageParam, MessagePrefix } from './Message';
 import { all as coreMessageTypes } from './MessageTypes';
 import { ServerProperties, defaultServerProperties } from '../ServerProperties';
+import { splitWithLimit } from '../Toolkit/StringTools';
 
 export default function parseMessage(
 	line: string,
@@ -60,9 +61,9 @@ export default function parseMessage(
 }
 
 export function parsePrefix(raw: string): MessagePrefix {
-	const [nick, hostName] = raw.split('!', 2);
+	const [nick, hostName] = splitWithLimit(raw, '!', 2);
 	if (hostName) {
-		const [user, host] = hostName.split('@', 2);
+		const [user, host] = splitWithLimit(hostName, '@', 2);
 		if (host) {
 			return { nick, user, host };
 		} else {
@@ -85,7 +86,7 @@ export function parseTags(raw: string): Map<string, string> {
 	const tags: Map<string, string> = new Map();
 	const tagStrings = raw.split(';');
 	for (const tagString of tagStrings) {
-		const [tagName, tagValue] = tagString.split('=', 2);
+		const [tagName, tagValue] = splitWithLimit(tagString, '=', 2);
 		// unescape according to http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
 		tags.set(tagName, tagValue.replace(/\\([\\:nrs])/g, (_, match) => tagUnescapeMap[match]));
 	}

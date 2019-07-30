@@ -1,7 +1,7 @@
 import Connection, { ConnectionInfo } from './Connection/Connection';
 import WebSocketConnection from './Connection/WebSocketConnection';
 import DirectConnection from './Connection/DirectConnection';
-import { decodeCtcp, padLeft } from './Toolkit/StringTools';
+import { decodeCtcp, padLeft, splitWithLimit } from './Toolkit/StringTools';
 import Message, { createMessage, MessageConstructor, MessageParamValues } from './Message/Message';
 import ObjectTools, { ObjMap } from './Toolkit/ObjectTools';
 import MessageCollector from './Message/MessageCollector';
@@ -126,7 +126,7 @@ export default class IRCClient extends EventEmitter {
 						if (!part) {
 							return {};
 						}
-						const [cap, param] = part.split('=', 2);
+						const [cap, param] = splitWithLimit(part, '=', 2);
 						return {
 							[cap]: {
 								name: cap,
@@ -186,7 +186,7 @@ export default class IRCClient extends EventEmitter {
 						if (!part) {
 							return {};
 						}
-						const [cap, param] = part.split('=', 2);
+						const [cap, param] = splitWithLimit(part, '=', 2);
 						return {
 							[cap]: {
 								name: cap,
@@ -233,7 +233,7 @@ export default class IRCClient extends EventEmitter {
 
 		this.onMessage(Reply005ISupport, ({ params: { supports } }) => {
 			const newFeatures = ObjectTools.fromArray(supports.split(' '), (part: string) => {
-				const [support, param] = part.split('=', 2);
+				const [support, param] = splitWithLimit(part, '=', 2);
 				return { [support]: param || true };
 			});
 			this._supportedFeatures = {
