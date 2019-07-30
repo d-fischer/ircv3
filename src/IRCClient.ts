@@ -263,9 +263,9 @@ export default class IRCClient extends EventEmitter {
 				} else {
 					this.emit(this.onCtcp, target, nick, ctcpMessage.command, ctcpMessage.params, msg);
 				}
+			} else {
+				this.emit(this.onPrivmsg, target, nick, message, msg);
 			}
-
-			this.emit(this.onPrivmsg, target, nick, message, msg);
 		});
 
 		this.onMessage(NickChange, msg => {
