@@ -67,6 +67,8 @@ export default class IRCClient extends EventEmitter {
 	onNotice: (handler: (target: string, user: string, message: string, msg: Notice) => void)
 		=> Listener = this.registerEvent();
 
+	onNickChange = this.registerEvent<(oldNick: string | undefined, newNick: string, msg: NickChange) => void>();
+
 	onCtcp: (handler: (target: string, user: string, command: string, params: string, msg: PrivateMessage) => void)
 		=> Listener = this.registerEvent();
 	onCtcpReply: (handler: (target: string, user: string, command: string, params: string, msg: Notice) => void)
@@ -85,6 +87,8 @@ export default class IRCClient extends EventEmitter {
 	protected _pingCheckTimer?: NodeJS.Timer;
 	protected _pingTimeoutTimer?: NodeJS.Timer;
 
+	protected _currentNick: string;
+
 	private readonly _logger: Logger;
 
 	constructor({ connection, credentials, webSocket, channelTypes, logLevel = LogLevel.WARNING, nonConformingCommands = [] }: IRCClientOptions) {
@@ -93,6 +97,9 @@ export default class IRCClient extends EventEmitter {
 		const { pingOnInactivity = 60, pingTimeout = 10 } = connection;
 		this._pingOnInactivity = pingOnInactivity;
 		this._pingTimeout = pingTimeout;
+
+		this._currentNick = credentials.nick;
+
 		this._logger = new Logger({ name: 'ircv3', emoji: true, minLevel: logLevel });
 
 		this._connection = webSocket ? new WebSocketConnection(connection) : new DirectConnection(connection);
@@ -261,6 +268,18 @@ export default class IRCClient extends EventEmitter {
 			this.emit(this.onPrivmsg, target, nick, message, msg);
 		});
 
+		this.onMessage(NickChange, msg => {
+			const { params: { nick: newNick } } = msg;
+
+			const oldNick = msg.prefix && msg.prefix.nick;
+
+			if (oldNick === this._currentNick) {
+				this._currentNick = newNick;
+			}
+
+			this.emit(this.onNickChange, oldNick, newNick, msg);
+		});
+
 		this.onMessage(Notice, msg => {
 			const { params: { target, message } } = msg;
 			const ctcpMessage = decodeCtcp(message);
@@ -359,6 +378,7 @@ export default class IRCClient extends EventEmitter {
 	async connect(): Promise<void> {
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map;
+		this._currentNick = this._credentials.nick;
 		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
 		await this._connection.connect();
 		this.emit(this.onConnect);
@@ -531,6 +551,10 @@ export default class IRCClient extends EventEmitter {
 
 	get isRegistered() {
 		return this._registered;
+	}
+
+	get currentNick() {
+		return this._currentNick;
 	}
 
 	/** @private */
