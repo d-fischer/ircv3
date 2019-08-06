@@ -1,6 +1,6 @@
+import { Listener } from '@d-fischer/typed-event-emitter';
 import Message, { MessageConstructor } from './Message';
 import IRCClient from '../IRCClient';
-import { Listener } from '../TypedEventEmitter';
 
 export type MessageCollectorEndCallback = (messages: Message[]) => void;
 
@@ -15,7 +15,8 @@ export default class MessageCollector {
 		this._types = new Set(types);
 	}
 
-	untilEvent(eventType: Function) {
+	// tslint:disable-next-line:no-any
+	untilEvent(eventType: (handler: (...args: any[]) => void) => Listener) {
 		this._cleanEndEventHandler(eventType);
 		const listener = this._client.on(eventType, () => this.end());
 		this._endEventHandlers.set(eventType, listener);

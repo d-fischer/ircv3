@@ -1,27 +1,25 @@
-import Connection, { ConnectionInfo } from './Connection/Connection';
-import WebSocketConnection from './Connection/WebSocketConnection';
-import DirectConnection from './Connection/DirectConnection';
-import { decodeCtcp, padLeft, splitWithLimit } from './Toolkit/StringTools';
-import Message, { createMessage, MessageConstructor, MessageParamValues } from './Message/Message';
-import ObjectTools, { ObjMap } from './Toolkit/ObjectTools';
-import MessageCollector from './Message/MessageCollector';
-import * as MessageTypes from './Message/MessageTypes';
-import Capability, { ServerCapability } from './Capability/Capability';
-import * as CoreCapabilities from './Capability/CoreCapabilities';
+import Logger, { LogLevel } from '@d-fischer/logger';
+import { EventEmitter, Listener } from '@d-fischer/typed-event-emitter';
 import * as clone from 'clone';
 
-import { EventEmitter, Listener } from './TypedEventEmitter';
-
-import { CapabilityNegotiation, ChannelJoin, ChannelPart, NickChange, Notice, Password, Ping, Pong, PrivateMessage, UserRegistration } from './Message/MessageTypes/Commands';
-
-import { Error462AlreadyRegistered, Reply001Welcome, Reply004ServerInfo, Reply005ISupport } from './Message/MessageTypes/Numerics';
-import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
-import Logger, { LogLevel } from '@d-fischer/logger';
-import { ConstructedType } from './Toolkit/TypeTools';
+import Capability, { ServerCapability } from './Capability/Capability';
+import * as CoreCapabilities from './Capability/CoreCapabilities';
+import Connection, { ConnectionInfo } from './Connection/Connection';
+import DirectConnection from './Connection/DirectConnection';
+import WebSocketConnection from './Connection/WebSocketConnection';
+import Message, { createMessage, MessageConstructor, MessageParamValues } from './Message/Message';
+import MessageCollector from './Message/MessageCollector';
 import parseMessage from './Message/MessageParser';
+import * as MessageTypes from './Message/MessageTypes';
+import { CapabilityNegotiation, ChannelJoin, ChannelPart, NickChange, Notice, Password, Ping, Pong, PrivateMessage, UserRegistration } from './Message/MessageTypes/Commands';
+import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
+import { Error462AlreadyRegistered, Reply001Welcome, Reply004ServerInfo, Reply005ISupport } from './Message/MessageTypes/Numerics';
 import { defaultServerProperties, ServerProperties } from './ServerProperties';
 import MessageError from './Toolkit/MessageError';
 import { NonEnumerable } from './Toolkit/NonEnumerable';
+import ObjectTools, { ObjMap } from './Toolkit/ObjectTools';
+import { decodeCtcp, padLeft, splitWithLimit } from './Toolkit/StringTools';
+import { ConstructedType } from './Toolkit/TypeTools';
 
 // tslint:disable:no-floating-promises
 
