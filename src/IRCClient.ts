@@ -471,7 +471,10 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	send(message: Message): void {
-		const line = message.toString();
+		this.sendRaw(message.toString());
+	}
+
+	sendRaw(line: string) {
 		this._logger.debug2(`Sending message: ${line}`);
 		this._connection.sendLine(line);
 	}
@@ -583,6 +586,14 @@ export default class IRCClient extends EventEmitter {
 
 	say(target: string, message: string) {
 		this.sendMessage(PrivateMessage, { target, message });
+	}
+
+	sendCTCP(target: string, type: string, message: string) {
+		this.say(target, `\x01${type.toUpperCase()} ${message}\x01`);
+	}
+
+	action(target: string, message: string) {
+		this.sendCTCP(target, 'ACTION', message);
 	}
 
 	// event helper
