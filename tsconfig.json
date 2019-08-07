@@ -12,8 +12,7 @@
 		"strict": true,
 		"noUnusedLocals": true,
 		"forceConsistentCasingInFileNames": true,
-		"experimentalDecorators": true,
-		"esModuleInterop": true
+		"experimentalDecorators": true
 	},
 	"exclude": ["node_modules", "lib", "__tests__"]
 }

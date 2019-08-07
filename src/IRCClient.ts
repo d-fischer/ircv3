@@ -1,6 +1,6 @@
 import Logger, { LogLevel } from '@d-fischer/logger';
 import { EventEmitter, Listener } from '@d-fischer/typed-event-emitter';
-import clone from 'clone';
+import * as clone from 'clone';
 
 import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';

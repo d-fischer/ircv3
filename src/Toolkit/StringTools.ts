@@ -1,4 +1,5 @@
-import escapeRegexString from 'escape-string-regexp';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import escapeRegexString = require('escape-string-regexp');
 
 export { escapeRegexString };
 

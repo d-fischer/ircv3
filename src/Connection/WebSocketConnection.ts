@@ -1,5 +1,5 @@
 import Connection from './Connection';
-import WebSocket from 'universal-websocket-client';
+import * as WebSocket from 'universal-websocket-client';
 
 class WebSocketConnection extends Connection {
 	private _socket?: WebSocket;
