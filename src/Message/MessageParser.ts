@@ -15,13 +15,13 @@ export default function parseMessage(
 
 	let command: string | undefined;
 	const params: MessageParam[] = [];
-	let tags: Map<string, string> = new Map();
+	let tags: Map<string, string> | undefined;
 	let prefix: MessagePrefix | undefined;
 
 	while (splitLine.length) {
 		token = splitLine[0];
 		if (token[0] === '@' && !tags && !command) {
-			tags = parseTags(token.substr(1), tags);
+			tags = parseTags(token.substr(1));
 		} else if (token[0] === ':') {
 			if (!prefix && !command) {
 				if (token.length > 1) { // Not an empty prefix
@@ -36,6 +36,7 @@ export default function parseMessage(
 			}
 		} else if (!command) {
 			command = token.toUpperCase();
+			tags = tags || new Map(); // Define map if it doesn't already exist
 		} else {
 			params.push({
 				value: token,
@@ -84,8 +85,8 @@ const tagUnescapeMap: { [char: string]: string } = {
 	s: ' '
 };
 
-export function parseTags(raw: string, map?: Map<string, string>): Map<string, string> {
-	const tags: Map<string, string> = map || new Map();
+export function parseTags(raw: string): Map<string, string> {
+	const tags: Map<string, string> = new Map();
 	const tagStrings = raw.split(';');
 	for (const tagString of tagStrings) {
 		const [tagName, tagValue] = splitWithLimit(tagString, '=', 2);
