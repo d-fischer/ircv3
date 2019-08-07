@@ -20,7 +20,7 @@ export default function parseMessage(
 
 	while (splitLine.length) {
 		token = splitLine[0];
-		if (token[0] === '@' && !tags && !command) {
+		if (token[0] === '@' && !tags && !command && !prefix) {
 			tags = parseTags(token.substr(1));
 		} else if (token[0] === ':') {
 			if (!prefix && !command) {
@@ -36,7 +36,6 @@ export default function parseMessage(
 			}
 		} else if (!command) {
 			command = token.toUpperCase();
-			tags = tags || new Map(); // Define map if it doesn't already exist
 		} else {
 			params.push({
 				value: token,
@@ -44,6 +43,10 @@ export default function parseMessage(
 			});
 		}
 		splitLine.shift();
+	}
+
+	if (!tags) {
+		tags = new Map<string, string>();
 	}
 
 	if (!command) {
@@ -78,15 +81,14 @@ export function parsePrefix(raw: string): MessagePrefix {
 }
 
 const tagUnescapeMap: { [char: string]: string } = {
-	'\\': '\\',
 	':': ';',
 	n: '\n',
 	r: '\r',
 	s: ' '
 };
 
-export function parseTags(raw: string): Map<string, string> {
-	const tags: Map<string, string> = new Map();
+export function parseTags(raw: string) {
+	const tags = new Map<string, string>();
 	const tagStrings = raw.split(';');
 	for (const tagString of tagStrings) {
 		const [tagName, tagValue] = splitWithLimit(tagString, '=', 2);
@@ -94,7 +96,7 @@ export function parseTags(raw: string): Map<string, string> {
 			continue; // Ignore empty tags: @ @; @x; etc.
 		}
 		// unescape according to http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
-		tags.set(tagName, tagValue.replace(/\\([\\:nrs])/g, (_, match) => tagUnescapeMap[match]));
+		tags.set(tagName, tagValue ? tagValue.replace(/\\(.?)/g, (_, match) => tagUnescapeMap.hasOwnProperty(match) ? tagUnescapeMap[match] : match) : '');
 	}
 
 	return tags;

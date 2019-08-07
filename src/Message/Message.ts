@@ -124,7 +124,7 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 	static readonly PARAM_SPEC: MessageParamSpec<any>;
 	static readonly SUPPORTS_CAPTURE: boolean = false;
 
-	protected _tags?: Map<string, string>;
+	protected _tags: Map<string, string>;
 	protected _prefix?: MessagePrefix;
 	protected _command: string;
 	protected _params?: MessageParam[] = [];
@@ -168,7 +168,7 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 			return '';
 		}
 
-		return [...this._tags.entries()].map(([key, value]) => `${escapeTag(key)}=${escapeTag(value)}`).join(';');
+		return [...this._tags.entries()].map(([key, value]) => value ? `${key}=${escapeTag(value)}` : key).join(';');
 	}
 
 	toString(complete: boolean = false): string {
@@ -214,7 +214,7 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 	) {
 		this._command = command;
 		this._params = params;
-		this._tags = tags;
+		this._tags = tags || new Map<string, string>();
 		this._prefix = prefix;
 		this._serverProperties = serverProperties;
 		this._raw = rawLine;
@@ -227,7 +227,9 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 	/** @private */
 	_initPrefixAndTags(prefix?: MessagePrefix, tags?: Map<string, string>) {
 		this._prefix = prefix;
-		this._tags = tags;
+		if (tags) {
+			this._tags = tags;
+		}
 	}
 
 	parseParams(isServer: boolean = false) {
@@ -341,15 +343,15 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 	}
 
 	get prefix(): MessagePrefix | undefined {
-		return this._prefix && { ...this._prefix };
+		return this._prefix;
 	}
 
 	get command(): string {
 		return this._command;
 	}
 
-	get tags(): Map<string, string> {
-		return new Map(this._tags || []);
+	get tags() {
+		return this._tags;
 	}
 
 	get rawLine() {
