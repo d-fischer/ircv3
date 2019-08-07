@@ -24,7 +24,7 @@ export default function parseMessage(
 			tags = parseTags(token.substr(1));
 		} else if (token[0] === ':') {
 			if (!prefix && !command) {
-				if (isServer) {
+				if (isServer && token.substr(1) !== '') ( {
 					prefix = parsePrefix(token.substr(1));
 				}
 			} else {
