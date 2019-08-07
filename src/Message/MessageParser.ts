@@ -20,11 +20,13 @@ export default function parseMessage(
 
 	while (splitLine.length) {
 		token = splitLine[0];
-		if (token[0] === '@' && !tags && !command && isServer) {
+		if (token[0] === '@' && !tags && !command) {
 			tags = parseTags(token.substr(1));
 		} else if (token[0] === ':') {
 			if (!prefix && !command) {
-				prefix = parsePrefix(token.substr(1));
+				if (isServer) {
+					prefix = parsePrefix(token.substr(1));
+				}
 			} else {
 				params.push({
 					value: splitLine.join(' ').substr(1),
