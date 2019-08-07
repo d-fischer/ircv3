@@ -24,7 +24,9 @@ export default function parseMessage(
 			tags = parseTags(token.substr(1));
 		} else if (token[0] === ':') {
 			if (!prefix && !command) {
-				prefix = parsePrefix(token.substr(1));
+				if (token.length > 1) { // Not an empty prefix
+					prefix = parsePrefix(token.substr(1));
+				}
 			} else {
 				params.push({
 					value: splitLine.join(' ').substr(1),
@@ -34,6 +36,7 @@ export default function parseMessage(
 			}
 		} else if (!command) {
 			command = token.toUpperCase();
+			tags = tags || new Map(); // Define map if it doesn't already exist
 		} else {
 			params.push({
 				value: token,
@@ -87,6 +90,9 @@ export function parseTags(raw: string): Map<string, string> {
 	const tagStrings = raw.split(';');
 	for (const tagString of tagStrings) {
 		const [tagName, tagValue] = splitWithLimit(tagString, '=', 2);
+		if (tagName === '') {
+			continue; // Ignore empty tags: @ @; @x; etc.
+		}
 		// unescape according to http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
 		tags.set(tagName, tagValue.replace(/\\([\\:nrs])/g, (_, match) => tagUnescapeMap[match]));
 	}
