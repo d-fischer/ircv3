@@ -24,7 +24,7 @@ export default function parseMessage(
 			tags = parseTags(token.substr(1));
 		} else if (token[0] === ':') {
 			if (!prefix && !command) {
-				if (token.length > 1) ( { // Not an empty prefix
+				if (token.length > 1) { // Not an empty prefix
 					prefix = parsePrefix(token.substr(1));
 				}
 			} else {
