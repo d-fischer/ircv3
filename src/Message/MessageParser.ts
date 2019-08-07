@@ -20,7 +20,7 @@ export default function parseMessage(
 
 	while (splitLine.length) {
 		token = splitLine[0];
-		if (token[0] === '@' && !tags && !command) {
+		if (token[0] === '@' && !tags && !command && isServer) {
 			tags = parseTags(token.substr(1));
 		} else if (token[0] === ':') {
 			if (!prefix && !command) {
