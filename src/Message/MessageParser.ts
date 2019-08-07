@@ -84,14 +84,15 @@ const tagUnescapeMap: { [char: string]: string } = {
 	s: ' '
 };
 
-export function parseTags(raw: string): Map<string, string> {
+export function parseTags(raw: string): Map<string, string> | undefined {
 	const tags: Map<string, string> = new Map();
 	const tagStrings = raw.split(';');
 	for (const tagString of tagStrings) {
 		const [tagName, tagValue] = splitWithLimit(tagString, '=', 2);
 		// unescape according to http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
+		if (tagName === '') continue; // Ignore empty tags: @ @; @x; etc.
 		tags.set(tagName, tagValue.replace(/\\([\\:nrs])/g, (_, match) => tagUnescapeMap[match]));
 	}
 
-	return tags;
+	return tags.size > 0 ? tags : undefined;
 }
