@@ -14,7 +14,7 @@ export default class Error433NickNameInUse extends Message<Error433NickNameInUse
 	})
 	suffix!: MessageParam;
 
-	protected isResponseTo(originalMessage: Message) {
+	isResponseTo(originalMessage: Message) {
 		return originalMessage.command === 'NICK';
 	}
 

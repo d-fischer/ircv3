@@ -4,4 +4,9 @@ import { MessageConstructor } from '../Message';
 
 export { Commands, Numerics };
 
-export const all = new Map(([...Object.values(Commands), ...Object.values(Numerics)] as MessageConstructor[]).map((cmd): [string, MessageConstructor] => [cmd.COMMAND, cmd]));
+export const all = new Map(
+	([...Object.values(Commands), ...Object.values(Numerics)] as MessageConstructor[]).map((cmd): [
+		string,
+		MessageConstructor
+	] => [cmd.COMMAND, cmd])
+);

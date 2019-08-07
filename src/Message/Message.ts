@@ -4,11 +4,11 @@ import { ServerProperties, defaultServerProperties } from '../ServerProperties';
 import NotEnoughParametersError from '../Errors/NotEnoughParametersError';
 import ParameterRequirementMismatchError from '../Errors/ParameterRequirementMismatchError';
 
-export type MessagePrefix = {
+export interface MessagePrefix {
 	nick: string;
 	user?: string;
 	host?: string;
-};
+}
 
 export interface MessageParam {
 	value: string;
@@ -25,15 +25,14 @@ export interface MessageParamSpecEntry {
 	match?: RegExp;
 }
 
-// tslint:disable-next-line:no-any
-export interface MessageConstructor<T extends Message<T> = any, X extends Exclude<keyof T, keyof Message> = never> extends Function {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface MessageConstructor<T extends Message<T> = any, X extends Exclude<keyof T, keyof Message> = never>
+	extends Function {
 	COMMAND: string;
 	PARAM_SPEC?: MessageParamSpec<T, X>;
 	SUPPORTS_CAPTURE: boolean;
 
-	getMinParamCount(isServer?: boolean): number;
-
-	new(
+	new (
 		command: string,
 		params?: MessageParam[],
 		tags?: Map<string, string>,
@@ -44,13 +43,27 @@ export interface MessageConstructor<T extends Message<T> = any, X extends Exclud
 		shouldParseParams?: boolean
 	): T;
 
+	getMinParamCount(isServer?: boolean): number;
+
 	checkParam(param: string, spec: MessageParamSpecEntry, serverProperties?: ServerProperties): boolean;
 }
 
-export type MessageParamNames<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Exclude<keyof T, (keyof Message) | X>;
-export type MessageParams<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Record<MessageParamNames<T>, MessageParam>;
-export type MessageParamValues<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Record<MessageParamNames<T>, string>;
-export type MessageParamSpec<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Record<MessageParamNames<T>, MessageParamSpecEntry>;
+export type MessageParamNames<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Exclude<
+	keyof T,
+	(keyof Message) | X
+>;
+export type MessageParams<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Record<
+	MessageParamNames<T>,
+	MessageParam
+>;
+export type MessageParamValues<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Record<
+	MessageParamNames<T>,
+	string
+>;
+export type MessageParamSpec<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Record<
+	MessageParamNames<T>,
+	MessageParamSpecEntry
+>;
 
 const tagEscapeMap: { [char: string]: string } = {
 	'\\': '\\',
@@ -117,10 +130,10 @@ export function createMessage<T extends Message<T, X>, X extends Exclude<keyof T
 	return message;
 }
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default class Message<T extends Message<T> = any, X extends Exclude<keyof T, keyof Message> = never> {
 	static readonly COMMAND: string = '';
-	// tslint:disable-next-line:no-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	static readonly PARAM_SPEC: MessageParamSpec<any>;
 	static readonly SUPPORTS_CAPTURE: boolean = false;
 
@@ -132,7 +145,11 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 
 	private readonly _raw?: string;
 
-	static checkParam(param: string, spec: MessageParamSpecEntry, serverProperties: ServerProperties = defaultServerProperties): boolean {
+	static checkParam(
+		param: string,
+		spec: MessageParamSpecEntry,
+		serverProperties: ServerProperties = defaultServerProperties
+	): boolean {
 		if (spec.type === 'channel') {
 			if (!isChannel(param, serverProperties.channelTypes)) {
 				return false;
@@ -155,51 +172,20 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 		return true;
 	}
 
-	prefixToString() {
-		if (!this._prefix) {
-			return '';
+	static getMinParamCount(isServer: boolean = false): number {
+		if (!this.PARAM_SPEC) {
+			return 0;
 		}
 
-		return prefixToString(this._prefix);
-	}
-
-	tagsToString() {
-		if (!this._tags) {
-			return '';
-		}
-
-		return [...this._tags.entries()].map(([key, value]) => value ? `${key}=${escapeTag(value)}` : key).join(';');
-	}
-
-	toString(complete: boolean = false): string {
-		const cls = this.constructor as MessageConstructor<T>;
-		const specKeys: Array<MessageParamNames<T>> = ObjectTools.keys(cls.PARAM_SPEC);
-		const fullCommand = [this._command, ...specKeys.map((paramName: MessageParamNames<T>): string | undefined => {
-			// TS inference does really not help here... so this is any for now
-			// tslint:disable-next-line:no-any
-			const param: MessageParam = (this as any)[paramName];
-			if (param) {
-				return (param.trailing ? ':' : '') + param.value;
+		return Object.values(this.PARAM_SPEC).filter((spec: MessageParamSpecEntry) => {
+			if (spec.noServer && isServer) {
+				return false;
 			}
-		}).filter((param: string | undefined) => param !== undefined)].join(' ');
-
-		if (!complete) {
-			return fullCommand;
-		}
-
-		const parts = [fullCommand];
-
-		const prefix = this.prefixToString();
-		if (prefix) {
-			parts.unshift(`:${prefix}`);
-		}
-
-		const tags = this.tagsToString();
-		if (tags) {
-			parts.unshift(`@${tags}`);
-		}
-
-		return parts.join(' ');
+			if (spec.noClient && !isServer) {
+				return false;
+			}
+			return !spec.optional;
+		}).length;
 	}
 
 	constructor(
@@ -222,6 +208,60 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 		if (shouldParseParams) {
 			this.parseParams(isServer);
 		}
+	}
+
+	prefixToString() {
+		if (!this._prefix) {
+			return '';
+		}
+
+		return prefixToString(this._prefix);
+	}
+
+	tagsToString() {
+		if (!this._tags) {
+			return '';
+		}
+
+		return [...this._tags.entries()].map(([key, value]) => (value ? `${key}=${escapeTag(value)}` : key)).join(';');
+	}
+
+	toString(complete: boolean = false): string {
+		const cls = this.constructor as MessageConstructor<T>;
+		const specKeys: Array<MessageParamNames<T>> = ObjectTools.keys(cls.PARAM_SPEC);
+		const fullCommand = [
+			this._command,
+			...specKeys
+				.map((paramName: MessageParamNames<T>): string | undefined => {
+					// TS inference does really not help here... so this is any for now
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					const param: MessageParam = (this as any)[paramName];
+					if (param) {
+						return (param.trailing ? ':' : '') + param.value;
+					}
+
+					return undefined;
+				})
+				.filter((param: string | undefined) => param !== undefined)
+		].join(' ');
+
+		if (!complete) {
+			return fullCommand;
+		}
+
+		const parts = [fullCommand];
+
+		const prefix = this.prefixToString();
+		if (prefix) {
+			parts.unshift(`:${prefix}`);
+		}
+
+		const tags = this.tagsToString();
+		if (tags) {
+			parts.unshift(`@${tags}`);
+		}
+
+		return parts.join(' ');
 	}
 
 	/** @private */
@@ -253,7 +293,7 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 				if (paramSpec.noClient && !isServer) {
 					continue;
 				}
-				if ((this._params.length - i) <= requiredParamsLeft) {
+				if (this._params.length - i <= requiredParamsLeft) {
 					if (paramSpec.optional) {
 						continue;
 					} else if (this._params.length - i !== requiredParamsLeft) {
@@ -309,36 +349,25 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 		}
 	}
 
-	static getMinParamCount(isServer: boolean = false): number {
-		if (!this.PARAM_SPEC) {
-			return 0;
-		}
-
-		return Object.values(this.PARAM_SPEC).filter((spec: MessageParamSpecEntry) => {
-			if (spec.noServer && isServer) {
-				return false;
-			}
-			if (spec.noClient && !isServer) {
-				return false;
-			}
-			return !spec.optional;
-		}).length;
-	}
-
 	get params(): MessageParamValues<T, X> {
 		const cls = this.constructor as MessageConstructor<T>;
 		const specKeys: Array<MessageParamNames<T>> = ObjectTools.keys(cls.PARAM_SPEC);
 		return Object.assign(
 			{},
-			...specKeys.map((paramName: MessageParamNames<T>): [MessageParamNames<T>, string] | undefined => {
-				// TS inference does really not help here... so this is any for now
-				// tslint:disable-next-line:no-any
-				const param: MessageParam = (this as any)[paramName];
+			...specKeys
+				.map((paramName: MessageParamNames<T>): [MessageParamNames<T>, string] | undefined => {
+					// TS inference does really not help here... so this is any for now
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					const param: MessageParam = (this as any)[paramName];
 
-				if (param) {
-					return [paramName, param.value];
-				}
-			}).filter(pair => pair !== undefined).map(([key, value]) => ({ [key]: value }))
+					if (param) {
+						return [paramName, param.value];
+					}
+
+					return undefined;
+				})
+				.filter(pair => pair !== undefined)
+				.map(([key, value]) => ({ [key]: value }))
 		);
 	}
 
@@ -358,7 +387,7 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 		return this._raw;
 	}
 
-	protected isResponseTo(originalMessage: Message): boolean {
+	isResponseTo(originalMessage: Message): boolean {
 		return false;
 	}
 

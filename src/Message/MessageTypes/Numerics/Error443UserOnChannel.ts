@@ -19,7 +19,7 @@ export default class Error443UserOnChannel extends Message<Error443UserOnChannel
 	})
 	suffix!: MessageParam;
 
-	protected isResponseTo(originalMessage: Message) {
+	isResponseTo(originalMessage: Message) {
 		return originalMessage.command === 'NICK';
 	}
 

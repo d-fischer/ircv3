@@ -19,7 +19,7 @@ export default class Error441UserNotInChannel extends Message<Error441UserNotInC
 	})
 	suffix!: MessageParam;
 
-	protected isResponseTo(originalMessage: Message) {
+	isResponseTo(originalMessage: Message) {
 		return originalMessage.command === 'NICK';
 	}
 

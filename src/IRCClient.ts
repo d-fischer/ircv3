@@ -1,6 +1,6 @@
 import Logger, { LogLevel } from '@d-fischer/logger';
 import { EventEmitter, Listener } from '@d-fischer/typed-event-emitter';
-import * as clone from 'clone';
+import clone from 'clone';
 
 import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
@@ -9,23 +9,38 @@ import DirectConnection from './Connection/DirectConnection';
 import WebSocketConnection from './Connection/WebSocketConnection';
 import Message, { createMessage, MessageConstructor, MessageParamValues } from './Message/Message';
 import MessageCollector from './Message/MessageCollector';
-import parseMessage from './Message/MessageParser';
+import { parseMessage } from './Message/MessageParser';
 import * as MessageTypes from './Message/MessageTypes';
-import { CapabilityNegotiation, ChannelJoin, ChannelPart, NickChange, Notice, Password, Ping, Pong, PrivateMessage, UserRegistration } from './Message/MessageTypes/Commands';
+import {
+	CapabilityNegotiation,
+	ChannelJoin,
+	ChannelPart,
+	NickChange,
+	Notice,
+	Password,
+	Ping,
+	Pong,
+	PrivateMessage,
+	UserRegistration
+} from './Message/MessageTypes/Commands';
 import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
-import { Error462AlreadyRegistered, Reply001Welcome, Reply004ServerInfo, Reply005ISupport } from './Message/MessageTypes/Numerics';
+import {
+	Error462AlreadyRegistered,
+	Reply001Welcome,
+	Reply004ServerInfo,
+	Reply005ISupport
+} from './Message/MessageTypes/Numerics';
 import { defaultServerProperties, ServerProperties } from './ServerProperties';
-import MessageError from './Toolkit/MessageError';
+import MessageError from './Errors/MessageError';
 import { NonEnumerable } from './Toolkit/NonEnumerable';
 import ObjectTools, { ObjMap } from './Toolkit/ObjectTools';
 import { decodeCtcp, padLeft, splitWithLimit } from './Toolkit/StringTools';
 import { ConstructedType } from './Toolkit/TypeTools';
 
-// tslint:disable:no-floating-promises
-
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
 
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IRCCredentials {
 	nick: string;
 	password?: string;
@@ -33,6 +48,7 @@ export interface IRCCredentials {
 	realName?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IRCClientOptions {
 	connection: ConnectionInfo;
 	credentials: IRCCredentials;
@@ -51,34 +67,39 @@ export default class IRCClient extends EventEmitter {
 	protected _supportsCapabilities: boolean = true;
 
 	protected _events: Map<string, EventHandlerList> = new Map();
-	protected _registeredMessageTypes: Map<string, MessageConstructor> = new Map;
+	protected _registeredMessageTypes: Map<string, MessageConstructor> = new Map();
 
 	// emitted events
 	onConnect: (handler: () => void) => Listener = this.registerEvent();
 	onRegister: (handler: () => void) => Listener = this.registerEvent();
 	onDisconnect: (handler: (reason?: Error) => void) => Listener = this.registerEvent();
 
-	onPrivmsg: (handler: (target: string, user: string, message: string, msg: PrivateMessage) => void)
-		=> Listener = this.registerEvent();
-	onAction: (handler: (target: string, user: string, message: string, msg: PrivateMessage) => void)
-		=> Listener = this.registerEvent();
-	onNotice: (handler: (target: string, user: string, message: string, msg: Notice) => void)
-		=> Listener = this.registerEvent();
+	onPrivmsg: (
+		handler: (target: string, user: string, message: string, msg: PrivateMessage) => void
+	) => Listener = this.registerEvent();
+	onAction: (
+		handler: (target: string, user: string, message: string, msg: PrivateMessage) => void
+	) => Listener = this.registerEvent();
+	onNotice: (
+		handler: (target: string, user: string, message: string, msg: Notice) => void
+	) => Listener = this.registerEvent();
 
 	onNickChange = this.registerEvent<(oldNick: string | undefined, newNick: string, msg: NickChange) => void>();
 
-	onCtcp: (handler: (target: string, user: string, command: string, params: string, msg: PrivateMessage) => void)
-		=> Listener = this.registerEvent();
-	onCtcpReply: (handler: (target: string, user: string, command: string, params: string, msg: Notice) => void)
-		=> Listener = this.registerEvent();
+	onCtcp: (
+		handler: (target: string, user: string, command: string, params: string, msg: PrivateMessage) => void
+	) => Listener = this.registerEvent();
+	onCtcpReply: (
+		handler: (target: string, user: string, command: string, params: string, msg: Notice) => void
+	) => Listener = this.registerEvent();
 
 	protected _serverProperties: ServerProperties = clone(defaultServerProperties, false);
 	protected _supportedFeatures: { [feature: string]: true | string } = {};
 	protected _collectors: MessageCollector[] = [];
 
-	protected _clientCapabilities: Map<string, Capability> = new Map;
-	protected _serverCapabilities: Map<string, ServerCapability> = new Map;
-	protected _negotiatedCapabilities: Map<string, ServerCapability> = new Map;
+	protected _clientCapabilities: Map<string, Capability> = new Map();
+	protected _serverCapabilities: Map<string, ServerCapability> = new Map();
+	protected _negotiatedCapabilities: Map<string, ServerCapability> = new Map();
 
 	protected _pingOnInactivity: number;
 	protected _pingTimeout: number;
@@ -89,7 +110,14 @@ export default class IRCClient extends EventEmitter {
 
 	private readonly _logger: Logger;
 
-	constructor({ connection, credentials, webSocket, channelTypes, logLevel = LogLevel.WARNING, nonConformingCommands = [] }: IRCClientOptions) {
+	constructor({
+		connection,
+		credentials,
+		webSocket,
+		channelTypes,
+		logLevel = LogLevel.WARNING,
+		nonConformingCommands = []
+	}: IRCClientOptions) {
 		super();
 
 		const { pingOnInactivity = 60, pingTimeout = 10 } = connection;
@@ -119,21 +147,29 @@ export default class IRCClient extends EventEmitter {
 					return;
 				}
 				this._supportsCapabilities = true;
-				const capLists = capReply.map(
-					line => ObjectTools.fromArray((line as CapabilityNegotiation).params.capabilities.split(' '), (part: string) => {
-						if (!part) {
-							return {};
-						}
-						const [cap, param] = splitWithLimit(part, '=', 2);
-						return {
-							[cap]: {
-								name: cap,
-								param: param || true
+				const capLists = capReply.map(line =>
+					ObjectTools.fromArray(
+						(line as CapabilityNegotiation).params.capabilities.split(' '),
+						(part: string) => {
+							if (!part) {
+								return {};
 							}
-						};
-					}));
-				this._serverCapabilities = new Map<string, ServerCapability>(Object.entries(Object.assign({}, ...capLists)));
-				this._logger.debug1(`Capabilities supported by server: ${Array.from(this._serverCapabilities.keys()).join(', ')}`);
+							const [cap, param] = splitWithLimit(part, '=', 2);
+							return {
+								[cap]: {
+									name: cap,
+									param: param || true
+								}
+							};
+						}
+					)
+				);
+				this._serverCapabilities = new Map<string, ServerCapability>(
+					Object.entries(Object.assign({}, ...capLists))
+				);
+				this._logger.debug1(
+					`Capabilities supported by server: ${Array.from(this._serverCapabilities.keys()).join(', ')}`
+				);
 				const capabilitiesToNegotiate = capLists.map(list => {
 					const capNames = Object.keys(list);
 					return Array.from(this._clientCapabilities.entries())
@@ -162,7 +198,13 @@ export default class IRCClient extends EventEmitter {
 			this._logger.debug2(`Received message: ${line}`);
 			let parsedMessage;
 			try {
-				parsedMessage = parseMessage(line, this._serverProperties, this._registeredMessageTypes, true, nonConformingCommands);
+				parsedMessage = parseMessage(
+					line,
+					this._serverProperties,
+					this._registeredMessageTypes,
+					true,
+					nonConformingCommands
+				);
 			} catch (e) {
 				this._logger.err(`Error parsing message: ${e.message}`);
 				this._logger.debug1(e.stack);
@@ -176,7 +218,7 @@ export default class IRCClient extends EventEmitter {
 		this.onMessage(CapabilityNegotiation, ({ params: { subCommand, capabilities } }) => {
 			const caps = capabilities.split(' ');
 
-			// tslint:disable-next-line:switch-default
+			// eslint-disable-next-line default-case
 			switch (subCommand.toUpperCase()) {
 				case 'NEW': {
 					this._logger.debug1(`Server registered new capabilities: ${caps.join(', ')}`);
@@ -196,9 +238,11 @@ export default class IRCClient extends EventEmitter {
 						this._serverCapabilities.set(name, cap);
 					}
 					const capNames = Object.keys(capList);
-					this._negotiateCapabilities(Array.from(this._clientCapabilities.entries())
-						.filter(([name]) => capNames.includes(name))
-						.map(([, cap]) => cap));
+					this._negotiateCapabilities(
+						Array.from(this._clientCapabilities.entries())
+							.filter(([name]) => capNames.includes(name))
+							.map(([, cap]) => cap)
+					);
 					break;
 				}
 
@@ -244,14 +288,16 @@ export default class IRCClient extends EventEmitter {
 			// what, I thought we are not registered yet?
 			if (!this._registered) {
 				// screw this, we are now.
-				this._logger.warn('We thought we\'re not registered yet, but we actually are');
+				this._logger.warn("We thought we're not registered yet, but we actually are");
 				this._registered = true;
 				this.emit(this.onRegister);
 			}
 		});
 
 		this.onMessage(PrivateMessage, msg => {
-			const { params: { target, message } } = msg;
+			const {
+				params: { target, message }
+			} = msg;
 			const ctcpMessage = decodeCtcp(message);
 			const nick = msg.prefix && msg.prefix.nick;
 
@@ -267,7 +313,9 @@ export default class IRCClient extends EventEmitter {
 		});
 
 		this.onMessage(NickChange, msg => {
-			const { params: { nick: newNick } } = msg;
+			const {
+				params: { nick: newNick }
+			} = msg;
 
 			const oldNick = msg.prefix && msg.prefix.nick;
 
@@ -279,7 +327,9 @@ export default class IRCClient extends EventEmitter {
 		});
 
 		this.onMessage(Notice, msg => {
-			const { params: { target, message } } = msg;
+			const {
+				params: { target, message }
+			} = msg;
 			const ctcpMessage = decodeCtcp(message);
 			const nick = msg.prefix && msg.prefix.nick;
 
@@ -323,7 +373,9 @@ export default class IRCClient extends EventEmitter {
 		const now = Date.now();
 		const nowStr = now.toString();
 		const handler = this.onMessage(Pong, (msg: Pong) => {
-			const { params: { message } } = msg;
+			const {
+				params: { message }
+			} = msg;
 			if (message === nowStr) {
 				this._logger.debug1(`Current ping: ${Date.now() - now}ms`);
 				if (this._pingTimeoutTimer) {
@@ -332,14 +384,11 @@ export default class IRCClient extends EventEmitter {
 				this.removeMessageListener(handler);
 			}
 		});
-		this._pingTimeoutTimer = setTimeout(
-			() => {
-				this._logger.warn(`Reconnecting because the last ping took over ${this._pingTimeout} seconds`);
-				this.removeMessageListener(handler);
-				this.reconnect('Ping timeout');
-			},
-			this._pingTimeout * 1000
-		);
+		this._pingTimeoutTimer = setTimeout(() => {
+			this._logger.warn(`Reconnecting because the last ping took over ${this._pingTimeout} seconds`);
+			this.removeMessageListener(handler);
+			this.reconnect('Ping timeout');
+		}, this._pingTimeout * 1000);
 		this.sendMessage(Ping, { message: nowStr });
 	}
 
@@ -363,19 +412,9 @@ export default class IRCClient extends EventEmitter {
 		return this._registeredMessageTypes.get(command.toUpperCase());
 	}
 
-	protected registerCoreMessageTypes() {
-		ObjectTools.forEach(MessageTypes.Commands, (type: MessageConstructor) => {
-			this.registerMessageType(type);
-		});
-
-		ObjectTools.forEach(MessageTypes.Numerics, (type: MessageConstructor) => {
-			this.registerMessageType(type);
-		});
-	}
-
 	async connect(): Promise<void> {
 		this._supportsCapabilities = false;
-		this._negotiatedCapabilities = new Map;
+		this._negotiatedCapabilities = new Map();
 		this._currentNick = this._credentials.nick;
 		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
 		await this._connection.connect();
@@ -384,15 +423,14 @@ export default class IRCClient extends EventEmitter {
 
 	async waitForRegistration() {
 		if (this._registered) {
-			return;
+			return undefined;
 		}
 
 		return new Promise<void>((resolve, reject) => {
-			let registerListener: Listener;
 			let errorListener: string;
 			let disconnectListener: Listener;
 
-			registerListener = this.onRegister(() => {
+			const registerListener = this.onRegister(() => {
 				registerListener.unbind();
 				this.removeMessageListener(errorListener);
 				disconnectListener.unbind();
@@ -413,45 +451,6 @@ export default class IRCClient extends EventEmitter {
 				reject(reason);
 			});
 		});
-	}
-
-	protected async _negotiateCapabilityBatch(
-		capabilities: ServerCapability[][]
-	): Promise<Array<ServerCapability[] | Error>> {
-		return Promise.all(capabilities.filter(list => list.length).map(
-			async (capList: ServerCapability[]) => this._negotiateCapabilities(capList)
-		));
-	}
-
-	protected async _negotiateCapabilities(capList: ServerCapability[]): Promise<ServerCapability[] | Error> {
-		const mappedCapList: ObjMap<object, ServerCapability> = ObjectTools.fromArray(capList, cap => ({ [cap.name]: cap }));
-		const messages = await this.sendMessageAndCaptureReply(CapabilityNegotiation, {
-			subCommand: 'REQ',
-			capabilities: capList.map(cap => cap.name).join(' ')
-		});
-
-		const capReply = messages.shift();
-		if (!capReply) {
-			throw new Error('capability negotiation failed unexpectedly without any reply');
-		}
-		if (!(capReply instanceof CapabilityNegotiation)) {
-			throw new Error(`capability negotiation failed unexpectedly with "${capReply.command}" command`);
-		}
-		const negotiatedCapNames = capReply.params.capabilities.split(' ').filter(c => c);
-		if (capReply.params.subCommand === 'ACK') {
-			// filter is necessary because some networks seem to add trailing spaces...
-			this._logger.debug1(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
-			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(capName => (mappedCapList as { [name: string]: ServerCapability })[capName]);
-			for (const newCap of newNegotiatedCaps) {
-				const mergedCap = this._clientCapabilities.get(newCap.name) as ServerCapability;
-				mergedCap.param = newCap.param;
-				this._negotiatedCapabilities.set(mergedCap.name, mergedCap);
-			}
-			return newNegotiatedCaps;
-		} else {
-			this._logger.debug1(`Failed to negotiate capabilities: ${negotiatedCapNames.join(', ')}`);
-			return new Error('capabilities failed to negotiate');
-		}
 	}
 
 	async registerCapability(cap: Capability) {
@@ -479,7 +478,11 @@ export default class IRCClient extends EventEmitter {
 		this._connection.sendLine(line);
 	}
 
-	onMessage<C extends MessageConstructor>(type: C, handler: EventHandler<ConstructedType<C>>, handlerName?: string): string;
+	onMessage<C extends MessageConstructor>(
+		type: C,
+		handler: EventHandler<ConstructedType<C>>,
+		handlerName?: string
+	): string;
 	onMessage<T extends Message>(type: string, handler: EventHandler, handlerName?: string): string;
 	onMessage<T extends Message>(
 		type: typeof Message | string,
@@ -488,7 +491,7 @@ export default class IRCClient extends EventEmitter {
 	): string {
 		const commandName = typeof type === 'string' ? type : type.COMMAND;
 		if (!this._events.has(commandName)) {
-			this._events.set(commandName, new Map);
+			this._events.set(commandName, new Map());
 		}
 
 		const handlerList: Map<string, EventHandler<T>> = this._events.get(commandName)!;
@@ -596,11 +599,68 @@ export default class IRCClient extends EventEmitter {
 		this.sendCTCP(target, 'ACTION', message);
 	}
 
+	protected registerCoreMessageTypes() {
+		ObjectTools.forEach(MessageTypes.Commands, (type: MessageConstructor) => {
+			this.registerMessageType(type);
+		});
+
+		ObjectTools.forEach(MessageTypes.Numerics, (type: MessageConstructor) => {
+			this.registerMessageType(type);
+		});
+	}
+
+	protected async _negotiateCapabilityBatch(
+		capabilities: ServerCapability[][]
+	): Promise<Array<ServerCapability[] | Error>> {
+		return Promise.all(
+			capabilities
+				.filter(list => list.length)
+				.map(async (capList: ServerCapability[]) => this._negotiateCapabilities(capList))
+		);
+	}
+
+	protected async _negotiateCapabilities(capList: ServerCapability[]): Promise<ServerCapability[] | Error> {
+		const mappedCapList: ObjMap<object, ServerCapability> = ObjectTools.fromArray(capList, cap => ({
+			[cap.name]: cap
+		}));
+		const messages = await this.sendMessageAndCaptureReply(CapabilityNegotiation, {
+			subCommand: 'REQ',
+			capabilities: capList.map(cap => cap.name).join(' ')
+		});
+
+		const capReply = messages.shift();
+		if (!capReply) {
+			throw new Error('capability negotiation failed unexpectedly without any reply');
+		}
+		if (!(capReply instanceof CapabilityNegotiation)) {
+			throw new Error(`capability negotiation failed unexpectedly with "${capReply.command}" command`);
+		}
+		const negotiatedCapNames = capReply.params.capabilities.split(' ').filter(c => c);
+		if (capReply.params.subCommand === 'ACK') {
+			// filter is necessary because some networks seem to add trailing spaces...
+			this._logger.debug1(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
+			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(
+				capName => (mappedCapList as { [name: string]: ServerCapability })[capName]
+			);
+			for (const newCap of newNegotiatedCaps) {
+				const mergedCap = this._clientCapabilities.get(newCap.name) as ServerCapability;
+				mergedCap.param = newCap.param;
+				this._negotiatedCapabilities.set(mergedCap.name, mergedCap);
+			}
+			return newNegotiatedCaps;
+		} else {
+			this._logger.debug1(`Failed to negotiate capabilities: ${negotiatedCapNames.join(', ')}`);
+			return new Error('capabilities failed to negotiate');
+		}
+	}
+
 	// event helper
 	private handleEvents(message: Message): void {
 		this._collectors.some(collector => collector.collect(message));
 
-		const handlers: EventHandlerList | undefined = this._events.get((message.constructor as MessageConstructor).COMMAND);
+		const handlers: EventHandlerList | undefined = this._events.get(
+			(message.constructor as MessageConstructor).COMMAND
+		);
 		if (!handlers) {
 			return;
 		}
@@ -614,13 +674,6 @@ export default class IRCClient extends EventEmitter {
 		if (this._pingCheckTimer) {
 			clearTimeout(this._pingCheckTimer);
 		}
-		this._pingCheckTimer = setTimeout(
-			() => this.pingCheck(),
-			this._pingOnInactivity * 1000
-		);
-	}
-
-	protected _updateCredentials(newCredentials: Partial<IRCCredentials>) {
-		this._credentials = { ...this._credentials, ...newCredentials };
+		this._pingCheckTimer = setTimeout(() => this.pingCheck(), this._pingOnInactivity * 1000);
 	}
 }

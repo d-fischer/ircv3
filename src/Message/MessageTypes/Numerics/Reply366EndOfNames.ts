@@ -17,7 +17,7 @@ export default class Reply366EndOfNames extends Message<Reply366EndOfNames> {
 	})
 	suffix!: MessageParam;
 
-	protected isResponseTo(originalMessage: Message): boolean {
+	isResponseTo(originalMessage: Message): boolean {
 		return originalMessage instanceof Names;
 	}
 

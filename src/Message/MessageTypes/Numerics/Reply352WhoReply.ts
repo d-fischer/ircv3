@@ -48,7 +48,7 @@ export default class Reply352WhoReply extends Message<Reply352WhoReply> {
 		return this.params.flags.includes('B');
 	}
 
-	protected isResponseTo(originalMessage: Message): boolean {
+	isResponseTo(originalMessage: Message): boolean {
 		return originalMessage instanceof WhoQuery;
 	}
 }

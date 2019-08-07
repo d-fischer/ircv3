@@ -23,10 +23,13 @@ export interface UniformObject<T> {
 export type KeyMapper<T> = (value: T) => string;
 
 /** @private */
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export default class ObjectTools {
 	static map<T, O, Obj = UniformObject<T>>(obj: Obj, fn: (value: T, key: Extract<keyof Obj, string>) => O) {
-		// tslint:disable-next-line:no-object-literal-type-assertion
-		const mapped = Object.entries<T, Obj>(obj).map(([key, value]: [Extract<keyof Obj, string>, T]) => ({ [key]: fn(value, key) } as ObjMapPart<Obj, O>));
+		const mapped = Object.entries<T, Obj>(obj).map(
+			// eslint-disable-next-line @typescript-eslint/no-object-literal-type-assertion
+			([key, value]: [Extract<keyof Obj, string>, T]) => ({ [key]: fn(value, key) } as ObjMapPart<Obj, O>)
+		);
 		return Object.assign<ObjMap<Obj, O>>({}, ...mapped);
 	}
 
@@ -48,7 +51,6 @@ export default class ObjectTools {
 		return Object.assign<ObjMap<Obj, O>>({}, ...arr.map(fn));
 	}
 
-	// tslint:disable-next-line:no-any
 	static forEach<T, Obj>(obj: Obj, fn: (value: T, key: keyof Obj) => void) {
 		Object.entries<T, Obj>(obj).forEach(([key, value]: [keyof Obj, T]) => fn(value, key));
 	}

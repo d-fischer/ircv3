@@ -1,4 +1,4 @@
-import parseMessage, { parseTags } from '../MessageParser';
+import { parseMessage, parseTags } from '../MessageParser';
 import PrivateMessage from '../MessageTypes/Commands/PrivateMessage';
 
 describe('Message parser', () => {
@@ -34,11 +34,11 @@ describe('Message parser', () => {
 	});
 
 	it('parses tag escapes properly', () => {
-		const tags = parseTags('text=it\'sa\\sme\\:\\sMario!\\\\\\r\\n\\;test=\\p\\ass\\e\\d\\\\\\!');
+		const tags = parseTags("text=it'sa\\sme\\:\\sMario!\\\\\\r\\n\\;test=\\p\\ass\\e\\d\\\\\\!");
 
 		expect(tags).not.toBeUndefined();
 		expect(tags.size).toBe(2);
-		expect(tags.get('text')).toBe('it\'sa me; Mario!\\\r\n');
+		expect(tags.get('text')).toBe("it'sa me; Mario!\\\r\n");
 		expect(tags.get('test')).toBe('passed\\!');
 	});
 });

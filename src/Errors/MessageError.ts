@@ -4,7 +4,6 @@ export default class MessageError extends Error {
 	readonly ircMessage: Commands.ErrorMessage;
 
 	constructor(msg: Commands.ErrorMessage) {
-		// @ts-ignore
 		super(`Received error from IRC server: ${msg.rawLine}`);
 
 		this.ircMessage = msg;

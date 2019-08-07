@@ -46,7 +46,7 @@ export { default as ChannelList } from './ChannelList';
 export { default as ChannelInvite } from './ChannelInvite';
 
 // 4.2.8 Kick message
-export { default  as ChannelKick } from './ChannelKick';
+export { default as ChannelKick } from './ChannelKick';
 // endregion
 
 // region 4.3 Server queries and commands

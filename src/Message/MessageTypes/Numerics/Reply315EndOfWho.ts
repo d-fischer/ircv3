@@ -15,7 +15,7 @@ export default class Reply315EndOfWho extends Message<Reply315EndOfWho> {
 	})
 	suffix!: MessageParam;
 
-	protected isResponseTo(originalMessage: Message): boolean {
+	isResponseTo(originalMessage: Message): boolean {
 		return originalMessage instanceof WhoQuery;
 	}
 

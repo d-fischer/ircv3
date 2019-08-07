@@ -3,6 +3,8 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('CAP')
 export default class CapabilityNegotiation extends Message<CapabilityNegotiation> {
+	static readonly SUPPORTS_CAPTURE = true;
+
 	@MessageParamDefinition({
 		match: /^(?:[a-z_\-\[\]\\^{}|`][a-z0-9_\-\[\]\\^{}|`]+|\*)$/i,
 		optional: true,
@@ -33,9 +35,7 @@ export default class CapabilityNegotiation extends Message<CapabilityNegotiation
 	})
 	capabilities!: MessageParam;
 
-	static readonly SUPPORTS_CAPTURE = true;
-
-	protected isResponseTo(originalMessage: Message): boolean {
+	isResponseTo(originalMessage: Message): boolean {
 		if (!(originalMessage instanceof CapabilityNegotiation)) {
 			return false;
 		}
@@ -44,8 +44,10 @@ export default class CapabilityNegotiation extends Message<CapabilityNegotiation
 			case 'ACK':
 			case 'NAK': {
 				// trim is necessary because some networks seem to add trailing spaces (looking at you, Freenode)...
-				return originalMessage.params.subCommand === 'REQ'
-					&& originalMessage.params.capabilities === this.params.capabilities.trim();
+				return (
+					originalMessage.params.subCommand === 'REQ' &&
+					originalMessage.params.capabilities === this.params.capabilities.trim()
+				);
 			}
 
 			case 'LS':

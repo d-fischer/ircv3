@@ -1,70 +1,7 @@
+import { defaultServerProperties, ServerProperties } from '../ServerProperties';
+import { splitWithLimit } from '../Toolkit/StringTools';
 import Message, { MessageConstructor, MessageParam, MessagePrefix } from './Message';
 import { all as coreMessageTypes } from './MessageTypes';
-import { ServerProperties, defaultServerProperties } from '../ServerProperties';
-import { splitWithLimit } from '../Toolkit/StringTools';
-
-export default function parseMessage(
-	line: string,
-	serverProperties: ServerProperties = defaultServerProperties,
-	knownCommands: Map<string, MessageConstructor> = coreMessageTypes,
-	isServer: boolean = false,
-	nonConformingCommands: string[] = []
-): Message {
-	const splitLine: string[] = line.split(' ');
-	let token: string;
-
-	let command: string | undefined;
-	const params: MessageParam[] = [];
-	let tags: Map<string, string> | undefined;
-	let prefix: MessagePrefix | undefined;
-
-	while (splitLine.length) {
-		token = splitLine[0];
-		if (token[0] === '@' && !tags && !command && !prefix) {
-			tags = parseTags(token.substr(1));
-		} else if (token[0] === ':') {
-			if (!prefix && !command) {
-				if (token.length > 1) { // Not an empty prefix
-					prefix = parsePrefix(token.substr(1));
-				}
-			} else {
-				params.push({
-					value: splitLine.join(' ').substr(1),
-					trailing: true
-				});
-				break;
-			}
-		} else if (!command) {
-			command = token.toUpperCase();
-		} else {
-			params.push({
-				value: token,
-				trailing: false
-			});
-		}
-		splitLine.shift();
-	}
-
-	if (!tags) {
-		tags = new Map<string, string>();
-	}
-
-	if (!command) {
-		throw new Error(`line without command received: ${line}`);
-	}
-
-	let message: Message;
-
-	let messageClass: MessageConstructor = Message;
-	if (knownCommands.has(command)) {
-		messageClass = knownCommands.get(command)!;
-	}
-
-	// tslint:disable-next-line:no-inferred-empty-object-type
-	message = new messageClass(command, params, tags, prefix, serverProperties, line, isServer, !nonConformingCommands.includes(command));
-
-	return message;
-}
 
 export function parsePrefix(raw: string): MessagePrefix {
 	const [nick, hostName] = splitWithLimit(raw, '!', 2);
@@ -96,8 +33,83 @@ export function parseTags(raw: string) {
 			continue; // Ignore empty tags: @ @; @x; etc.
 		}
 		// unescape according to http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
-		tags.set(tagName, tagValue ? tagValue.replace(/\\(.?)/g, (_, match) => tagUnescapeMap.hasOwnProperty(match) ? tagUnescapeMap[match] : match) : '');
+		tags.set(
+			tagName,
+			tagValue
+				? tagValue.replace(/\\(.?)/g, (_, match) =>
+						Object.prototype.hasOwnProperty.call(tagUnescapeMap, match) ? tagUnescapeMap[match] : match
+				  )
+				: ''
+		);
 	}
 
 	return tags;
+}
+
+export function parseMessage(
+	line: string,
+	serverProperties: ServerProperties = defaultServerProperties,
+	knownCommands: Map<string, MessageConstructor> = coreMessageTypes,
+	isServer: boolean = false,
+	nonConformingCommands: string[] = []
+): Message {
+	const splitLine: string[] = line.split(' ');
+	let token: string;
+
+	let command: string | undefined;
+	const params: MessageParam[] = [];
+	let tags: Map<string, string> | undefined;
+	let prefix: MessagePrefix | undefined;
+
+	while (splitLine.length) {
+		token = splitLine[0];
+		if (token[0] === '@' && !tags && !command && !prefix) {
+			tags = parseTags(token.substr(1));
+		} else if (token[0] === ':') {
+			if (!prefix && !command) {
+				if (token.length > 1) {
+					// Not an empty prefix
+					prefix = parsePrefix(token.substr(1));
+				}
+			} else {
+				params.push({
+					value: splitLine.join(' ').substr(1),
+					trailing: true
+				});
+				break;
+			}
+		} else if (command) {
+			params.push({
+				value: token,
+				trailing: false
+			});
+		} else {
+			command = token.toUpperCase();
+		}
+		splitLine.shift();
+	}
+
+	if (!tags) {
+		tags = new Map<string, string>();
+	}
+
+	if (!command) {
+		throw new Error(`line without command received: ${line}`);
+	}
+
+	let messageClass: MessageConstructor = Message;
+	if (knownCommands.has(command)) {
+		messageClass = knownCommands.get(command)!;
+	}
+
+	return new messageClass(
+		command,
+		params,
+		tags,
+		prefix,
+		serverProperties,
+		line,
+		isServer,
+		!nonConformingCommands.includes(command)
+	);
 }

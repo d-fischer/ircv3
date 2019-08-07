@@ -14,7 +14,7 @@ export default class Error436NickCollision extends Message<Error436NickCollision
 	})
 	suffix!: MessageParam;
 
-	protected isResponseTo(originalMessage: Message) {
+	isResponseTo(originalMessage: Message) {
 		return originalMessage.command === 'NICK';
 	}
 

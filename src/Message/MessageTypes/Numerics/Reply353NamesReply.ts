@@ -20,7 +20,7 @@ export default class Reply353NamesReply extends Message<Reply353NamesReply> {
 	})
 	names!: MessageParam;
 
-	protected isResponseTo(originalMessage: Message): boolean {
+	isResponseTo(originalMessage: Message): boolean {
 		return originalMessage instanceof Names;
 	}
 }

@@ -1,8 +1,16 @@
 import { MessageParamSpecEntry } from '../Message/Message';
 
 export default class ParameterRequirementMismatchError extends Error {
-	constructor(private readonly _command: string, private readonly _paramName: string, private readonly _paramSpec: MessageParamSpecEntry, private readonly _givenValue: string) {
-		super(`required parameter "${_paramName}" did not validate against ${_paramSpec.type || 'regex'} validation: "${_givenValue}"`);
+	constructor(
+		private readonly _command: string,
+		private readonly _paramName: string,
+		private readonly _paramSpec: MessageParamSpecEntry,
+		private readonly _givenValue: string
+	) {
+		super(
+			`required parameter "${_paramName}" did not validate against ${_paramSpec.type ||
+				'regex'} validation: "${_givenValue}"`
+		);
 
 		Object.setPrototypeOf(this, ParameterRequirementMismatchError.prototype);
 

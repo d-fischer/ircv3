@@ -16,7 +16,7 @@ export default class Error442NotOnChannel extends Message<Error442NotOnChannel> 
 	})
 	suffix!: MessageParam;
 
-	protected isResponseTo(originalMessage: Message) {
+	isResponseTo(originalMessage: Message) {
 		return originalMessage.command === 'NICK';
 	}
 

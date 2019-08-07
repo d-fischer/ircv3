@@ -32,7 +32,7 @@ export default class Mode extends Message<Mode, 'isChannel' | 'separate'> {
 		const result: SingleMode[] = [];
 		const modeRestParam = this.params.modes;
 		if (!modeRestParam) {
-			throw new Error('can\'t separate a channel mode request, just set actions');
+			throw new Error("can't separate a channel mode request, just set actions");
 		}
 		const modeParams = modeRestParam.split(' ');
 		const modes = modeParams.shift()!;
@@ -52,7 +52,10 @@ export default class Mode extends Message<Mode, 'isChannel' | 'separate'> {
 					let requiresParam = false;
 					let known = true;
 					if (this.isChannel) {
-						if (this._serverProperties.supportedChannelModes.alwaysWithParam.includes(ch) || this._serverProperties.supportedChannelModes.prefix.includes(ch)) {
+						if (
+							this._serverProperties.supportedChannelModes.alwaysWithParam.includes(ch) ||
+							this._serverProperties.supportedChannelModes.prefix.includes(ch)
+						) {
 							requiresParam = true;
 						} else if (this._serverProperties.supportedChannelModes.paramWhenSet.includes(ch)) {
 							if (currentModeAction === 'add') {

@@ -1,5 +1,5 @@
 import Connection from './Connection';
-import * as WebSocket from 'universal-websocket-client';
+import WebSocket from 'universal-websocket-client';
 
 class WebSocketConnection extends Connection {
 	private _socket?: WebSocket;
@@ -22,12 +22,11 @@ class WebSocketConnection extends Connection {
 				resolve();
 			};
 
-			this._socket.onmessage = ({ data }: {data: WebSocket.Data}) => {
+			this._socket.onmessage = ({ data }: { data: WebSocket.Data }) => {
 				this.receiveRaw(data.toString());
 			};
 
 			// The following empty error callback needs to exist so connection errors are passed down to `onclose` down below - otherwise the process just crashes instead
-			// tslint:disable-next-line
 			this._socket.onerror = () => {};
 
 			this._socket.onclose = ({ wasClean, code, reason }) => {

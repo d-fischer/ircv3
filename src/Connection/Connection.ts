@@ -24,12 +24,6 @@ abstract class Connection extends EventEmitter {
 
 	private _currentLine = '';
 
-	protected abstract async doConnect(): Promise<void>;
-	protected abstract doDisconnect(): void;
-
-	protected abstract sendRaw(line: string): void;
-	abstract get port(): number;
-
 	constructor({ hostName, port, secure, reconnect = true }: ConnectionInfo) {
 		super();
 		this._secure = Boolean(secure);
@@ -53,19 +47,6 @@ abstract class Connection extends EventEmitter {
 		this.on('connect', () => {
 			this._retryDelayGenerator = undefined;
 		});
-	}
-
-	protected _handleReconnect(error?: Error) {
-		if (this._manualDisconnect) {
-			this._manualDisconnect = false;
-		} else if (this._shouldReconnect) {
-			// tslint:disable-next-line:no-floating-promises
-			if (!this._retryDelayGenerator) {
-				this._retryDelayGenerator = Connection._getReconnectWaitTime();
-			}
-			const delay = this._retryDelayGenerator.next().value;
-			this._retryTimer = setTimeout(async () => this.connect(), delay * 1000);
-		}
 	}
 
 	async connect() {
@@ -111,8 +92,26 @@ abstract class Connection extends EventEmitter {
 		return this._host;
 	}
 
+	protected _handleReconnect(error?: Error) {
+		if (this._manualDisconnect) {
+			this._manualDisconnect = false;
+		} else if (this._shouldReconnect) {
+			if (!this._retryDelayGenerator) {
+				this._retryDelayGenerator = Connection._getReconnectWaitTime();
+			}
+			const delay = this._retryDelayGenerator.next().value;
+			this._retryTimer = setTimeout(async () => this.connect(), delay * 1000);
+		}
+	}
+
+	protected abstract async doConnect(): Promise<void>;
+	protected abstract doDisconnect(): void;
+
+	protected abstract sendRaw(line: string): void;
+	abstract get port(): number;
+
 	// yes, this is just fibonacci with a limit
-	private static * _getReconnectWaitTime(): IterableIterator<number> {
+	private static *_getReconnectWaitTime(): IterableIterator<number> {
 		let current = 0;
 		let next = 1;
 

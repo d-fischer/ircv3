@@ -1,4 +1,4 @@
-import escapeRegexString = require('escape-string-regexp');
+import escapeRegexString from 'escape-string-regexp';
 
 export { escapeRegexString };
 
@@ -27,7 +27,7 @@ export function padLeft(str: string | number, length: number, padding?: string) 
 	let paddingStr = '';
 
 	do {
-		// tslint:disable:no-bitwise
+		/* eslint-disable no-bitwise */
 		if ((length & 1) === 1) {
 			paddingStr += padding;
 		}
@@ -35,7 +35,7 @@ export function padLeft(str: string | number, length: number, padding?: string) 
 		if (length) {
 			padding += padding;
 		}
-		// tslint:enable:no-bitwise
+		/* eslint-enable no-bitwise */
 	} while (length);
 
 	return paddingStr + str;
@@ -51,7 +51,7 @@ export interface ParsedCtcp {
 	params: string;
 }
 
-const ctcpEscapeMap: {[char: string]: string} = {
+const ctcpEscapeMap: { [char: string]: string } = {
 	0: '\0',
 	n: '\n',
 	r: '\r',
@@ -85,7 +85,8 @@ export function decodeCtcp(message: string): ParsedCtcp | false {
 
 	// unescape weirdly escaped stuff
 	message = message.replace(/\x10(.)/, (_, escapedChar) =>
-		(escapedChar in ctcpEscapeMap) ? ctcpEscapeMap[escapedChar] : '');
+		escapedChar in ctcpEscapeMap ? ctcpEscapeMap[escapedChar] : ''
+	);
 
 	let [command, params = ''] = splitWithLimit(message, ' ', 2);
 	command = command ? command.toUpperCase() : '';

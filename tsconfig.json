@@ -1,22 +1,19 @@
 {
-  "compilerOptions": {
-    "outDir": "lib",
-    "rootDir": "src",
-    "target": "es5",
-    "module": "commonjs",
-    "lib": ["es2017", "dom"],
-    "moduleResolution": "node",
-    "downlevelIteration": true,
-    "sourceMap": true,
-    "declaration": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "forceConsistentCasingInFileNames": true,
-    "experimentalDecorators": true
-  },
-  "exclude": [
-    "node_modules",
-    "lib",
-    "__tests__"
-  ]
+	"compilerOptions": {
+		"outDir": "lib",
+		"rootDir": "src",
+		"target": "es5",
+		"module": "commonjs",
+		"lib": ["es2017", "dom"],
+		"moduleResolution": "node",
+		"downlevelIteration": true,
+		"sourceMap": true,
+		"declaration": true,
+		"strict": true,
+		"noUnusedLocals": true,
+		"forceConsistentCasingInFileNames": true,
+		"experimentalDecorators": true,
+		"esModuleInterop": true
+	},
+	"exclude": ["node_modules", "lib", "__tests__"]
 }

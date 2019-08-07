@@ -2,7 +2,7 @@ import Message, { MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('502')
-export default class Error502UsersDontMatchUnknownMode extends Message<Error502UsersDontMatchUnknownMode> {
+export default class Error502UsersDontMatch extends Message<Error502UsersDontMatch> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

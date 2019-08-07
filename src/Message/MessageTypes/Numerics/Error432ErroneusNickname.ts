@@ -15,7 +15,7 @@ export default class Error432ErroneusNickname extends Message<Error432ErroneusNi
 	})
 	suffix!: MessageParam;
 
-	protected isResponseTo(originalMessage: Message) {
+	isResponseTo(originalMessage: Message) {
 		return originalMessage.command === 'NICK';
 	}
 

@@ -15,7 +15,7 @@ export default class MessageCollector {
 		this._types = new Set(types);
 	}
 
-	// tslint:disable-next-line:no-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	untilEvent(eventType: (handler: (...args: any[]) => void) => Listener) {
 		this._cleanEndEventHandler(eventType);
 		const listener = this._client.on(eventType, () => this.end());
@@ -24,7 +24,7 @@ export default class MessageCollector {
 
 	async promise() {
 		if (!this._promise) {
-			this._promise = new Promise(resolve => this._promiseResolve = resolve);
+			this._promise = new Promise(resolve => (this._promiseResolve = resolve));
 		}
 
 		return this._promise;

@@ -14,7 +14,7 @@ export default class Error421UnknownCommand extends Message<Error421UnknownComma
 	})
 	suffix!: MessageParam;
 
-	protected isResponseTo(originalMessage: Message) {
+	isResponseTo(originalMessage: Message) {
 		return originalMessage.command === this.params.originalCommand;
 	}
 
