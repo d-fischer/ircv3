@@ -654,6 +654,10 @@ export default class IRCClient extends EventEmitter {
 		}
 	}
 
+	protected _updateCredentials(newCredentials: Partial<IRCCredentials>) {
+		this._credentials = { ...this._credentials, ...newCredentials };
+	}
+
 	// event helper
 	private handleEvents(message: Message): void {
 		this._collectors.some(collector => collector.collect(message));
