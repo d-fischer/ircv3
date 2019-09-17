@@ -93,6 +93,8 @@ export default class IRCClient extends EventEmitter {
 		handler: (target: string, user: string, command: string, params: string, msg: Notice) => void
 	) => Listener = this.registerEvent();
 
+	onAnyMessage = this.registerEvent<(msg: Message) => void>();
+
 	protected _serverProperties: ServerProperties = clone(defaultServerProperties, false);
 	protected _supportedFeatures: { [feature: string]: true | string } = {};
 	protected _collectors: MessageCollector[] = [];
@@ -212,6 +214,7 @@ export default class IRCClient extends EventEmitter {
 			}
 			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
 			this._startPingCheckTimer();
+			this.emit(this.onAnyMessage, parsedMessage);
 			this.handleEvents(parsedMessage);
 		});
 
