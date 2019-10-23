@@ -271,10 +271,18 @@ export default class IRCClient extends EventEmitter {
 		}
 	}
 
-	setupConnection() {
+	async setupConnection() {
 		const { connection, webSocket, nonConformingCommands = [] } = this._options;
 
 		this._connection = webSocket ? new WebSocketConnection(connection) : new DirectConnection(connection);
+
+		this._logger.debug1('Determining connection password');
+		const password = await this.getPassword(this._credentials.password);
+		if (password) {
+			if (password !== this._credentials.password) {
+				this._updateCredentials({ password });
+			}
+		}
 
 		this._connection.on('connect', async () => {
 			this._retryDelayGenerator = undefined;
@@ -323,12 +331,8 @@ export default class IRCClient extends EventEmitter {
 					this.emit(this.onRegister);
 				});
 			});
-			const password = await this.getPassword(this._credentials.password);
 			if (password) {
-				if (password !== this._credentials.password) {
-					this._updateCredentials({ password });
-				}
-				this.sendMessage(Password, { password: this._credentials.password });
+				this.sendMessage(Password, { password });
 			}
 			this.sendMessage(NickChange, { nick: this._credentials.nick });
 			this.sendMessage(UserRegistration, {
@@ -442,7 +446,7 @@ export default class IRCClient extends EventEmitter {
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map();
 		this._currentNick = this._credentials.nick;
-		this.setupConnection();
+		await this.setupConnection();
 		this._logger.info(`Connecting to ${this._connection!.host}:${this._connection!.port}`);
 		await this._connection!.connect();
 		this.emit(this.onConnect);
