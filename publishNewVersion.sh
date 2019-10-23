@@ -1,4 +1,7 @@
 #!/bin/sh
+
+set -e
+
 CWD="$(pwd)"
 cd "$(dirname $0)"
 
