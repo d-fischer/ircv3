@@ -14,23 +14,15 @@ class DirectConnection extends Connection {
 		return new Promise<void>((resolve, reject) => {
 			this._connecting = true;
 			const connectionErrorListener = (err: Error) => {
-				if (this._socket) {
-					this._socket.destroy();
-					this._socket = undefined;
-				}
 				this._connected = false;
 				this._connecting = false;
-				this.emit('disconnect', err);
-				this._handleReconnect(err);
-				if (this._initialConnection) {
-					reject(err);
-				}
+				this._handleDisconnect(err);
+				reject(err);
 			};
 			const connectionListener = () => {
 				this._connecting = false;
 				this._connected = true;
 				this.emit('connect');
-				this._initialConnection = false;
 				resolve();
 			};
 			if (this._secure) {
@@ -43,27 +35,24 @@ class DirectConnection extends Connection {
 			this._socket.on('data', (data: Buffer) => {
 				this.receiveRaw(data.toString());
 			});
-			this._socket.on('close', (hadError: boolean) => {
-				if (!hadError) {
-					if (this._socket) {
-						this._socket.destroy();
-						this._socket = undefined;
-					}
-					this._connected = false;
-					this._connecting = false;
-					this.emit('disconnect');
-					this._handleReconnect();
-				}
+			this._socket.on('close', () => {
+				this._connected = false;
+				this._connecting = false;
+				this._handleDisconnect();
 			});
 		});
 	}
 
-	doDisconnect() {
+	get hasSocket() {
+		return !!this._socket;
+	}
+
+	destroy() {
 		if (this._socket) {
-			this._manualDisconnect = true;
 			this._socket.destroy();
 			this._socket = undefined;
 		}
+		super.destroy();
 	}
 
 	sendRaw(line: string) {

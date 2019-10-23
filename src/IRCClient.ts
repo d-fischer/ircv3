@@ -59,9 +59,10 @@ export interface IRCClientOptions {
 }
 
 export default class IRCClient extends EventEmitter {
-	protected _connection: Connection;
+	protected _connection?: Connection;
 	protected _registered: boolean = false;
 
+	@NonEnumerable protected _options: IRCClientOptions;
 	@NonEnumerable protected _credentials: IRCCredentials;
 
 	protected _supportsCapabilities: boolean = true;
@@ -72,7 +73,7 @@ export default class IRCClient extends EventEmitter {
 	// emitted events
 	onConnect: (handler: () => void) => Listener = this.registerEvent();
 	onRegister: (handler: () => void) => Listener = this.registerEvent();
-	onDisconnect: (handler: (reason?: Error) => void) => Listener = this.registerEvent();
+	onDisconnect: (handler: (manually: boolean, reason?: Error) => void) => Listener = this.registerEvent();
 
 	onPrivmsg: (
 		handler: (target: string, user: string, message: string, msg: PrivateMessage) => void
@@ -110,17 +111,22 @@ export default class IRCClient extends EventEmitter {
 
 	protected _currentNick: string;
 
+	private _retryDelayGenerator?: IterableIterator<number>;
+	private _retryTimer?: NodeJS.Timer;
+
 	private readonly _logger: Logger;
 
-	constructor({
-		connection,
-		credentials,
-		webSocket,
-		channelTypes,
-		logLevel = LogLevel.WARNING,
-		nonConformingCommands = []
-	}: IRCClientOptions) {
+	constructor(options: IRCClientOptions) {
 		super();
+
+		const {
+			connection,
+			credentials,
+			channelTypes,
+			logLevel = LogLevel.WARNING
+		} = options;
+
+		this._options = options;
 
 		const { pingOnInactivity = 60, pingTimeout = 10 } = connection;
 		this._pingOnInactivity = pingOnInactivity;
@@ -130,93 +136,11 @@ export default class IRCClient extends EventEmitter {
 
 		this._logger = new Logger({ name: 'ircv3', emoji: true, minLevel: logLevel });
 
-		this._connection = webSocket ? new WebSocketConnection(connection) : new DirectConnection(connection);
-
 		this.registerCoreMessageTypes();
 
 		for (const cap of Object.values(CoreCapabilities)) {
 			this.registerCapability(cap);
 		}
-
-		this._connection.on('connect', () => {
-			this._logger.info(`Connection to server ${this._connection.host}:${this._connection.port} established`);
-			this.sendMessageAndCaptureReply(CapabilityNegotiation, {
-				subCommand: 'LS',
-				version: '302'
-			}).then((capReply: Message[]) => {
-				if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
-					this._logger.debug1('Server does not support capabilities');
-					return;
-				}
-				this._supportsCapabilities = true;
-				const capLists = capReply.map(line =>
-					ObjectTools.fromArray(
-						(line as CapabilityNegotiation).params.capabilities.split(' '),
-						(part: string) => {
-							if (!part) {
-								return {};
-							}
-							const [cap, param] = splitWithLimit(part, '=', 2);
-							return {
-								[cap]: {
-									name: cap,
-									param: param || true
-								}
-							};
-						}
-					)
-				);
-				this._serverCapabilities = new Map<string, ServerCapability>(
-					Object.entries(Object.assign({}, ...capLists))
-				);
-				this._logger.debug1(
-					`Capabilities supported by server: ${Array.from(this._serverCapabilities.keys()).join(', ')}`
-				);
-				const capabilitiesToNegotiate = capLists.map(list => {
-					const capNames = Object.keys(list);
-					return Array.from(this._clientCapabilities.entries())
-						.filter(([name]) => capNames.includes(name))
-						.map(([, cap]) => cap);
-				});
-				this._negotiateCapabilityBatch(capabilitiesToNegotiate).then(() => {
-					this.sendMessage(CapabilityNegotiation, { subCommand: 'END' });
-					this._registered = true;
-					this.emit(this.onRegister);
-				});
-			});
-			if (this._credentials.password) {
-				this.sendMessage(Password, { password: this._credentials.password });
-			}
-			this.sendMessage(NickChange, { nick: this._credentials.nick });
-			this.sendMessage(UserRegistration, {
-				user: this._credentials.userName || this._credentials.nick,
-				mode: '8',
-				unused: '*',
-				realName: this._credentials.realName || this._credentials.nick
-			});
-		});
-
-		this._connection.on('lineReceived', (line: string) => {
-			this._logger.debug2(`Received message: ${line}`);
-			let parsedMessage;
-			try {
-				parsedMessage = parseMessage(
-					line,
-					this._serverProperties,
-					this._registeredMessageTypes,
-					true,
-					nonConformingCommands
-				);
-			} catch (e) {
-				this._logger.err(`Error parsing message: ${e.message}`);
-				this._logger.debug1(e.stack);
-				return;
-			}
-			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
-			this._startPingCheckTimer();
-			this.emit(this.onAnyMessage, parsedMessage);
-			this.handleEvents(parsedMessage);
-		});
 
 		this.onMessage(CapabilityNegotiation, ({ params: { subCommand, capabilities } }) => {
 			const caps = capabilities.split(' ');
@@ -345,7 +269,101 @@ export default class IRCClient extends EventEmitter {
 
 		this.onRegister(() => this._startPingCheckTimer());
 
-		this._connection.on('disconnect', (reason?: Error) => {
+		this._credentials = { ...credentials };
+
+		if (channelTypes) {
+			this._serverProperties.channelTypes = channelTypes;
+		}
+	}
+
+	setupConnection() {
+		const { connection, webSocket, nonConformingCommands = [] } = this._options;
+
+		this._connection = webSocket ? new WebSocketConnection(connection) : new DirectConnection(connection);
+
+		this._connection.on('connect', async () => {
+			this._retryDelayGenerator = undefined;
+			this._logger.info(`Connection to server ${this._connection!.host}:${this._connection!.port} established`);
+			this.sendMessageAndCaptureReply(CapabilityNegotiation, {
+				subCommand: 'LS',
+				version: '302'
+			}).then((capReply: Message[]) => {
+				if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
+					this._logger.debug1('Server does not support capabilities');
+					return;
+				}
+				this._supportsCapabilities = true;
+				const capLists = capReply.map(line =>
+					ObjectTools.fromArray(
+						(line as CapabilityNegotiation).params.capabilities.split(' '),
+						(part: string) => {
+							if (!part) {
+								return {};
+							}
+							const [cap, param] = splitWithLimit(part, '=', 2);
+							return {
+								[cap]: {
+									name: cap,
+									param: param || true
+								}
+							};
+						}
+					)
+				);
+				this._serverCapabilities = new Map<string, ServerCapability>(
+					Object.entries(Object.assign({}, ...capLists))
+				);
+				this._logger.debug1(
+					`Capabilities supported by server: ${Array.from(this._serverCapabilities.keys()).join(', ')}`
+				);
+				const capabilitiesToNegotiate = capLists.map(list => {
+					const capNames = Object.keys(list);
+					return Array.from(this._clientCapabilities.entries())
+						.filter(([name]) => capNames.includes(name))
+						.map(([, cap]) => cap);
+				});
+				this._negotiateCapabilityBatch(capabilitiesToNegotiate).then(() => {
+					this.sendMessage(CapabilityNegotiation, { subCommand: 'END' });
+					this._registered = true;
+					this.emit(this.onRegister);
+				});
+			});
+			const password = await this.getPassword(this._credentials.password);
+			if (password) {
+				this.sendMessage(Password, { password: this._credentials.password });
+			}
+			this.sendMessage(NickChange, { nick: this._credentials.nick });
+			this.sendMessage(UserRegistration, {
+				user: this._credentials.userName || this._credentials.nick,
+				mode: '8',
+				unused: '*',
+				realName: this._credentials.realName || this._credentials.nick
+			});
+		});
+
+		this._connection.on('lineReceived', (line: string) => {
+			this._logger.debug2(`Received message: ${line}`);
+			let parsedMessage;
+			try {
+				parsedMessage = parseMessage(
+					line,
+					this._serverProperties,
+					this._registeredMessageTypes,
+					true,
+					nonConformingCommands
+				);
+			} catch (e) {
+				this._logger.err(`Error parsing message: ${e.message}`);
+				this._logger.trace(e.stack);
+				return;
+			}
+			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
+			this._startPingCheckTimer();
+			this.emit(this.onAnyMessage, parsedMessage);
+			this.handleEvents(parsedMessage);
+		});
+
+		this._connection.on('disconnect', (manually: boolean, reason?: Error) => {
 			this._registered = false;
 			if (this._pingCheckTimer) {
 				clearTimeout(this._pingCheckTimer);
@@ -353,19 +371,26 @@ export default class IRCClient extends EventEmitter {
 			if (this._pingTimeoutTimer) {
 				clearTimeout(this._pingTimeoutTimer);
 			}
-			if (reason) {
-				this._logger.err(`Disconnected unexpectedly: ${reason.message}`);
+			if (manually) {
+				this._logger.info('Disconnected manually');
 			} else {
-				this._logger.info('Disconnected from the server');
+				if (reason) {
+					this._logger.err(`Disconnected unexpectedly: ${reason.message}`);
+				} else {
+					this._logger.err('Disconnected unexpectedly');
+				}
 			}
-			this.emit(this.onDisconnect, reason);
+			this.emit(this.onDisconnect, manually, reason);
+			this._connection = undefined;
+			if (!manually && connection.reconnect) {
+				if (!this._retryDelayGenerator) {
+					this._retryDelayGenerator = IRCClient._getReconnectWaitTime();
+				}
+				const delay = this._retryDelayGenerator.next().value;
+				this._logger.info(`Reconnecting in ${delay} seconds`);
+				this._retryTimer = setTimeout(async () => this.connect(), delay * 1000);
+			}
 		});
-
-		this._credentials = { ...credentials };
-
-		if (channelTypes) {
-			this._serverProperties.channelTypes = channelTypes;
-		}
 	}
 
 	get serverProperties(): ServerProperties {
@@ -419,8 +444,9 @@ export default class IRCClient extends EventEmitter {
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map();
 		this._currentNick = this._credentials.nick;
-		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
-		await this._connection.connect();
+		this.setupConnection();
+		this._logger.info(`Connecting to ${this._connection!.host}:${this._connection!.port}`);
+		await this._connection!.connect();
 		this.emit(this.onConnect);
 	}
 
@@ -477,8 +503,10 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	sendRaw(line: string) {
-		this._logger.debug2(`Sending message: ${line}`);
-		this._connection.sendLine(line);
+		if (this._connection) {
+			this._logger.debug2(`Sending message: ${line}`);
+			this._connection.sendLine(line);
+		}
 	}
 
 	onMessage<C extends MessageConstructor>(
@@ -549,11 +577,11 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	get isConnected() {
-		return this._connection.isConnected;
+		return this._connection ? this._connection.isConnected : false;
 	}
 
 	get isConnecting() {
-		return this._connection.isConnecting;
+		return this._connection ? this._connection.isConnecting : false;
 	}
 
 	get isRegistered() {
@@ -586,8 +614,14 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	quit(message?: string) {
+		if (this._retryTimer) {
+			clearInterval(this._retryTimer);
+		}
+		this._retryDelayGenerator = undefined;
 		this.sendMessage(ClientQuit, { message });
-		this._connection.disconnect();
+		if (this._connection) {
+			this._connection.disconnect();
+		}
 	}
 
 	say(target: string, message: string) {
@@ -600,6 +634,10 @@ export default class IRCClient extends EventEmitter {
 
 	action(target: string, message: string) {
 		this.sendCTCP(target, 'ACTION', message);
+	}
+
+	protected async getPassword(currentPassword?: string) {
+		return currentPassword;
 	}
 
 	protected registerCoreMessageTypes() {
@@ -682,5 +720,20 @@ export default class IRCClient extends EventEmitter {
 			clearTimeout(this._pingCheckTimer);
 		}
 		this._pingCheckTimer = setTimeout(() => this.pingCheck(), this._pingOnInactivity * 1000);
+	}
+
+	// yes, this is just fibonacci with a limit
+	private static *_getReconnectWaitTime(): IterableIterator<number> {
+		let current = 0;
+		let next = 1;
+
+		while (current < 120) {
+			yield current;
+			[current, next] = [next, current + next];
+		}
+
+		while (true) {
+			yield 120;
+		}
 	}
 }

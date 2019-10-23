@@ -18,7 +18,6 @@ class WebSocketConnection extends Connection {
 				this._connected = true;
 				this._connecting = false;
 				this.emit('connect');
-				this._initialConnection = false;
 				resolve();
 			};
 
@@ -34,25 +33,26 @@ class WebSocketConnection extends Connection {
 				this._connected = false;
 				this._connecting = false;
 				if (wasClean) {
-					this.emit('disconnect');
-					this._handleReconnect();
+					this._handleDisconnect();
 				} else {
 					const err = new Error(`[${code}] ${reason}`);
-					this.emit('disconnect', err);
-					this._handleReconnect(err);
-					if (this._initialConnection) {
-						reject(err);
-					}
+					this._handleDisconnect(err);
+					reject(err);
 				}
 			};
 		});
 	}
 
-	doDisconnect() {
+	get hasSocket() {
+		return !!this._socket;
+	}
+
+	destroy() {
 		if (this._socket) {
-			this._manualDisconnect = true;
 			this._socket.close();
+			this._socket = undefined;
 		}
+		super.destroy();
 	}
 
 	sendRaw(line: string) {

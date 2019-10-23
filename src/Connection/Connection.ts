@@ -15,16 +15,11 @@ abstract class Connection extends EventEmitter {
 	protected _secure: boolean;
 	protected _connecting: boolean = false;
 	protected _connected: boolean = false;
-	protected _initialConnection: boolean = true;
-	protected _shouldReconnect: boolean = true;
 	protected _manualDisconnect: boolean = false;
-
-	private _retryDelayGenerator?: IterableIterator<number>;
-	private _retryTimer?: NodeJS.Timer;
 
 	private _currentLine = '';
 
-	constructor({ hostName, port, secure, reconnect = true }: ConnectionInfo) {
+	constructor({ hostName, port, secure }: ConnectionInfo) {
 		super();
 		this._secure = Boolean(secure);
 		if (port) {
@@ -41,12 +36,6 @@ abstract class Connection extends EventEmitter {
 				this._port = Number(splitPort);
 			}
 		}
-
-		this._shouldReconnect = reconnect;
-
-		this.on('connect', () => {
-			this._retryDelayGenerator = undefined;
-		});
 	}
 
 	async connect() {
@@ -54,11 +43,13 @@ abstract class Connection extends EventEmitter {
 	}
 
 	disconnect() {
-		if (this._retryTimer) {
-			clearInterval(this._retryTimer);
+		if (this.hasSocket) {
+			this._manualDisconnect = true;
 		}
-		this._retryDelayGenerator = undefined;
-		this.doDisconnect();
+	}
+
+	destroy() {
+		this.removeAllListeners();
 	}
 
 	sendLine(line: string): void {
@@ -92,38 +83,20 @@ abstract class Connection extends EventEmitter {
 		return this._host;
 	}
 
-	protected _handleReconnect(error?: Error) {
+	protected _handleDisconnect(error?: Error) {
+		this.emit('disconnect', this._manualDisconnect, error);
 		if (this._manualDisconnect) {
 			this._manualDisconnect = false;
-		} else if (this._shouldReconnect) {
-			if (!this._retryDelayGenerator) {
-				this._retryDelayGenerator = Connection._getReconnectWaitTime();
-			}
-			const delay = this._retryDelayGenerator.next().value;
-			this._retryTimer = setTimeout(async () => this.connect(), delay * 1000);
 		}
+		this.destroy();
 	}
 
 	protected abstract async doConnect(): Promise<void>;
-	protected abstract doDisconnect(): void;
 
 	protected abstract sendRaw(line: string): void;
+
+	abstract get hasSocket(): boolean;
 	abstract get port(): number;
-
-	// yes, this is just fibonacci with a limit
-	private static *_getReconnectWaitTime(): IterableIterator<number> {
-		let current = 0;
-		let next = 1;
-
-		while (current < 120) {
-			yield current;
-			[current, next] = [next, current + next];
-		}
-
-		while (true) {
-			yield 120;
-		}
-	}
 }
 
 export default Connection;
