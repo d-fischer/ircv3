@@ -273,6 +273,7 @@ export default class IRCClient extends EventEmitter {
 
 	async setupConnection() {
 		const { connection, webSocket, nonConformingCommands = [] } = this._options;
+		const { reconnect = true } = connection;
 
 		this._connection = webSocket ? new WebSocketConnection(connection) : new DirectConnection(connection);
 
@@ -384,7 +385,7 @@ export default class IRCClient extends EventEmitter {
 			}
 			this.emit(this.onDisconnect, manually, reason);
 			this._connection = undefined;
-			if (!manually && connection.reconnect) {
+			if (!manually && reconnect) {
 				if (!this._retryDelayGenerator) {
 					this._retryDelayGenerator = IRCClient._getReconnectWaitTime();
 				}
