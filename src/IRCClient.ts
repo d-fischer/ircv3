@@ -119,12 +119,7 @@ export default class IRCClient extends EventEmitter {
 	constructor(options: IRCClientOptions) {
 		super();
 
-		const {
-			connection,
-			credentials,
-			channelTypes,
-			logLevel = LogLevel.WARNING
-		} = options;
+		const { connection, credentials, channelTypes, logLevel = LogLevel.WARNING } = options;
 
 		this._options = options;
 
