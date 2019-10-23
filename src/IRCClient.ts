@@ -325,6 +325,9 @@ export default class IRCClient extends EventEmitter {
 			});
 			const password = await this.getPassword(this._credentials.password);
 			if (password) {
+				if (password !== this._credentials.password) {
+					this._updateCredentials({ password });
+				}
 				this.sendMessage(Password, { password: this._credentials.password });
 			}
 			this.sendMessage(NickChange, { nick: this._credentials.nick });
