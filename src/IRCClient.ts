@@ -604,7 +604,10 @@ export default class IRCClient extends EventEmitter {
 
 	/** @private */
 	stopCollect(collector: MessageCollector): void {
-		this._collectors.splice(this._collectors.findIndex(value => value === collector), 1);
+		this._collectors.splice(
+			this._collectors.findIndex(value => value === collector),
+			1
+		);
 	}
 
 	// convenience methods

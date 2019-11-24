@@ -50,7 +50,7 @@ export interface MessageConstructor<T extends Message<T> = any, X extends Exclud
 
 export type MessageParamNames<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Exclude<
 	keyof T,
-	(keyof Message) | X
+	keyof Message | X
 >;
 export type MessageParams<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Record<
 	MessageParamNames<T>,
