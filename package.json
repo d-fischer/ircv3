@@ -41,20 +41,20 @@
     "jest-environment-node": "^24.8.0",
     "lint-staged": "^9.4.3",
     "prettier": "^1.18.2",
-    "rimraf": "^2.6.2",
+    "rimraf": "^3.0.0",
     "ts-jest": "^24.0.2",
     "typescript": "~3.7.2"
   },
   "dependencies": {
-    "@d-fischer/logger": "^0.1.1",
+    "@d-fischer/logger": "^0.2.0",
     "@d-fischer/typed-event-emitter": "^2.0.0",
     "@types/clone": "^0.1.30",
-    "@types/escape-string-regexp": "0.0.30",
-    "@types/node": "^8.0.19",
-    "@types/ws": "3.0.0",
+    "@types/escape-string-regexp": "^2.0.1",
+    "@types/node": "^12.12.12",
+    "@types/ws": "^6.0.3",
     "clone": "^2.1.2",
-    "escape-string-regexp": "^1.0.5",
+    "escape-string-regexp": "^2.0.0",
     "universal-websocket-client": "^1.0.1",
-    "ws": "^3.1.0"
+    "ws": "^7.2.0"
   }
 }
