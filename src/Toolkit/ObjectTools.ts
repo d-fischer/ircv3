@@ -4,7 +4,7 @@ interface ObjectCtor extends ObjectConstructor {
 
 	entries<T, Obj>(o: Obj): Array<[Extract<keyof Obj, string>, T]>;
 
-	keys<Obj>(o: Obj): Array<keyof Obj>;
+	keys<Obj>(o: Obj): Array<Extract<keyof Obj, string>>;
 }
 
 declare let Object: ObjectCtor;
@@ -27,7 +27,7 @@ export type KeyMapper<T> = (value: T) => string;
 export default class ObjectTools {
 	static map<T, O, Obj = UniformObject<T>>(obj: Obj, fn: (value: T, key: Extract<keyof Obj, string>) => O) {
 		const mapped = Object.entries<T, Obj>(obj).map(
-			// eslint-disable-next-line @typescript-eslint/no-object-literal-type-assertion
+			// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 			([key, value]: [Extract<keyof Obj, string>, T]) => ({ [key]: fn(value, key) } as ObjMapPart<Obj, O>)
 		);
 		return Object.assign<ObjMap<Obj, O>>({}, ...mapped);
@@ -42,7 +42,8 @@ export default class ObjectTools {
 	static indexBy<T>(arr: T[], keyFn: Extract<keyof T, string> | KeyMapper<T>): UniformObject<T> {
 		if (typeof keyFn !== 'function') {
 			const key = keyFn;
-			keyFn = ((value: T) => value[key].toString()) as KeyMapper<T>;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			keyFn = ((value: T) => ((value[key] as any) as string).toString()) as KeyMapper<T>;
 		}
 		return this.fromArray<T, T, UniformObject<T>>(arr, val => ({ [(keyFn as KeyMapper<T>)(val)]: val }));
 	}
