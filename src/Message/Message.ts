@@ -1,8 +1,8 @@
-import ObjectTools from '../Toolkit/ObjectTools';
-import { isChannel } from '../Toolkit/StringTools';
-import { ServerProperties, defaultServerProperties } from '../ServerProperties';
+import { forEachObjectEntry } from '@d-fischer/shared-utils';
 import NotEnoughParametersError from '../Errors/NotEnoughParametersError';
 import ParameterRequirementMismatchError from '../Errors/ParameterRequirementMismatchError';
+import { defaultServerProperties, ServerProperties } from '../ServerProperties';
+import { isChannel } from '../Toolkit/StringTools';
 
 export interface MessagePrefix {
 	nick: string;
@@ -99,7 +99,7 @@ export function createMessage<T extends Message<T, X>, X extends Exclude<keyof T
 ): T {
 	const message: T = new type(type.COMMAND, undefined, undefined, undefined, serverProperties);
 	const parsedParams: Partial<MessageParams<T>> = {};
-	ObjectTools.forEach(type.PARAM_SPEC, (paramSpec: MessageParamSpecEntry, paramName: MessageParamNames<T>) => {
+	forEachObjectEntry(type.PARAM_SPEC, (paramSpec: MessageParamSpecEntry, paramName: MessageParamNames<T>) => {
 		if (isServer && paramSpec.noServer) {
 			return;
 		}
@@ -228,7 +228,7 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 
 	toString(complete: boolean = false): string {
 		const cls = this.constructor as MessageConstructor<T>;
-		const specKeys: Array<MessageParamNames<T>> = ObjectTools.keys(cls.PARAM_SPEC);
+		const specKeys = Object.keys(cls.PARAM_SPEC!) as Array<MessageParamNames<T>>;
 		const fullCommand = [
 			this._command,
 			...specKeys
@@ -351,7 +351,7 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 
 	get params(): MessageParamValues<T, X> {
 		const cls = this.constructor as MessageConstructor<T>;
-		const specKeys: Array<MessageParamNames<T>> = ObjectTools.keys(cls.PARAM_SPEC);
+		const specKeys = Object.keys(cls.PARAM_SPEC!) as Array<MessageParamNames<T>>;
 		return Object.assign(
 			{},
 			...specKeys

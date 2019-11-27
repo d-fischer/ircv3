@@ -1,4 +1,13 @@
 import Logger, { LogLevel } from '@d-fischer/logger';
+import {
+	arrayToObject,
+	ConstructedType,
+	forEachObjectEntry,
+	NonEnumerable,
+	ObjMap,
+	padLeft,
+	splitWithLimit
+} from '@d-fischer/shared-utils';
 import { EventEmitter, Listener } from '@d-fischer/typed-event-emitter';
 import * as clone from 'clone';
 
@@ -7,6 +16,7 @@ import * as CoreCapabilities from './Capability/CoreCapabilities';
 import Connection, { ConnectionInfo } from './Connection/Connection';
 import DirectConnection from './Connection/DirectConnection';
 import WebSocketConnection from './Connection/WebSocketConnection';
+import MessageError from './Errors/MessageError';
 import Message, { createMessage, MessageConstructor, MessageParamValues } from './Message/Message';
 import MessageCollector from './Message/MessageCollector';
 import { parseMessage } from './Message/MessageParser';
@@ -31,11 +41,7 @@ import {
 	Reply005ISupport
 } from './Message/MessageTypes/Numerics';
 import { defaultServerProperties, ServerProperties } from './ServerProperties';
-import MessageError from './Errors/MessageError';
-import { NonEnumerable } from './Toolkit/NonEnumerable';
-import ObjectTools, { ObjMap } from './Toolkit/ObjectTools';
-import { decodeCtcp, padLeft, splitWithLimit } from './Toolkit/StringTools';
-import { ConstructedType } from './Toolkit/TypeTools';
+import { decodeCtcp } from './Toolkit/StringTools';
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
@@ -144,7 +150,7 @@ export default class IRCClient extends EventEmitter {
 			switch (subCommand.toUpperCase()) {
 				case 'NEW': {
 					this._logger.debug2(`Server registered new capabilities: ${caps.join(', ')}`);
-					const capList = ObjectTools.fromArray<string, ServerCapability, {}>(caps, (part: string) => {
+					const capList = arrayToObject<string, ServerCapability, {}>(caps, (part: string) => {
 						if (!part) {
 							return {};
 						}
@@ -196,7 +202,7 @@ export default class IRCClient extends EventEmitter {
 		});
 
 		this.onMessage(Reply005ISupport, ({ params: { supports } }) => {
-			const newFeatures = ObjectTools.fromArray(supports.split(' '), (part: string) => {
+			const newFeatures = arrayToObject(supports.split(' '), (part: string) => {
 				const [support, param] = splitWithLimit(part, '=', 2);
 				return { [support]: param || true };
 			});
@@ -298,21 +304,18 @@ export default class IRCClient extends EventEmitter {
 				}
 				this._supportsCapabilities = true;
 				const capLists = capReply.map(line =>
-					ObjectTools.fromArray(
-						(line as CapabilityNegotiation).params.capabilities.split(' '),
-						(part: string) => {
-							if (!part) {
-								return {};
-							}
-							const [cap, param] = splitWithLimit(part, '=', 2);
-							return {
-								[cap]: {
-									name: cap,
-									param: param || true
-								}
-							};
+					arrayToObject((line as CapabilityNegotiation).params.capabilities.split(' '), (part: string) => {
+						if (!part) {
+							return {};
 						}
-					)
+						const [cap, param] = splitWithLimit(part, '=', 2);
+						return {
+							[cap]: {
+								name: cap,
+								param: param || true
+							}
+						};
+					})
 				);
 				this._serverCapabilities = new Map<string, ServerCapability>(
 					Object.entries(Object.assign({}, ...capLists))
@@ -647,11 +650,11 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	protected registerCoreMessageTypes() {
-		ObjectTools.forEach(MessageTypes.Commands, (type: MessageConstructor) => {
+		forEachObjectEntry(MessageTypes.Commands, (type: MessageConstructor) => {
 			this.registerMessageType(type);
 		});
 
-		ObjectTools.forEach(MessageTypes.Numerics, (type: MessageConstructor) => {
+		forEachObjectEntry(MessageTypes.Numerics, (type: MessageConstructor) => {
 			this.registerMessageType(type);
 		});
 	}
@@ -667,7 +670,7 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	protected async _negotiateCapabilities(capList: ServerCapability[]): Promise<ServerCapability[] | Error> {
-		const mappedCapList: ObjMap<object, ServerCapability> = ObjectTools.fromArray(capList, cap => ({
+		const mappedCapList: ObjMap<object, ServerCapability> = arrayToObject(capList, cap => ({
 			[cap.name]: cap
 		}));
 		const messages = await this.sendMessageAndCaptureReply(CapabilityNegotiation, {

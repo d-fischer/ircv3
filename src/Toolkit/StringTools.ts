@@ -1,7 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import escapeRegexString = require('escape-string-regexp');
-
-export { escapeRegexString };
+import { splitWithLimit } from '@d-fischer/shared-utils';
 
 export function sanitizeParameter(param: string, spaceAllowed: boolean = false) {
 	if (spaceAllowed) {
@@ -9,37 +8,6 @@ export function sanitizeParameter(param: string, spaceAllowed: boolean = false) 
 	} else {
 		return param.replace(/[\0\r\n ]/g, '');
 	}
-}
-
-export function padLeft(str: string | number, length: number, padding?: string) {
-	if (typeof str === 'number') {
-		str = str.toString();
-	}
-
-	length = length - str.length;
-	if (length <= 0) {
-		return str;
-	}
-
-	if (padding === undefined) {
-		padding = ' ';
-	}
-
-	let paddingStr = '';
-
-	do {
-		/* eslint-disable no-bitwise */
-		if ((length & 1) === 1) {
-			paddingStr += padding;
-		}
-		length >>= 1;
-		if (length) {
-			padding += padding;
-		}
-		/* eslint-enable no-bitwise */
-	} while (length);
-
-	return paddingStr + str;
 }
 
 export function isChannel(str: string, validTypes: string = '#&') {
@@ -58,14 +26,6 @@ const ctcpEscapeMap: { [char: string]: string } = {
 	r: '\r',
 	'\x10': '\x10'
 };
-
-export function splitWithLimit(str: string, delim: string, count: number) {
-	const parts = str.split(delim);
-	if (parts.length <= count) {
-		return parts;
-	}
-	return [...parts.slice(0, count - 1), parts.slice(count - 1).join(delim)];
-}
 
 export function decodeCtcp(message: string): ParsedCtcp | false {
 	if (message[0] !== '\x01') {
