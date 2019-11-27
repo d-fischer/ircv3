@@ -6,6 +6,8 @@ import {
 	NonEnumerable,
 	ObjMap,
 	padLeft,
+	ResolvableValue,
+	resolveConfigValue,
 	splitWithLimit
 } from '@d-fischer/shared-utils';
 import { EventEmitter, Listener } from '@d-fischer/typed-event-emitter';
@@ -58,6 +60,7 @@ export interface IRCCredentials {
 export interface IRCClientOptions {
 	connection: ConnectionInfo;
 	credentials: IRCCredentials;
+	channels?: ResolvableValue<string[]>;
 	webSocket?: boolean;
 	channelTypes?: string;
 	logLevel?: LogLevel;
@@ -125,7 +128,7 @@ export default class IRCClient extends EventEmitter {
 	constructor(options: IRCClientOptions) {
 		super();
 
-		const { connection, credentials, channelTypes, logLevel = LogLevel.WARNING } = options;
+		const { connection, credentials, channels, channelTypes, logLevel = LogLevel.WARNING } = options;
 
 		this._options = options;
 
@@ -141,6 +144,17 @@ export default class IRCClient extends EventEmitter {
 
 		for (const cap of Object.values(CoreCapabilities)) {
 			this.registerCapability(cap);
+		}
+
+		if (channels) {
+			this.onRegister(async () => {
+				const resolvedChannels = await resolveConfigValue(channels);
+				if (resolvedChannels) {
+					for (const channel of resolvedChannels) {
+						this.join(channel);
+					}
+				}
+			});
 		}
 
 		this.onMessage(CapabilityNegotiation, ({ params: { subCommand, capabilities } }) => {
