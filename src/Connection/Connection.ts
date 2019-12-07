@@ -42,8 +42,8 @@ abstract class Connection extends EventEmitter {
 		return this.doConnect();
 	}
 
-	disconnect() {
-		if (this.hasSocket) {
+	disconnect(manually = true) {
+		if (this.hasSocket && manually) {
 			this._manualDisconnect = true;
 		}
 	}
