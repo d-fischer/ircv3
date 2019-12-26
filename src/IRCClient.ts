@@ -1,4 +1,5 @@
-import Logger, { LogLevel } from '@d-fischer/logger';
+import Logger from '@d-fischer/logger';
+import LoggerOptions from '@d-fischer/logger/lib/LoggerOptions';
 import {
 	arrayToObject,
 	ConstructedType,
@@ -63,7 +64,7 @@ export interface IRCClientOptions {
 	channels?: ResolvableValue<string[]>;
 	webSocket?: boolean;
 	channelTypes?: string;
-	logLevel?: LogLevel;
+	logger?: Partial<LoggerOptions>;
 	nonConformingCommands?: string[];
 }
 
@@ -128,7 +129,7 @@ export default class IRCClient extends EventEmitter {
 	constructor(options: IRCClientOptions) {
 		super();
 
-		const { connection, credentials, channels, channelTypes, logLevel = LogLevel.WARNING } = options;
+		const { connection, credentials, channels, channelTypes, logger = {} } = options;
 
 		this._options = options;
 
@@ -138,7 +139,7 @@ export default class IRCClient extends EventEmitter {
 
 		this._currentNick = credentials.nick;
 
-		this._logger = new Logger({ name: 'ircv3', emoji: true, minLevel: logLevel });
+		this._logger = new Logger({ name: 'ircv3', emoji: true, ...logger });
 
 		this.registerCoreMessageTypes();
 
