@@ -379,7 +379,7 @@ export default class IRCClient extends EventEmitter {
 			});
 		});
 
-		this._connection.on('lineReceived', (line: string) => {
+		this._connection.on('receive', (line: string) => {
 			this._logger.debug1(`Received message: ${line}`);
 			let parsedMessage;
 			try {
