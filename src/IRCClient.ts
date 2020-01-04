@@ -1,3 +1,4 @@
+import { Connection, ConnectionInfo, DirectConnection, WebSocketConnection } from '@d-fischer/connection';
 import Logger from '@d-fischer/logger';
 import LoggerOptions from '@d-fischer/logger/lib/LoggerOptions';
 import {
@@ -16,9 +17,6 @@ import * as clone from 'clone';
 
 import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
-import Connection, { ConnectionInfo } from './Connection/Connection';
-import DirectConnection from './Connection/DirectConnection';
-import WebSocketConnection from './Connection/WebSocketConnection';
 import MessageError from './Errors/MessageError';
 import Message, { createMessage, MessageConstructor, MessageParamValues } from './Message/Message';
 import MessageCollector from './Message/MessageCollector';
