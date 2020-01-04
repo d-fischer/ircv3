@@ -56,8 +56,18 @@ export interface IRCCredentials {
 }
 
 // eslint-disable-next-line @typescript-eslint/interface-name-prefix
+export interface IRCClientConnectionOptions {
+	hostName: string;
+	port?: number;
+	secure?: boolean;
+	pingOnInactivity?: number;
+	pingTimeout?: number;
+	reconnect?: boolean;
+}
+
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IRCClientOptions {
-	connection: ConnectionInfo;
+	connection: IRCClientConnectionOptions;
 	credentials: IRCCredentials;
 	channels?: ResolvableValue<string[]>;
 	webSocket?: boolean;
@@ -292,9 +302,18 @@ export default class IRCClient extends EventEmitter {
 
 	async setupConnection() {
 		const { connection, webSocket, nonConformingCommands = [] } = this._options;
-		const { reconnect = true } = connection;
+		const { hostName, port, secure, reconnect = true } = connection;
 
-		this._connection = webSocket ? new WebSocketConnection(connection) : new DirectConnection(connection);
+		const connectionOptions: ConnectionInfo = {
+			hostName,
+			port,
+			secure,
+			lineBased: true
+		};
+
+		this._connection = webSocket
+			? new WebSocketConnection(connectionOptions)
+			: new DirectConnection(connectionOptions);
 
 		this._logger.debug1('Determining connection password');
 		const password = await this.getPassword(this._credentials.password);
