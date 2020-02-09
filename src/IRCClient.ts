@@ -211,7 +211,13 @@ export default class IRCClient extends EventEmitter {
 			this.sendMessage(Pong, { message });
 		});
 
-		this.onMessage(Reply001Welcome, () => {
+		this.onMessage(Reply001Welcome, ({ params: { me } }) => {
+			if (this._currentNick !== me) {
+				if (this._currentNick !== '') {
+					this._logger.warn(`Mismatching nicks: passed ${this._currentNick}, but you're actually ${me}`);
+				}
+				this._currentNick = me;
+			}
 			if (!this._supportsCapabilities) {
 				this._registered = true;
 				this.emit(this.onRegister);
