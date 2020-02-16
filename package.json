@@ -51,7 +51,6 @@
     "@d-fischer/shared-utils": "^1.2.1",
     "@d-fischer/typed-event-emitter": "^2.0.0",
     "@types/clone": "^0.1.30",
-    "@types/escape-string-regexp": "^2.0.1",
     "@types/node": "^12.12.12",
     "@types/ws": "^6.0.3",
     "clone": "^2.1.2",
