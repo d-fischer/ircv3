@@ -591,23 +591,20 @@ export default class IRCClient extends EventEmitter {
 		this._events.get(commandName)!.delete(handlerName);
 	}
 
-	createMessage<T extends Message<T, X>, X extends Exclude<keyof T, keyof Message>>(
-		type: MessageConstructor<T, X>,
+	createMessage<T extends Message<T>>(
+		type: MessageConstructor<T>,
 		params: Partial<MessageParamValues<T>>,
 		tags?: Map<string, string>
 	) {
 		return createMessage(type, params, undefined, tags, this.serverProperties);
 	}
 
-	sendMessage<T extends Message<T, X>, X extends Exclude<keyof T, keyof Message>>(
-		type: MessageConstructor<T, X>,
-		params: Partial<MessageParamValues<T>>
-	): void {
+	sendMessage<T extends Message<T>>(type: MessageConstructor<T>, params: Partial<MessageParamValues<T>>): void {
 		this.send(this.createMessage(type, params));
 	}
 
-	async sendMessageAndCaptureReply<T extends Message<T, X>, X extends Exclude<keyof T, keyof Message>>(
-		type: MessageConstructor<T, X>,
+	async sendMessageAndCaptureReply<T extends Message<T>>(
+		type: MessageConstructor<T>,
 		params: Partial<MessageParamValues<T>>
 	): Promise<Message[]> {
 		if (!type.SUPPORTS_CAPTURE) {

@@ -1,6 +1,6 @@
-import Message, { MessageParam, MessagePrefix } from '../../Message';
-import { isChannel } from '../../../Toolkit/StringTools';
 import UnknownChannelModeCharError from '../../../Errors/UnknownChannelModeCharError';
+import { isChannel } from '../../../Toolkit/StringTools';
+import Message, { MessageParam, MessagePrefix } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 export type ModeAction = 'getList' | 'add' | 'remove';
@@ -14,7 +14,7 @@ export interface SingleMode {
 }
 
 @MessageType('MODE')
-export default class Mode extends Message<Mode, 'isChannel' | 'separate'> {
+export default class Mode extends Message<Mode> {
 	@MessageParamDefinition({})
 	target!: MessageParam;
 
@@ -24,7 +24,7 @@ export default class Mode extends Message<Mode, 'isChannel' | 'separate'> {
 	})
 	modes!: MessageParam;
 
-	get isChannel() {
+	get isChannel(): boolean {
 		return isChannel(this.params.target, this._serverProperties.channelTypes);
 	}
 

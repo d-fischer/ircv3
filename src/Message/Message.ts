@@ -1,4 +1,4 @@
-import { forEachObjectEntry } from '@d-fischer/shared-utils';
+import { AllowedNames, forEachObjectEntry } from '@d-fischer/shared-utils';
 import NotEnoughParametersError from '../Errors/NotEnoughParametersError';
 import ParameterRequirementMismatchError from '../Errors/ParameterRequirementMismatchError';
 import { defaultServerProperties, ServerProperties } from '../ServerProperties';
@@ -26,10 +26,9 @@ export interface MessageParamSpecEntry {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface MessageConstructor<T extends Message<T> = any, X extends Exclude<keyof T, keyof Message> = never>
-	extends Function {
+export interface MessageConstructor<T extends Message<T> = any> extends Function {
 	COMMAND: string;
-	PARAM_SPEC?: MessageParamSpec<T, X>;
+	PARAM_SPEC?: MessageParamSpec<T>;
 	SUPPORTS_CAPTURE: boolean;
 
 	new (
@@ -48,22 +47,10 @@ export interface MessageConstructor<T extends Message<T> = any, X extends Exclud
 	checkParam(param: string, spec: MessageParamSpecEntry, serverProperties?: ServerProperties): boolean;
 }
 
-export type MessageParamNames<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Exclude<
-	keyof T,
-	keyof Message | X
->;
-export type MessageParams<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Record<
-	MessageParamNames<T>,
-	MessageParam
->;
-export type MessageParamValues<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Record<
-	MessageParamNames<T>,
-	string
->;
-export type MessageParamSpec<T extends Message<T>, X extends Exclude<keyof T, keyof Message> = never> = Record<
-	MessageParamNames<T>,
-	MessageParamSpecEntry
->;
+export type MessageParamNames<T extends Message<T>> = AllowedNames<Omit<T, 'params'>, MessageParam | undefined>;
+export type MessageParams<T extends Message<T>> = Record<MessageParamNames<T>, MessageParam>;
+export type MessageParamValues<T extends Message<T>> = Record<MessageParamNames<T>, string>;
+export type MessageParamSpec<T extends Message<T>> = Record<MessageParamNames<T>, MessageParamSpecEntry>;
 
 const tagEscapeMap: { [char: string]: string } = {
 	'\\': '\\',
@@ -89,9 +76,9 @@ export function prefixToString(prefix: MessagePrefix) {
 	return result;
 }
 
-export function createMessage<T extends Message<T, X>, X extends Exclude<keyof T, keyof Message>>(
-	type: MessageConstructor<T, X>,
-	params: Partial<MessageParamValues<T, X>>,
+export function createMessage<T extends Message<T>>(
+	type: MessageConstructor<T>,
+	params: Partial<MessageParamValues<T>>,
 	prefix?: MessagePrefix,
 	tags?: Map<string, string>,
 	serverProperties: ServerProperties = defaultServerProperties,
@@ -131,7 +118,7 @@ export function createMessage<T extends Message<T, X>, X extends Exclude<keyof T
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default class Message<T extends Message<T> = any, X extends Exclude<keyof T, keyof Message> = never> {
+export default class Message<T extends Message<T> = any> {
 	static readonly COMMAND: string = '';
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	static readonly PARAM_SPEC: MessageParamSpec<any>;
@@ -349,7 +336,7 @@ export default class Message<T extends Message<T> = any, X extends Exclude<keyof
 		}
 	}
 
-	get params(): MessageParamValues<T, X> {
+	get params(): MessageParamValues<T> {
 		const cls = this.constructor as MessageConstructor<T>;
 		const specKeys = Object.keys(cls.PARAM_SPEC!) as Array<MessageParamNames<T>>;
 		return Object.assign(

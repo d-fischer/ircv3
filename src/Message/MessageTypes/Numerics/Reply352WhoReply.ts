@@ -1,6 +1,6 @@
 import Message, { MessageParam } from '../../Message';
-import WhoQuery from '../Commands/WhoQuery';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import WhoQuery from '../Commands/WhoQuery';
 
 @MessageType('352')
 export default class Reply352WhoReply extends Message<Reply352WhoReply> {
@@ -30,21 +30,21 @@ export default class Reply352WhoReply extends Message<Reply352WhoReply> {
 	/**
 	 * Checks whether the found user is /away.
 	 */
-	get isAway() {
+	get isAway(): boolean {
 		return this.params.flags.includes('G');
 	}
 
 	/**
 	 * Checks whether the found user is an IRCOp.
 	 */
-	get isOper() {
+	get isOper(): boolean {
 		return this.params.flags.includes('*');
 	}
 
 	/**
 	 * Checks whether the found user is a bot.
 	 */
-	get isBot() {
+	get isBot(): boolean {
 		return this.params.flags.includes('B');
 	}
 
