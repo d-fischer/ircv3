@@ -307,7 +307,7 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	async setupConnection() {
-		const { connection, webSocket, nonConformingCommands = [] } = this._options;
+		const { connection, webSocket = [] } = this._options;
 		const { hostName, port, secure, reconnect = true } = connection;
 
 		const connectionOptions: ConnectionInfo = {
@@ -386,25 +386,7 @@ export default class IRCClient extends EventEmitter {
 		});
 
 		this._connection.on('receive', (line: string) => {
-			this._logger.debug1(`Received message: ${line}`);
-			let parsedMessage;
-			try {
-				parsedMessage = parseMessage(
-					line,
-					this._serverProperties,
-					this._registeredMessageTypes,
-					true,
-					nonConformingCommands
-				);
-			} catch (e) {
-				this._logger.err(`Error parsing message: ${e.message}`);
-				this._logger.trace(e.stack);
-				return;
-			}
-			this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
-			this._startPingCheckTimer();
-			this.emit(this.onAnyMessage, parsedMessage);
-			this.handleEvents(parsedMessage);
+			this.receiveLine(line);
 		});
 
 		this._connection.on('disconnect', (manually: boolean, reason?: Error) => {
@@ -435,6 +417,28 @@ export default class IRCClient extends EventEmitter {
 				this._retryTimer = setTimeout(async () => this.connect(), delay * 1000);
 			}
 		});
+	}
+
+	receiveLine(line: string) {
+		this._logger.debug1(`Received message: ${line}`);
+		let parsedMessage;
+		try {
+			parsedMessage = parseMessage(
+				line,
+				this._serverProperties,
+				this._registeredMessageTypes,
+				true,
+				this._options.nonConformingCommands
+			);
+		} catch (e) {
+			this._logger.err(`Error parsing message: ${e.message}`);
+			this._logger.trace(e.stack);
+			return;
+		}
+		this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
+		this._startPingCheckTimer();
+		this.emit(this.onAnyMessage, parsedMessage);
+		this.handleEvents(parsedMessage);
 	}
 
 	get serverProperties(): ServerProperties {
