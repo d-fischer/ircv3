@@ -767,7 +767,11 @@ export default class IRCClient extends EventEmitter {
 		if (this._pingCheckTimer) {
 			clearTimeout(this._pingCheckTimer);
 		}
-		this._pingCheckTimer = setTimeout(() => this.pingCheck(), this._pingOnInactivity * 1000);
+		if (this._connection?.isConnected) {
+			this._pingCheckTimer = setTimeout(() => this.pingCheck(), this._pingOnInactivity * 1000);
+		} else {
+			this._pingCheckTimer = undefined;
+		}
 	}
 
 	// yes, this is just fibonacci with a limit
