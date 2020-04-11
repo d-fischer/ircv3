@@ -1,3 +1,5 @@
+import Capability from './Capability/Capability';
+import * as CoreCapabilities from './Capability/CoreCapabilities';
 import Message, {
 	MessageConstructor,
 	MessageParam,
@@ -8,9 +10,6 @@ import Message, {
 import * as MessageTypes from './Message/MessageTypes';
 
 export { Message, MessageConstructor, MessageTypes, MessageParam, MessageParamSpec, MessagePrefix, prefixToString };
-
-import Capability from './Capability/Capability';
-import * as CoreCapabilities from './Capability/CoreCapabilities';
 
 export { Capability, CoreCapabilities };
 

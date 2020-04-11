@@ -3,19 +3,32 @@
   "description": "Connect to and interact with IRC servers. IRCv3 compatible.",
   "version": "0.22.1",
   "main": "lib",
-  "types": "lib/index",
+  "types": "lib",
+  "module": "es",
+  "exports": {
+    ".": {
+      "require": "./lib/index.js",
+      "import": "./es/index.mjs"
+    }
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/d-fischer/ircv3.git"
   },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "lib",
+    "es"
+  ],
   "scripts": {
     "lint": "eslint --ext js,ts src",
     "prettier:check": "prettier --check 'src/**'",
     "prettier:fix": "prettier --write 'src/**'",
     "test": "jest",
-    "build": "tsc",
-    "rebuild": "rimraf lib && yarn run build"
+    "build": "ts-hybrid-esm-build",
+    "rebuild": "ts-hybrid-esm-build --clean"
   },
   "husky": {
     "hooks": {
@@ -41,21 +54,17 @@
     "jest-environment-node": "^24.8.0",
     "lint-staged": "^9.4.3",
     "prettier": "^1.18.2",
-    "rimraf": "^3.0.0",
-    "ts-jest": "^24.0.2",
-    "typescript": "~3.7.2"
+    "ts-hybrid-esm-build": "^0.2.2",
+    "ts-jest": "^24.0.2"
   },
   "dependencies": {
     "@d-fischer/connection": "^2.0.0",
-    "@d-fischer/logger": "^0.2.0",
+    "@d-fischer/logger": "^1.0.3",
     "@d-fischer/shared-utils": "^1.4.2",
     "@d-fischer/typed-event-emitter": "^2.0.0",
     "@types/clone": "^0.1.30",
     "@types/node": "^12.12.12",
-    "@types/ws": "^6.0.3",
     "clone": "^2.1.2",
-    "escape-string-regexp": "^2.0.0",
-    "universal-websocket-client": "^1.0.1",
-    "ws": "^7.2.0"
+    "escape-string-regexp": "^2.0.0"
   }
 }

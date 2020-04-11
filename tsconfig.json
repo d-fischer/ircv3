@@ -14,5 +14,5 @@
 		"forceConsistentCasingInFileNames": true,
 		"experimentalDecorators": true
 	},
-	"exclude": ["node_modules", "lib", "__tests__"]
+	"exclude": ["node_modules", "lib", "es", "__tests__"]
 }
