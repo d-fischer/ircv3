@@ -3,9 +3,9 @@ language: node_js
 dist: xenial
 
 node_js:
-    - "8"
     - "10"
-    - "11"
+    - "12"
+    - "13"
 
 cache: yarn
 
