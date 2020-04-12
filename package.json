@@ -58,7 +58,7 @@
     "ts-jest": "^24.0.2"
   },
   "dependencies": {
-    "@d-fischer/connection": "^3.0.0",
+    "@d-fischer/connection": "^3.0.1",
     "@d-fischer/logger": "^1.0.3",
     "@d-fischer/shared-utils": "^2.0.0",
     "@d-fischer/typed-event-emitter": "^3.0.0",

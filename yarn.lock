@@ -139,10 +139,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@d-fischer/connection@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-3.0.0.tgz#fb03447d760d9a52653f874fc4b499d727d72ebb"
-  integrity sha512-DmCNHjaLqEyGx3uU0oLaHPHp5JnvqOU8RQqSdZFT9ctzE2fcGx1In+Qlg481dcqOJwvaJBxr87yv9JUF731+Aw==
+"@d-fischer/connection@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-3.0.1.tgz#a2277b1eb1e93b6ad43902cf48e6806558e4cefe"
+  integrity sha512-opXr1oL2WCoJcDdFSYFMw4YKg9MiYuJDAOcv7g8cA2Na13ppEM/QQIEtrfSuqI/IeYlEMQnXxHw6lNs2s39xEw==
   dependencies:
     "@d-fischer/shared-utils" "^2.0.0"
     "@types/node" "^12.12.14"
