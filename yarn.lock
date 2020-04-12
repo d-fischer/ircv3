@@ -139,11 +139,12 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@d-fischer/connection@^2.0.0":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-2.0.1.tgz#4326aff9f1d23b0d9a2977ac3903f08e6f676c5a"
-  integrity sha512-8Jv1rN+J0nvHDlFPzjfDZpw7vlEOcQzJI2yL5I2TK8GRWjL9ZB8cIalAEIiDduMf+tWlF78lRRuPu2pvVlBQYg==
+"@d-fischer/connection@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-3.0.0.tgz#fb03447d760d9a52653f874fc4b499d727d72ebb"
+  integrity sha512-DmCNHjaLqEyGx3uU0oLaHPHp5JnvqOU8RQqSdZFT9ctzE2fcGx1In+Qlg481dcqOJwvaJBxr87yv9JUF731+Aw==
   dependencies:
+    "@d-fischer/shared-utils" "^2.0.0"
     "@types/node" "^12.12.14"
     "@types/ws" "^6.0.4"
     tslib "^1.10.0"
@@ -169,18 +170,21 @@
     detect-node "^2.0.4"
     tslib "^1.10.0"
 
-"@d-fischer/shared-utils@^1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@d-fischer/shared-utils/-/shared-utils-1.4.2.tgz#4fca7f54fac2e9127d63eb657418b13c9c368440"
-  integrity sha512-XD79muEH+V09zDkSliaDny7KAzdLIPo3noRZHltkbVq4OtCGRnU6L2y7Z3K1DSPCllS302HJ+yCpq+ZAz9U5hw==
+"@d-fischer/shared-utils@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@d-fischer/shared-utils/-/shared-utils-2.0.0.tgz#2990336a88f6f52e8cf2d4c8608c8670add856e6"
+  integrity sha512-UzMD1aAdXCHtBl1uRUbb3nO0yDdE409KQKRC6yBpnRpc67BhO2c1GfcOVvcUqO0b9Y5JyB8+S55YSfrXCPP9Wg==
   dependencies:
     "@types/node" "^12.12.14"
     tslib "^1.10.0"
 
-"@d-fischer/typed-event-emitter@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@d-fischer/typed-event-emitter/-/typed-event-emitter-2.0.0.tgz#ac6c1ac9b29f1f27e5ff51802d3f2cd57d392abd"
-  integrity sha512-RVSN/+U1s4dcmwlexjQm09ExMFqzP7vsyJ/mEdtMgCs9vZUdK73FmdlLskgY6CCrXgu/7ZbiEm8iA2QTn2blFw==
+"@d-fischer/typed-event-emitter@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@d-fischer/typed-event-emitter/-/typed-event-emitter-3.0.0.tgz#2f7afe976c8095c68b735b1315537ce0eac4b472"
+  integrity sha512-KAWM+xGkFKKnDj1GZnqcS88jPBEFquuwArsfdPm/pDAVu6FW4/WD53cvDzOnz/1b0uZ46M1tMePf2Nr1LvP51A==
+  dependencies:
+    "@types/node" "^13.11.1"
+    tslib "^1.11.1"
 
 "@jest/console@^24.7.1", "@jest/console@^24.9.0":
   version "24.9.0"
@@ -527,6 +531,11 @@
   version "12.12.27"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.27.tgz#d7506f73160ad30fcebbcf5b8b7d2d976e649e42"
   integrity sha512-odQFl/+B9idbdS0e8IxDl2ia/LP8KZLXhV3BUeI98TrZp0uoIzQPhGd+5EtzHmT0SMOIaPd7jfz6pOHLWTtl7A==
+
+"@types/node@^13.11.1":
+  version "13.11.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.11.1.tgz#49a2a83df9d26daacead30d0ccc8762b128d53c7"
+  integrity sha512-eWQGP3qtxwL8FGneRrC5DwrJLGN4/dH1clNTuLfN81HCrxVtxRjygDTUoZJ5ASlDEeo0ppYFQjQIlXhtXpOn6g==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
@@ -4765,7 +4774,7 @@ tslib@^1.10.0, tslib@^1.8.1, tslib@^1.9.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
   integrity sha512-qOebF53frne81cf0S9B41ByenJ3/IuH8yJKngAX35CmiZySA0khhkovshKK+jGCaMnVomla7gVlIcc3EvKPbTQ==
 
-tslib@^1.9.3:
+tslib@^1.11.1, tslib@^1.9.3:
   version "1.11.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.11.1.tgz#eb15d128827fbee2841549e171f45ed338ac7e35"
   integrity sha512-aZW88SY8kQbU7gpV19lN24LtXh/yD4ZZg6qieAJDDg+YBsJcSmLGK9QpnUjAKVG/xefmvJGd1WUmfpT/g6AJGA==
