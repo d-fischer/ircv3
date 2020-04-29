@@ -1,6 +1,6 @@
 import { Connection, ConnectionInfo, DirectConnection, WebSocketConnection } from '@d-fischer/connection';
-import Logger from '@d-fischer/logger';
-import LoggerOptions from '@d-fischer/logger/lib/LoggerOptions';
+import { klona } from '@d-fischer/klona';
+import Logger, { LoggerOptions } from '@d-fischer/logger';
 import {
 	arrayToObject,
 	ConstructedType,
@@ -13,7 +13,6 @@ import {
 	splitWithLimit
 } from '@d-fischer/shared-utils';
 import { EventEmitter, Listener } from '@d-fischer/typed-event-emitter';
-import * as clone from 'clone';
 
 import Capability, { ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
@@ -114,7 +113,7 @@ export default class IRCClient extends EventEmitter {
 
 	onAnyMessage = this.registerEvent<(msg: Message) => void>();
 
-	protected _serverProperties: ServerProperties = clone(defaultServerProperties, false);
+	protected _serverProperties: ServerProperties = klona(defaultServerProperties);
 	protected _supportedFeatures: { [feature: string]: true | string } = {};
 	protected _collectors: MessageCollector[] = [];
 
@@ -442,7 +441,7 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	get serverProperties(): ServerProperties {
-		return clone(this._serverProperties, false);
+		return klona(this._serverProperties);
 	}
 
 	pingCheck() {
