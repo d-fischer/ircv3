@@ -59,13 +59,13 @@
   },
   "dependencies": {
     "@d-fischer/connection": "^3.0.3",
+    "@d-fischer/escape-string-regexp": "^5.0.0",
     "@d-fischer/klona": "^1.1.5",
     "@d-fischer/logger": "^1.0.3",
     "@d-fischer/shared-utils": "^2.0.0",
     "@d-fischer/typed-event-emitter": "^3.0.0",
     "@types/clone": "^0.1.30",
     "@types/node": "^12.12.12",
-    "clone": "^2.1.2",
-    "escape-string-regexp": "^2.0.0"
+    "clone": "^2.1.2"
   }
 }

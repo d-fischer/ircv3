@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
+import escapeRegexString from '@d-fischer/escape-string-regexp';
 import { splitWithLimit } from '@d-fischer/shared-utils';
-import * as escapeRegexString from 'escape-string-regexp';
 
 export function sanitizeParameter(param: string, spaceAllowed: boolean = false) {
 	if (spaceAllowed) {
