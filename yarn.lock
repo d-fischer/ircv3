@@ -168,10 +168,10 @@
   resolved "https://registry.yarnpkg.com/@d-fischer/isomorphic-ws/-/isomorphic-ws-5.0.2.tgz#91bb78f520b6c9e4a820eb80c9be5dfeebdb08ed"
   integrity sha512-FeULiS37jd5M7nroqUw7kfnntlIW6Kilr2kn38Xjoyw/WZqwdxSAihJ2Y09aoDamrVKEW9/flbo2/y/VwHVZ6g==
 
-"@d-fischer/klona@^1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@d-fischer/klona/-/klona-1.1.4.tgz#a3e5bc95db0c76cea7b8cc6f6653dc53d92b9fb8"
-  integrity sha512-NtfmReF4MwtWRkp4P9kl11nPzBODlNaB0X6Eg/DXKiIToMjCJ90InF4MOYbwGQANSIAHmTmocYur+teeLlOUsg==
+"@d-fischer/klona@^1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@d-fischer/klona/-/klona-1.1.5.tgz#f273072fcac6f1078d2ff52e24e1d34c329eca4f"
+  integrity sha512-fdXM0iXtYcGbIxpWpUYsUi7cAMw8jXbJ75OJDFuScL/TXrrtMlZ9JOLpsZFVMzgeBOTpHLefG5KydsZEAzj95Q==
 
 "@d-fischer/logger@^1.0.3":
   version "1.0.3"

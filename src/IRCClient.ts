@@ -1,5 +1,5 @@
 import { Connection, ConnectionInfo, DirectConnection, WebSocketConnection } from '@d-fischer/connection';
-import { klona } from '@d-fischer/klona';
+import klona from '@d-fischer/klona';
 import Logger, { LoggerOptions } from '@d-fischer/logger';
 import {
 	arrayToObject,
