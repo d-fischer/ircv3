@@ -58,7 +58,7 @@
     "ts-jest": "^24.0.2"
   },
   "dependencies": {
-    "@d-fischer/connection": "^3.0.3",
+    "@d-fischer/connection": "^4.0.0",
     "@d-fischer/escape-string-regexp": "^5.0.0",
     "@d-fischer/klona": "^1.1.5",
     "@d-fischer/logger": "^1.0.3",
