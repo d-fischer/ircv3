@@ -8,8 +8,9 @@ export default class ParameterRequirementMismatchError extends Error {
 		private readonly _givenValue: string
 	) {
 		super(
-			`required parameter "${_paramName}" did not validate against ${_paramSpec.type ||
-				'regex'} validation: "${_givenValue}"`
+			`required parameter "${_paramName}" did not validate against ${
+				_paramSpec.type || 'regex'
+			} validation: "${_givenValue}"`
 		);
 
 		Object.setPrototypeOf(this, ParameterRequirementMismatchError.prototype);
