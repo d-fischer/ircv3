@@ -46,7 +46,7 @@ import { decodeCtcp } from './Toolkit/StringTools';
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface IRCCredentials {
 	nick: string;
 	password?: string;
@@ -54,7 +54,7 @@ export interface IRCCredentials {
 	realName?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface IRCClientConnectionOptions {
 	hostName: string;
 	port?: number;
@@ -64,7 +64,7 @@ export interface IRCClientConnectionOptions {
 	reconnect?: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface IRCClientOptions {
 	connection: IRCClientConnectionOptions;
 	credentials: IRCCredentials;
@@ -437,7 +437,7 @@ export default class IRCClient extends EventEmitter {
 		this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
 		this._startPingCheckTimer();
 		this.emit(this.onAnyMessage, parsedMessage);
-		this.handleEvents(parsedMessage);
+		this._handleEvents(parsedMessage);
 	}
 
 	get serverProperties(): ServerProperties {
@@ -745,7 +745,7 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	// event helper
-	private handleEvents(message: Message): void {
+	private _handleEvents(message: Message): void {
 		this._collectors.some(collector => collector.collect(message));
 
 		const handlers: EventHandlerList | undefined = this._events.get(
