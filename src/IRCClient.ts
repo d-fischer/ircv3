@@ -660,15 +660,13 @@ export default class IRCClient extends EventEmitter {
 		this.sendMessage(ChannelPart, { channel });
 	}
 
-	quit(message?: string) {
+	async quit(message?: string) {
 		if (this._retryTimer) {
 			clearInterval(this._retryTimer);
 		}
 		this._retryDelayGenerator = undefined;
 		this.sendMessage(ClientQuit, { message });
-		if (this._connection) {
-			this._connection.disconnect();
-		}
+		return this._connection?.disconnect();
 	}
 
 	say(target: string, message: string) {
