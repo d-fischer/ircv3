@@ -11,11 +11,13 @@
       "import": "./es/index.mjs"
     }
   },
-  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/d-fischer/ircv3.git"
   },
+  "author": "Daniel Fischer <daniel@d-fischer.dev>",
+  "funding": "https://github.com/sponsors/d-fischer",
+  "license": "MIT",
   "files": [
     "LICENSE",
     "README.md",
