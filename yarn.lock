@@ -282,10 +282,10 @@
   resolved "https://registry.yarnpkg.com/@d-fischer/escape-string-regexp/-/escape-string-regexp-5.0.0.tgz#40b1d52529c5674caf510213efc9c982877d01c4"
   integrity sha512-7eoxnxcto5eVPW5h1T+ePnVFukmI9f/ZR9nlBLh1t3kyzJDUNor2C+YW9H/Terw3YnbZSDgDYrpCJCHtOtAQHw==
 
-"@d-fischer/eslint-config@^1.0.3":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@d-fischer/eslint-config/-/eslint-config-1.0.7.tgz#73e2e30b5cae4c854f2fcd9ffe8c182ae53c968b"
-  integrity sha512-JHUxaq5l5w+w821YNhWHDaQ7HtyCiofQYgCaGQNA7Pr4wHKPdNnH4zdO4S3p+TyiGqF5UfPA1hPZr8DR0CanSQ==
+"@d-fischer/eslint-config@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@d-fischer/eslint-config/-/eslint-config-1.0.8.tgz#92966a2eb945ac501fa75114a63aabede393d7c4"
+  integrity sha512-wxQnKyHffc89C6/m6o42HaWZvM53UF8dqAV283LdN3u2FG7adeOR7MgPma2ErN7VUR3xjX0qkmk7RKFwHA/8kA==
   dependencies:
     "@typescript-eslint/eslint-plugin" "^3.0.2"
     "@typescript-eslint/parser" "^3.0.2"
@@ -4724,6 +4724,21 @@ tslib@^2.0.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.0.0.tgz#18d13fc2dce04051e20f074cc8387fd8089ce4f3"
   integrity sha512-lTqkx847PI7xEDYJntxZH89L2/aXInsyF2luSafe/+0fHOMjlBNXdH6th7f70qxLDhul7KZK0zC8V5ZIyHl0/g==
 
+tsukuru@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/tsukuru/-/tsukuru-0.4.1.tgz#e60bc057f7aa5087b03a3efd2e0a61e86b651f2c"
+  integrity sha512-RyKRJ9ikAnusJkcbKT/v12PMs23LZbDe5FxpLccojQQrp7ayX5oGHP5wy3lsnyB2/0p73aPvtwrlAVgWFRciNg==
+  dependencies:
+    "@oclif/command" "^1.5.19"
+    "@oclif/config" "^1.14.0"
+    "@oclif/errors" "^1.2.2"
+    "@oclif/plugin-help" "^2.2.3"
+    "@types/node" "^12.12.14"
+    "@types/rimraf" "^2.0.3"
+    chalk "^3.0.0"
+    rimraf "^3.0.2"
+    tslib "^1.10.0"
+
 tsutils@^3.17.1:
   version "3.17.1"
   resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-3.17.1.tgz#ed719917f11ca0dee586272b2ac49e015a2dd759"
@@ -4777,7 +4792,7 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@~3.8.2:
+typescript@~3.8.2, typescript@~3.8.3:
   version "3.8.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.8.3.tgz#409eb8544ea0335711205869ec458ab109ee1061"
   integrity sha512-MYlEfn5VrLNsgudQTVJeNaQFUAI7DkhnOjdpAp4T+ku1TfQClewlbSuTVHiA+8skNBgaf02TL/kLOvig4y3G8w==

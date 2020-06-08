@@ -48,7 +48,7 @@
     ]
   },
   "devDependencies": {
-    "@d-fischer/eslint-config": "^1.0.3",
+    "@d-fischer/eslint-config": "^1.0.8",
     "@types/jest": "^25.2.3",
     "eslint": "^6.1.0",
     "husky": "^4.2.5",
@@ -57,7 +57,9 @@
     "lint-staged": "^10.2.9",
     "prettier": "^2.0.5",
     "ts-hybrid-esm-build": "^0.2.2",
-    "ts-jest": "^26.1.0"
+    "ts-jest": "^26.1.0",
+    "tsukuru": "^0.4.1",
+    "typescript": "~3.8.3"
   },
   "dependencies": {
     "@d-fischer/connection": "^4.0.0",
