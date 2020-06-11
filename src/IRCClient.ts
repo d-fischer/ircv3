@@ -306,7 +306,7 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	async setupConnection() {
-		const { connection, webSocket = [] } = this._options;
+		const { connection, webSocket } = this._options;
 		const { hostName, port, secure, reconnect = true } = connection;
 
 		const connectionOptions: ConnectionInfo = {
