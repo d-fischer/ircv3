@@ -316,9 +316,9 @@ export default class IRCClient extends EventEmitter {
 			lineBased: true
 		};
 
-		this._connection = webSocket
+		const newConnection = (this._connection = webSocket
 			? new WebSocketConnection(connectionOptions)
-			: new DirectConnection(connectionOptions);
+			: new DirectConnection(connectionOptions));
 
 		this._logger.debug1('Determining connection password');
 		const password = await this.getPassword(this._credentials.password);
@@ -406,7 +406,9 @@ export default class IRCClient extends EventEmitter {
 				}
 			}
 			this.emit(this.onDisconnect, manually, reason);
-			this._connection = undefined;
+			if (this._connection === newConnection) {
+				this._connection = undefined;
+			}
 			if (!manually && reconnect) {
 				if (!this._retryDelayGenerator) {
 					this._retryDelayGenerator = IRCClient._getReconnectWaitTime();
