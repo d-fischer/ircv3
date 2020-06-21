@@ -1,9 +1,16 @@
-import { Connection, ConnectionInfo, DirectConnection, WebSocketConnection } from '@d-fischer/connection';
+import {
+	Connection,
+	ConnectionInfo,
+	DirectConnection,
+	PersistentConnection,
+	WebSocketConnection
+} from '@d-fischer/connection';
 import klona from '@d-fischer/klona';
 import Logger, { LoggerOptions } from '@d-fischer/logger';
 import {
 	arrayToObject,
 	ConstructedType,
+	Constructor,
 	forEachObjectEntry,
 	NonEnumerable,
 	ObjMap,
@@ -76,7 +83,7 @@ export interface IRCClientOptions {
 }
 
 export default class IRCClient extends EventEmitter {
-	protected _connection?: Connection;
+	protected _connection: Connection;
 	protected _registered: boolean = false;
 
 	@NonEnumerable protected _options: IRCClientOptions;
@@ -128,15 +135,13 @@ export default class IRCClient extends EventEmitter {
 
 	protected _currentNick: string;
 
-	private _retryDelayGenerator?: IterableIterator<number>;
-	private _retryTimer?: NodeJS.Timer;
-
 	private readonly _logger: Logger;
+	private _initialConnectionSetupDone = false;
 
 	constructor(options: IRCClientOptions) {
 		super();
 
-		const { connection, credentials, channels, channelTypes, logger = {} } = options;
+		const { connection, credentials, channels, channelTypes, webSocket, logger = {} } = options;
 
 		this._options = options;
 
@@ -149,6 +154,22 @@ export default class IRCClient extends EventEmitter {
 		this._logger = new Logger({ name: 'ircv3', emoji: true, ...logger });
 
 		this.registerCoreMessageTypes();
+
+		const { hostName, secure, reconnect = true } = connection;
+
+		const connectionOptions: ConnectionInfo = {
+			hostName,
+			port: this.port,
+			secure,
+			lineBased: true
+		};
+
+		const ConnectionType: Constructor<Connection> = webSocket ? WebSocketConnection : DirectConnection;
+		if (reconnect) {
+			this._connection = new PersistentConnection(ConnectionType, connectionOptions, { logger: this._logger });
+		} else {
+			this._connection = new ConnectionType(connectionOptions);
+		}
 
 		for (const cap of Object.values(CoreCapabilities)) {
 			this.registerCapability(cap);
@@ -306,20 +327,6 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	async setupConnection() {
-		const { connection, webSocket } = this._options;
-		const { hostName, port, secure, reconnect = true } = connection;
-
-		const connectionOptions: ConnectionInfo = {
-			hostName,
-			port,
-			secure,
-			lineBased: true
-		};
-
-		const newConnection = (this._connection = webSocket
-			? new WebSocketConnection(connectionOptions)
-			: new DirectConnection(connectionOptions));
-
 		this._logger.debug1('Determining connection password');
 		const password = await this.getPassword(this._credentials.password);
 		if (password) {
@@ -328,9 +335,13 @@ export default class IRCClient extends EventEmitter {
 			}
 		}
 
-		this._connection.on('connect', async () => {
-			this._retryDelayGenerator = undefined;
-			this._logger.info(`Connection to server ${this._connection!.host}:${this._connection!.port} established`);
+		if (this._initialConnectionSetupDone) {
+			return;
+		}
+		this._initialConnectionSetupDone = true;
+
+		this._connection.onConnect(async () => {
+			this._logger.info(`Connection to server ${this._connection.host}:${this._connection.port} established`);
 			this.sendMessageAndCaptureReply(CapabilityNegotiation, {
 				subCommand: 'LS',
 				version: '302'
@@ -384,11 +395,11 @@ export default class IRCClient extends EventEmitter {
 			});
 		});
 
-		this._connection.on('receive', (line: string) => {
+		this._connection.onReceive((line: string) => {
 			this.receiveLine(line);
 		});
 
-		this._connection.on('disconnect', (manually: boolean, reason?: Error) => {
+		this._connection.onDisconnect((manually: boolean, reason?: Error) => {
 			this._registered = false;
 			if (this._pingCheckTimer) {
 				clearTimeout(this._pingCheckTimer);
@@ -397,7 +408,7 @@ export default class IRCClient extends EventEmitter {
 				clearTimeout(this._pingTimeoutTimer);
 			}
 			if (manually) {
-				this._logger.info('Disconnected manually');
+				this._logger.info('Disconnected');
 			} else {
 				if (reason) {
 					this._logger.err(`Disconnected unexpectedly: ${reason.message}`);
@@ -406,18 +417,16 @@ export default class IRCClient extends EventEmitter {
 				}
 			}
 			this.emit(this.onDisconnect, manually, reason);
-			if (this._connection === newConnection) {
-				this._connection = undefined;
-			}
-			if (!manually && reconnect) {
-				if (!this._retryDelayGenerator) {
-					this._retryDelayGenerator = IRCClient._getReconnectWaitTime();
-				}
-				const delay = this._retryDelayGenerator.next().value;
-				this._logger.info(`Reconnecting in ${delay} seconds`);
-				this._retryTimer = setTimeout(async () => this.connect(), delay * 1000);
-			}
 		});
+
+		// eslint-disable-next-line no-restricted-syntax
+		if (this._options.connection.reconnect !== false) {
+			this._connection.onEnd(manually => {
+				if (!manually) {
+					this._logger.info('No further retries will be made');
+				}
+			});
+		}
 	}
 
 	receiveLine(line: string) {
@@ -446,6 +455,23 @@ export default class IRCClient extends EventEmitter {
 		return klona(this._serverProperties);
 	}
 
+	get port() {
+		const {
+			webSocket,
+			connection: { port, secure }
+		} = this._options;
+
+		if (port) {
+			return port;
+		}
+
+		if (webSocket) {
+			return secure ? 443 : 80;
+		}
+
+		return secure ? 6697 : 6667;
+	}
+
 	pingCheck() {
 		const now = Date.now();
 		const nowStr = now.toString();
@@ -461,16 +487,22 @@ export default class IRCClient extends EventEmitter {
 				this.removeMessageListener(handler);
 			}
 		});
-		this._pingTimeoutTimer = setTimeout(() => {
-			this._logger.warn(`Reconnecting because the last ping took over ${this._pingTimeout} seconds`);
+		this._pingTimeoutTimer = setTimeout(async () => {
 			this.removeMessageListener(handler);
-			this.reconnect('Ping timeout');
+			// eslint-disable-next-line no-restricted-syntax
+			if (this._options.connection.reconnect === false) {
+				this._logger.error(`Disconnecting because the last ping took over ${this._pingTimeout} seconds`);
+				await this.quit('Ping timeout');
+			} else {
+				this._logger.warn(`Reconnecting because the last ping took over ${this._pingTimeout} seconds`);
+				await this.reconnect('Ping timeout');
+			}
 		}, this._pingTimeout * 1000);
 		this.sendMessage(Ping, { message: nowStr });
 	}
 
 	async reconnect(message?: string) {
-		this.quit(message);
+		await this.quit(message);
 		return this.connect();
 	}
 
@@ -494,8 +526,8 @@ export default class IRCClient extends EventEmitter {
 		this._negotiatedCapabilities = new Map();
 		this._currentNick = this._credentials.nick;
 		await this.setupConnection();
-		this._logger.info(`Connecting to ${this._connection!.host}:${this._connection!.port}`);
-		await this._connection!.connect();
+		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
+		await this._connection.connect();
 		this.emit(this.onConnect);
 	}
 
@@ -552,7 +584,7 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	sendRaw(line: string) {
-		if (this._connection) {
+		if (this._connection.isConnected) {
 			this._logger.debug1(`Sending message: ${line}`);
 			this._connection.sendLine(line);
 		}
@@ -623,11 +655,11 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	get isConnected() {
-		return this._connection ? this._connection.isConnected : false;
+		return this._connection.isConnected;
 	}
 
 	get isConnecting() {
-		return this._connection ? this._connection.isConnecting : false;
+		return this._connection.isConnecting;
 	}
 
 	get isRegistered() {
@@ -663,12 +695,8 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	async quit(message?: string) {
-		if (this._retryTimer) {
-			clearInterval(this._retryTimer);
-		}
-		this._retryDelayGenerator = undefined;
 		this.sendMessage(ClientQuit, { message });
-		return this._connection?.disconnect();
+		return this._connection.disconnect();
 	}
 
 	say(target: string, message: string) {
@@ -766,25 +794,10 @@ export default class IRCClient extends EventEmitter {
 		if (this._pingCheckTimer) {
 			clearTimeout(this._pingCheckTimer);
 		}
-		if (this._connection?.isConnected) {
+		if (this._connection.isConnected) {
 			this._pingCheckTimer = setTimeout(() => this.pingCheck(), this._pingOnInactivity * 1000);
 		} else {
 			this._pingCheckTimer = undefined;
-		}
-	}
-
-	// yes, this is just fibonacci with a limit
-	private static *_getReconnectWaitTime(): IterableIterator<number> {
-		let current = 0;
-		let next = 1;
-
-		while (current < 120) {
-			yield current;
-			[current, next] = [next, current + next];
-		}
-
-		while (true) {
-			yield 120;
 		}
 	}
 }
