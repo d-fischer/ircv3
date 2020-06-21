@@ -172,7 +172,7 @@ export default class IRCClient extends EventEmitter {
 		}
 
 		for (const cap of Object.values(CoreCapabilities)) {
-			this.registerCapability(cap);
+			this._registerCapabilityInternal(cap);
 		}
 
 		if (channels) {
@@ -186,13 +186,13 @@ export default class IRCClient extends EventEmitter {
 			});
 		}
 
-		this.onMessage(CapabilityNegotiation, ({ params: { subCommand, capabilities } }) => {
+		this.onMessage(CapabilityNegotiation, async ({ params: { subCommand, capabilities } }) => {
 			const caps = capabilities.split(' ');
 
 			// eslint-disable-next-line default-case
 			switch (subCommand.toUpperCase()) {
 				case 'NEW': {
-					this._logger.debug2(`Server registered new capabilities: ${caps.join(', ')}`);
+					this._logger.debug(`Server registered new capabilities: ${caps.join(', ')}`);
 					const capList = arrayToObject<string, ServerCapability, {}>(caps, (part: string) => {
 						if (!part) {
 							return {};
@@ -209,7 +209,7 @@ export default class IRCClient extends EventEmitter {
 						this._serverCapabilities.set(name, cap);
 					}
 					const capNames = Object.keys(capList);
-					this._negotiateCapabilities(
+					await this._negotiateCapabilities(
 						Array.from(this._clientCapabilities.entries())
 							.filter(([name]) => capNames.includes(name))
 							.map(([, cap]) => cap)
@@ -218,7 +218,7 @@ export default class IRCClient extends EventEmitter {
 				}
 
 				case 'DEL': {
-					this._logger.debug2(`Server removed capabilities: ${caps.join(', ')}`);
+					this._logger.debug(`Server removed capabilities: ${caps.join(', ')}`);
 					for (const cap of caps) {
 						this._serverCapabilities.delete(cap);
 						this._negotiatedCapabilities.delete(cap);
@@ -327,7 +327,7 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	async setupConnection() {
-		this._logger.debug1('Determining connection password');
+		this._logger.debug('Determining connection password');
 		const password = await this.getPassword(this._credentials.password);
 		if (password) {
 			if (password !== this._credentials.password) {
@@ -347,7 +347,7 @@ export default class IRCClient extends EventEmitter {
 				version: '302'
 			}).then((capReply: Message[]) => {
 				if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
-					this._logger.debug2('Server does not support capabilities');
+					this._logger.debug('Server does not support capabilities');
 					return;
 				}
 				this._supportsCapabilities = true;
@@ -368,7 +368,7 @@ export default class IRCClient extends EventEmitter {
 				this._serverCapabilities = new Map<string, ServerCapability>(
 					Object.entries(Object.assign({}, ...capLists))
 				);
-				this._logger.debug2(
+				this._logger.debug(
 					`Capabilities supported by server: ${Array.from(this._serverCapabilities.keys()).join(', ')}`
 				);
 				const capabilitiesToNegotiate = capLists.map(list => {
@@ -430,7 +430,7 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	receiveLine(line: string) {
-		this._logger.debug1(`Received message: ${line}`);
+		this._logger.debug(`Received message: ${line}`);
 		let parsedMessage;
 		try {
 			parsedMessage = parseMessage(
@@ -445,7 +445,7 @@ export default class IRCClient extends EventEmitter {
 			this._logger.trace(e.stack);
 			return;
 		}
-		this._logger.debug3(`Parsed message: ${JSON.stringify(parsedMessage)}`);
+		this._logger.trace(`Parsed message: ${JSON.stringify(parsedMessage)}`);
 		this._startPingCheckTimer();
 		this.emit(this.onAnyMessage, parsedMessage);
 		this._handleEvents(parsedMessage);
@@ -480,7 +480,7 @@ export default class IRCClient extends EventEmitter {
 				params: { message }
 			} = msg;
 			if (message === nowStr) {
-				this._logger.debug2(`Current ping: ${Date.now() - now}ms`);
+				this._logger.debug(`Current ping: ${Date.now() - now}ms`);
 				if (this._pingTimeoutTimer) {
 					clearTimeout(this._pingTimeoutTimer);
 				}
@@ -508,7 +508,7 @@ export default class IRCClient extends EventEmitter {
 
 	registerMessageType(cls: MessageConstructor) {
 		if (cls.COMMAND !== '') {
-			this._logger.debug3(`Registering message type ${cls.COMMAND}`);
+			this._logger.trace(`Registering message type ${cls.COMMAND}`);
 			this._registeredMessageTypes.set(cls.COMMAND.toUpperCase(), cls);
 		}
 	}
@@ -564,13 +564,7 @@ export default class IRCClient extends EventEmitter {
 	}
 
 	async registerCapability(cap: Capability) {
-		this._clientCapabilities.set(cap.name, cap);
-
-		if (cap.messageTypes) {
-			for (const messageType of cap.messageTypes) {
-				this.registerMessageType(messageType);
-			}
-		}
+		this._registerCapabilityInternal(cap);
 
 		if (this._serverCapabilities.has(cap.name)) {
 			return this._negotiateCapabilities([cap]);
@@ -585,7 +579,7 @@ export default class IRCClient extends EventEmitter {
 
 	sendRaw(line: string) {
 		if (this._connection.isConnected) {
-			this._logger.debug1(`Sending message: ${line}`);
+			this._logger.debug(`Sending message: ${line}`);
 			this._connection.sendLine(line);
 		}
 	}
@@ -595,6 +589,7 @@ export default class IRCClient extends EventEmitter {
 		handler: EventHandler<ConstructedType<C>>,
 		handlerName?: string
 	): string;
+
 	onMessage<T extends Message>(type: string, handler: EventHandler, handlerName?: string): string;
 	onMessage<T extends Message>(
 		type: typeof Message | string,
@@ -618,7 +613,6 @@ export default class IRCClient extends EventEmitter {
 
 		return handlerName;
 	}
-
 	removeMessageListener(handlerName: string) {
 		const [commandName] = handlerName.split(':');
 		if (!this._events.has(commandName)) {
@@ -754,7 +748,7 @@ export default class IRCClient extends EventEmitter {
 		const negotiatedCapNames = capReply.params.capabilities.split(' ').filter(c => c);
 		if (capReply.params.subCommand === 'ACK') {
 			// filter is necessary because some networks seem to add trailing spaces...
-			this._logger.debug2(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
+			this._logger.debug(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
 			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(
 				capName => (mappedCapList as { [name: string]: ServerCapability })[capName]
 			);
@@ -765,13 +759,23 @@ export default class IRCClient extends EventEmitter {
 			}
 			return newNegotiatedCaps;
 		} else {
-			this._logger.debug2(`Failed to negotiate capabilities: ${negotiatedCapNames.join(', ')}`);
+			this._logger.warn(`Failed to negotiate capabilities: ${negotiatedCapNames.join(', ')}`);
 			return new Error('capabilities failed to negotiate');
 		}
 	}
 
 	protected _updateCredentials(newCredentials: Partial<IRCCredentials>) {
 		this._credentials = { ...this._credentials, ...newCredentials };
+	}
+
+	private _registerCapabilityInternal(cap: Capability) {
+		this._clientCapabilities.set(cap.name, cap);
+
+		if (cap.messageTypes) {
+			for (const messageType of cap.messageTypes) {
+				this.registerMessageType(messageType);
+			}
+		}
 	}
 
 	// event helper
