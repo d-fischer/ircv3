@@ -22,7 +22,8 @@
     "LICENSE",
     "README.md",
     "lib",
-    "es"
+    "es",
+    "!**/__tests__"
   ],
   "scripts": {
     "lint": "eslint --ext js,ts src",
