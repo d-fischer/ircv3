@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('JOIN')
-export default class ChannelJoin extends Message<ChannelJoin> {
+export class ChannelJoin extends Message<ChannelJoin> {
 	@MessageParamDefinition({
 		type: 'channel'
 	})

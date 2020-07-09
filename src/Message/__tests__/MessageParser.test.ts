@@ -1,5 +1,5 @@
 import { parseMessage, parseTags } from '../MessageParser';
-import PrivateMessage from '../MessageTypes/Commands/PrivateMessage';
+import { PrivateMessage } from '../MessageTypes/Commands/PrivateMessage';
 
 describe('Message parser', () => {
 	it('parses a standard message without tags', () => {

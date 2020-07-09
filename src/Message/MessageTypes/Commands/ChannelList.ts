@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('LIST')
-export default class ChannelList extends Message<ChannelList> {
+export class ChannelList extends Message<ChannelList> {
 	@MessageParamDefinition({
 		type: 'channel',
 		optional: true

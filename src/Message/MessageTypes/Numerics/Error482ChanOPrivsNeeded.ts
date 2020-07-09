@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('482')
-export default class Error482ChanOPrivsNeeded extends Message<Error482ChanOPrivsNeeded> {
+export class Error482ChanOPrivsNeeded extends Message<Error482ChanOPrivsNeeded> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

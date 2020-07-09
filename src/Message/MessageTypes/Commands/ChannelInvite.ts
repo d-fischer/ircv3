@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('INVITE')
-export default class ChannelInvite extends Message<ChannelInvite> {
+export class ChannelInvite extends Message<ChannelInvite> {
 	@MessageParamDefinition({})
 	target!: MessageParam;
 

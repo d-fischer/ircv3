@@ -1,6 +1,6 @@
 import { MessageParamSpecEntry } from '../Message/Message';
 
-export default class ParameterRequirementMismatchError extends Error {
+export class ParameterRequirementMismatchError extends Error {
 	constructor(
 		private readonly _command: string,
 		private readonly _paramName: string,

@@ -1,8 +1,6 @@
-import Capability from '../Capability';
+import { Capability } from '../Capability';
 
 // dummy capability, the code handles both single and multiple prefixes just fine
-const MultiPrefixCapability: Capability = {
+export const MultiPrefixCapability: Capability = {
 	name: 'multi-prefix'
 };
-
-export default MultiPrefixCapability;

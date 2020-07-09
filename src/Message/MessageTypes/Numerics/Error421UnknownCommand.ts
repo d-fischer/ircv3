@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('421')
-export default class Error421UnknownCommand extends Message<Error421UnknownCommand> {
+export class Error421UnknownCommand extends Message<Error421UnknownCommand> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

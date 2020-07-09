@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('376')
-export default class Reply376EndOfMOTD extends Message<Reply376EndOfMOTD> {
+export class Reply376EndOfMOTD extends Message<Reply376EndOfMOTD> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

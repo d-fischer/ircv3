@@ -1,6 +1,6 @@
 import { AllowedNames, forEachObjectEntry } from '@d-fischer/shared-utils';
-import NotEnoughParametersError from '../Errors/NotEnoughParametersError';
-import ParameterRequirementMismatchError from '../Errors/ParameterRequirementMismatchError';
+import { NotEnoughParametersError } from '../Errors/NotEnoughParametersError';
+import { ParameterRequirementMismatchError } from '../Errors/ParameterRequirementMismatchError';
 import { defaultServerProperties, ServerProperties } from '../ServerProperties';
 import { isChannel } from '../Toolkit/StringTools';
 
@@ -118,7 +118,7 @@ export function createMessage<T extends Message<T>>(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default class Message<T extends Message<T> = any> {
+export class Message<T extends Message<T> = any> {
 	static readonly COMMAND: string = '';
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	static readonly PARAM_SPEC: MessageParamSpec<any>;

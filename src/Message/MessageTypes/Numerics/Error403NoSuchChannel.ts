@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('403')
-export default class Error403NoSuchChannel extends Message<Error403NoSuchChannel> {
+export class Error403NoSuchChannel extends Message<Error403NoSuchChannel> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

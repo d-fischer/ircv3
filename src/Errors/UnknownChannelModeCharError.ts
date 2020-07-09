@@ -1,4 +1,4 @@
-export default class UnknownChannelModeCharError extends Error {
+export class UnknownChannelModeCharError extends Error {
 	constructor(private readonly _char: string) {
 		super(`Unknown channel mode character ${_char}`);
 

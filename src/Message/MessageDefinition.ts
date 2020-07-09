@@ -1,4 +1,4 @@
-import Message, { MessageConstructor, MessageParamSpecEntry } from './Message';
+import { Message, MessageConstructor, MessageParamSpecEntry } from './Message';
 
 const isMessageType = (ctor: Function): ctor is MessageConstructor =>
 	Object.prototype.isPrototypeOf.call(Message, ctor);

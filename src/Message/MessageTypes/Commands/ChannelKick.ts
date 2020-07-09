@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('KICK')
-export default class ChannelKick extends Message<ChannelKick> {
+export class ChannelKick extends Message<ChannelKick> {
 	@MessageParamDefinition({
 		type: 'channel'
 	})

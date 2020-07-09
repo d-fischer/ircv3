@@ -1,6 +1,6 @@
 import { Commands } from '../Message/MessageTypes';
 
-export default class MessageError extends Error {
+export class MessageError extends Error {
 	readonly ircMessage: Commands.ErrorMessage;
 
 	constructor(msg: Commands.ErrorMessage) {

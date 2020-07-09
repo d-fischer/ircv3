@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('PING')
-export default class Ping extends Message<Ping> {
+export class Ping extends Message<Ping> {
 	@MessageParamDefinition({
 		trailing: true
 	})

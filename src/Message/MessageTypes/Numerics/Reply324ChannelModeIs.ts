@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('324')
-export default class Reply324ChannelModeIs extends Message<Reply324ChannelModeIs> {
+export class Reply324ChannelModeIs extends Message<Reply324ChannelModeIs> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

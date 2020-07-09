@@ -1,4 +1,4 @@
-export default class NotEnoughParametersError extends Error {
+export class NotEnoughParametersError extends Error {
 	constructor(
 		private readonly _command: string,
 		private readonly _expectedParams: number,

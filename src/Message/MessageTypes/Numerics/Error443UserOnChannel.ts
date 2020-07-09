@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('443')
-export default class Error443UserOnChannel extends Message<Error443UserOnChannel> {
+export class Error443UserOnChannel extends Message<Error443UserOnChannel> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

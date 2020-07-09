@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('WHOWAS')
-export default class WhoWasQuery extends Message<WhoWasQuery> {
+export class WhoWasQuery extends Message<WhoWasQuery> {
 	@MessageParamDefinition({})
 	nickname!: MessageParam;
 

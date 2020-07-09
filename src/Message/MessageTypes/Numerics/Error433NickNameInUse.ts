@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('433')
-export default class Error433NickNameInUse extends Message<Error433NickNameInUse> {
+export class Error433NickNameInUse extends Message<Error433NickNameInUse> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

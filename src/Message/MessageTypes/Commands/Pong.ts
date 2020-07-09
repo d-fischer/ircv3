@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('PONG')
-export default class Pong extends Message<Pong> {
+export class Pong extends Message<Pong> {
 	@MessageParamDefinition({
 		noClient: true
 	})

@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('WHO')
-export default class WhoQuery extends Message<WhoQuery> {
+export class WhoQuery extends Message<WhoQuery> {
 	@MessageParamDefinition({
 		optional: true
 	})

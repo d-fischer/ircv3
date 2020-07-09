@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('USERHOST')
-export default class UserHostQuery extends Message<UserHostQuery> {
+export class UserHostQuery extends Message<UserHostQuery> {
 	@MessageParamDefinition({
 		rest: true
 	})

@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('KILL')
-export default class Kill extends Message<Kill> {
+export class Kill extends Message<Kill> {
 	@MessageParamDefinition({})
 	target!: MessageParam;
 

@@ -1,5 +1,5 @@
-import Message from '../../Message';
+import { Message } from '../../Message';
 import { MessageType } from '../../MessageDefinition';
 
 @MessageType('RESTART')
-export default class Restart extends Message {}
+export class Restart extends Message {}

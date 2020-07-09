@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('331')
-export default class Reply331NoTopic extends Message<Reply331NoTopic> {
+export class Reply331NoTopic extends Message<Reply331NoTopic> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

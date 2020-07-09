@@ -1,4 +1,4 @@
-export { default as AwayNotify } from './AwayNotifyCapability';
-export { default as ChgHost } from './ChgHostCapability';
-export { default as InviteNotify } from './InviteNotifyCapability';
-export { default as MultiPrefix } from './MultiPrefixCapability';
+export { AwayNotifyCapability as AwayNotify } from './AwayNotifyCapability';
+export { ChgHostCapability as ChgHost } from './ChgHostCapability';
+export { InviteNotifyCapability as InviteNotify } from './InviteNotifyCapability';
+export { MultiPrefixCapability as MultiPrefix } from './MultiPrefixCapability';

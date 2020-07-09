@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('ERROR')
-export default class ErrorMessage extends Message<ErrorMessage> {
+export class ErrorMessage extends Message<ErrorMessage> {
 	@MessageParamDefinition({
 		trailing: true
 	})

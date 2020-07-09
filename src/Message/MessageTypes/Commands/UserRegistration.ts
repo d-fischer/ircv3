@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('USER')
-export default class UserRegistration extends Message<UserRegistration> {
+export class UserRegistration extends Message<UserRegistration> {
 	@MessageParamDefinition({})
 	user!: MessageParam;
 

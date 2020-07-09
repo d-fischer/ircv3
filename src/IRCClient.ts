@@ -21,11 +21,11 @@ import {
 } from '@d-fischer/shared-utils';
 import { EventEmitter, Listener } from '@d-fischer/typed-event-emitter';
 
-import Capability, { ServerCapability } from './Capability/Capability';
+import { Capability, ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
-import MessageError from './Errors/MessageError';
-import Message, { createMessage, MessageConstructor, MessageParamValues } from './Message/Message';
-import MessageCollector from './Message/MessageCollector';
+import { MessageError } from './Errors/MessageError';
+import { createMessage, Message, MessageConstructor, MessageParamValues } from './Message/Message';
+import { MessageCollector } from './Message/MessageCollector';
 import { parseMessage } from './Message/MessageParser';
 import * as MessageTypes from './Message/MessageTypes';
 import {
@@ -40,7 +40,7 @@ import {
 	PrivateMessage,
 	UserRegistration
 } from './Message/MessageTypes/Commands';
-import ClientQuit from './Message/MessageTypes/Commands/ClientQuit';
+import { ClientQuit } from './Message/MessageTypes/Commands/ClientQuit';
 import {
 	Error462AlreadyRegistered,
 	Reply001Welcome,
@@ -82,7 +82,7 @@ export interface IRCClientOptions {
 	nonConformingCommands?: string[];
 }
 
-export default class IRCClient extends EventEmitter {
+export class IRCClient extends EventEmitter {
 	protected _connection: Connection;
 	protected _registered: boolean = false;
 

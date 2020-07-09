@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('ISON')
-export default class IsOnQuery extends Message<IsOnQuery> {
+export class IsOnQuery extends Message<IsOnQuery> {
 	@MessageParamDefinition({
 		rest: true
 	})

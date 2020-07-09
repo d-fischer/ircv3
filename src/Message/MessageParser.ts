@@ -1,6 +1,6 @@
 import { splitWithLimit } from '@d-fischer/shared-utils';
 import { defaultServerProperties, ServerProperties } from '../ServerProperties';
-import Message, { MessageConstructor, MessageParam, MessagePrefix } from './Message';
+import { Message, MessageConstructor, MessageParam, MessagePrefix } from './Message';
 import { all as coreMessageTypes } from './MessageTypes';
 
 export function parsePrefix(raw: string): MessagePrefix {

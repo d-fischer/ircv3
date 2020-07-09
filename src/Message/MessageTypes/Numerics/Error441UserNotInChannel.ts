@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('441')
-export default class Error441UserNotInChannel extends Message<Error441UserNotInChannel> {
+export class Error441UserNotInChannel extends Message<Error441UserNotInChannel> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

@@ -1,6 +1,7 @@
-import Capability from './Capability/Capability';
+import { Capability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
-import Message, {
+import {
+	Message,
 	MessageConstructor,
 	MessageParam,
 	MessageParamSpec,
@@ -15,15 +16,15 @@ export { Capability, CoreCapabilities };
 
 export { isChannel } from './Toolkit/StringTools';
 
-export { default } from './IRCClient';
+export { IRCClient } from './IRCClient';
 export { parseMessage, parsePrefix, parseTags } from './Message/MessageParser';
 export { AccessLevelDefinition, defaultServerProperties } from './ServerProperties';
 export { SupportedModesByType, ServerProperties } from './ServerProperties';
 
-export { default as MessageError } from './Errors/MessageError';
-export { default as NotEnoughParametersError } from './Errors/NotEnoughParametersError';
-export { default as ParameterRequirementMismatchError } from './Errors/ParameterRequirementMismatchError';
-export { default as UnknownChannelModeCharError } from './Errors/UnknownChannelModeCharError';
+export { MessageError } from './Errors/MessageError';
+export { NotEnoughParametersError } from './Errors/NotEnoughParametersError';
+export { ParameterRequirementMismatchError } from './Errors/ParameterRequirementMismatchError';
+export { UnknownChannelModeCharError } from './Errors/UnknownChannelModeCharError';
 
 export { SingleMode } from './Message/MessageTypes/Commands/Mode';
 

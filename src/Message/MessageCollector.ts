@@ -1,10 +1,10 @@
 import { Listener } from '@d-fischer/typed-event-emitter';
-import Message, { MessageConstructor } from './Message';
-import IRCClient from '../IRCClient';
+import { IRCClient } from '../IRCClient';
+import { Message, MessageConstructor } from './Message';
 
 export type MessageCollectorEndCallback = (messages: Message[]) => void;
 
-export default class MessageCollector {
+export class MessageCollector {
 	protected _types: Set<MessageConstructor>;
 	protected _messages: Message[] = [];
 	protected _promise?: Promise<Message[]>;

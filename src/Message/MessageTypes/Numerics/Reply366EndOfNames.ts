@@ -1,9 +1,9 @@
-import Message, { MessageParam } from '../../Message';
-import Names from '../Commands/Names';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Names } from '../Commands/Names';
 
 @MessageType('366')
-export default class Reply366EndOfNames extends Message<Reply366EndOfNames> {
+export class Reply366EndOfNames extends Message<Reply366EndOfNames> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

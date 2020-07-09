@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('401')
-export default class Error401NoSuchNick extends Message<Error401NoSuchNick> {
+export class Error401NoSuchNick extends Message<Error401NoSuchNick> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

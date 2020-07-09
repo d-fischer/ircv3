@@ -1,9 +1,9 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
-import WhoQuery from '../Commands/WhoQuery';
+import { WhoQuery } from '../Commands/WhoQuery';
 
 @MessageType('352')
-export default class Reply352WhoReply extends Message<Reply352WhoReply> {
+export class Reply352WhoReply extends Message<Reply352WhoReply> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

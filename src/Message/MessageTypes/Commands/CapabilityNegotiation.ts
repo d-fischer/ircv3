@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('CAP')
-export default class CapabilityNegotiation extends Message<CapabilityNegotiation> {
+export class CapabilityNegotiation extends Message<CapabilityNegotiation> {
 	static readonly SUPPORTS_CAPTURE = true;
 
 	@MessageParamDefinition({

@@ -1,8 +1,8 @@
-import Message, { MessageParam } from '../../Message';
+import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('004')
-export default class Reply004ServerInfo extends Message<Reply004ServerInfo> {
+export class Reply004ServerInfo extends Message<Reply004ServerInfo> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 
