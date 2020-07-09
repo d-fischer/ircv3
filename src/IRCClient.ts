@@ -11,8 +11,8 @@ import {
 	arrayToObject,
 	ConstructedType,
 	Constructor,
+	Enumerable,
 	forEachObjectEntry,
-	NonEnumerable,
 	ObjMap,
 	padLeft,
 	ResolvableValue,
@@ -86,8 +86,8 @@ export class IRCClient extends EventEmitter {
 	protected _connection: Connection;
 	protected _registered: boolean = false;
 
-	@NonEnumerable protected _options: IRCClientOptions;
-	@NonEnumerable protected _credentials: IRCCredentials;
+	@Enumerable(false) protected _options: IRCClientOptions;
+	@Enumerable(false) protected _credentials: IRCCredentials;
 
 	protected _supportsCapabilities: boolean = true;
 
