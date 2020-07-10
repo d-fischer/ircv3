@@ -172,7 +172,7 @@ export class IRCClient extends EventEmitter {
 		}
 
 		for (const cap of Object.values(CoreCapabilities)) {
-			this._registerCapabilityInternal(cap);
+			this.addCapability(cap);
 		}
 
 		if (channels) {
@@ -563,8 +563,18 @@ export class IRCClient extends EventEmitter {
 		});
 	}
 
+	addCapability(cap: Capability) {
+		this._clientCapabilities.set(cap.name, cap);
+
+		if (cap.messageTypes) {
+			for (const messageType of cap.messageTypes) {
+				this.registerMessageType(messageType);
+			}
+		}
+	}
+
 	async registerCapability(cap: Capability) {
-		this._registerCapabilityInternal(cap);
+		this.addCapability(cap);
 
 		if (this._serverCapabilities.has(cap.name)) {
 			return this._negotiateCapabilities([cap]);
@@ -589,7 +599,6 @@ export class IRCClient extends EventEmitter {
 		handler: EventHandler<ConstructedType<C>>,
 		handlerName?: string
 	): string;
-
 	onMessage<T extends Message>(type: string, handler: EventHandler, handlerName?: string): string;
 	onMessage<T extends Message>(
 		type: typeof Message | string,
@@ -613,6 +622,7 @@ export class IRCClient extends EventEmitter {
 
 		return handlerName;
 	}
+
 	removeMessageListener(handlerName: string) {
 		const [commandName] = handlerName.split(':');
 		if (!this._events.has(commandName)) {
@@ -766,16 +776,6 @@ export class IRCClient extends EventEmitter {
 
 	protected _updateCredentials(newCredentials: Partial<IRCCredentials>) {
 		this._credentials = { ...this._credentials, ...newCredentials };
-	}
-
-	private _registerCapabilityInternal(cap: Capability) {
-		this._clientCapabilities.set(cap.name, cap);
-
-		if (cap.messageTypes) {
-			for (const messageType of cap.messageTypes) {
-				this.registerMessageType(messageType);
-			}
-		}
 	}
 
 	// event helper
