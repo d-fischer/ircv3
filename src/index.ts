@@ -16,7 +16,7 @@ export { Capability, CoreCapabilities };
 
 export { isChannel } from './Toolkit/StringTools';
 
-export { IRCClient } from './IRCClient';
+export { IrcClient } from './IrcClient';
 export { parseMessage, parsePrefix, parseTags } from './Message/MessageParser';
 export { AccessLevelDefinition, defaultServerProperties } from './ServerProperties';
 export { SupportedModesByType, ServerProperties } from './ServerProperties';

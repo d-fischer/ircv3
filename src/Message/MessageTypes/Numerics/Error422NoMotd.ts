@@ -2,7 +2,7 @@ import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('422')
-export class Error422NoMOTD extends Message<Error422NoMOTD> {
+export class Error422NoMotd extends Message<Error422NoMotd> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 

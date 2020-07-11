@@ -1,13 +1,11 @@
 import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-@MessageType('501')
-export class Error501UModeUnknownFlag extends Message<Error501UModeUnknownFlag> {
+@MessageType('221')
+export class Reply221UmodeIs extends Message<Reply221UmodeIs> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+	@MessageParamDefinition({})
+	modes!: MessageParam;
 }

@@ -1,5 +1,5 @@
 import { Listener } from '@d-fischer/typed-event-emitter';
-import { IRCClient } from '../IRCClient';
+import { IrcClient } from '../IrcClient';
 import { Message, MessageConstructor } from './Message';
 
 export type MessageCollectorEndCallback = (messages: Message[]) => void;
@@ -11,7 +11,7 @@ export class MessageCollector {
 	protected _promiseResolve?: MessageCollectorEndCallback;
 	protected _endEventHandlers: Map<Function, Listener> = new Map();
 
-	constructor(protected _client: IRCClient, protected _originalMessage: Message, ...types: MessageConstructor[]) {
+	constructor(protected _client: IrcClient, protected _originalMessage: Message, ...types: MessageConstructor[]) {
 		this._types = new Set(types);
 	}
 

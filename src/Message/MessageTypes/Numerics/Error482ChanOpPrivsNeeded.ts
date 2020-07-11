@@ -1,15 +1,13 @@
 import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-@MessageType('005')
-export class Reply005ISupport extends Message<Reply005ISupport> {
+@MessageType('482')
+export class Error482ChanOpPrivsNeeded extends Message<Error482ChanOpPrivsNeeded> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 
-	@MessageParamDefinition({
-		rest: true
-	})
-	supports!: MessageParam;
+	@MessageParamDefinition({})
+	channel!: MessageParam;
 
 	@MessageParamDefinition({
 		trailing: true

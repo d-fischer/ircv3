@@ -45,7 +45,7 @@ import {
 	Error462AlreadyRegistered,
 	Reply001Welcome,
 	Reply004ServerInfo,
-	Reply005ISupport
+	Reply005Isupport
 } from './Message/MessageTypes/Numerics';
 import { defaultServerProperties, ServerProperties } from './ServerProperties';
 import { decodeCtcp } from './Toolkit/StringTools';
@@ -82,7 +82,7 @@ export interface IRCClientOptions {
 	nonConformingCommands?: string[];
 }
 
-export class IRCClient extends EventEmitter {
+export class IrcClient extends EventEmitter {
 	protected _connection: Connection;
 	protected _registered: boolean = false;
 
@@ -250,7 +250,7 @@ export class IRCClient extends EventEmitter {
 			}
 		});
 
-		this.onMessage(Reply005ISupport, ({ params: { supports } }) => {
+		this.onMessage(Reply005Isupport, ({ params: { supports } }) => {
 			const newFeatures = arrayToObject(supports.split(' '), (part: string) => {
 				const [support, param] = splitWithLimit(part, '=', 2);
 				return { [support]: param || true };
@@ -707,12 +707,12 @@ export class IRCClient extends EventEmitter {
 		this.sendMessage(PrivateMessage, { target, message });
 	}
 
-	sendCTCP(target: string, type: string, message: string) {
+	sendCtcp(target: string, type: string, message: string) {
 		this.say(target, `\x01${type.toUpperCase()} ${message}\x01`);
 	}
 
 	action(target: string, message: string) {
-		this.sendCTCP(target, 'ACTION', message);
+		this.sendCtcp(target, 'ACTION', message);
 	}
 
 	protected async getPassword(currentPassword?: string) {

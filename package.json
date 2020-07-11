@@ -49,9 +49,9 @@
     ]
   },
   "devDependencies": {
-    "@d-fischer/eslint-config": "^1.0.11",
+    "@d-fischer/eslint-config": "^2.0.0",
     "@types/jest": "^26.0.4",
-    "eslint": "^6.1.0",
+    "eslint": "^7.4.0",
     "husky": "^4.2.5",
     "jest": "^26.1.0",
     "jest-environment-node": "^26.1.0",

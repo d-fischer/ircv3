@@ -1,13 +1,13 @@
 import { Message, MessageParam } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-@MessageType('372')
-export class Reply372MOTD extends Message<Reply372MOTD> {
+@MessageType('375')
+export class Reply375MotdStart extends Message<Reply375MotdStart> {
 	@MessageParamDefinition({})
 	me!: MessageParam;
 
 	@MessageParamDefinition({
 		trailing: true
 	})
-	line!: MessageParam;
+	message!: MessageParam;
 }
