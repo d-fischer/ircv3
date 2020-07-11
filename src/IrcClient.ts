@@ -32,6 +32,7 @@ import {
 	CapabilityNegotiation,
 	ChannelJoin,
 	ChannelPart,
+	ErrorMessage,
 	NickChange,
 	Notice,
 	Password,
@@ -547,7 +548,7 @@ export class IrcClient extends EventEmitter {
 				resolve();
 			});
 
-			errorListener = this.onMessage(MessageTypes.Commands.ErrorMessage, msg => {
+			errorListener = this.onMessage(ErrorMessage, msg => {
 				registerListener.unbind();
 				this.removeMessageListener(errorListener);
 				disconnectListener.unbind();
