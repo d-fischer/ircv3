@@ -9,7 +9,6 @@ import klona from '@d-fischer/klona';
 import { Logger, LoggerOptions } from '@d-fischer/logger';
 import {
 	arrayToObject,
-	ConstructedType,
 	Constructor,
 	Enumerable,
 	forEachObjectEntry,
@@ -187,7 +186,7 @@ export class IrcClient extends EventEmitter {
 			});
 		}
 
-		this.onMessage(CapabilityNegotiation, async ({ params: { subCommand, capabilities } }) => {
+		this.onTypedMessage(CapabilityNegotiation, async ({ params: { subCommand, capabilities } }) => {
 			const caps = capabilities.split(' ');
 
 			// eslint-disable-next-line default-case
@@ -228,11 +227,11 @@ export class IrcClient extends EventEmitter {
 			}
 		});
 
-		this.onMessage(Ping, ({ params: { message } }) => {
+		this.onTypedMessage(Ping, ({ params: { message } }) => {
 			this.sendMessage(Pong, { message });
 		});
 
-		this.onMessage(Reply001Welcome, ({ params: { me } }) => {
+		this.onTypedMessage(Reply001Welcome, ({ params: { me } }) => {
 			if (this._currentNick !== me) {
 				if (this._currentNick !== '') {
 					this._logger.warn(`Mismatching nicks: passed ${this._currentNick}, but you're actually ${me}`);
@@ -245,13 +244,13 @@ export class IrcClient extends EventEmitter {
 			}
 		});
 
-		this.onMessage(Reply004ServerInfo, ({ params: { userModes } }) => {
+		this.onTypedMessage(Reply004ServerInfo, ({ params: { userModes } }) => {
 			if (userModes) {
 				this._serverProperties.supportedUserModes = userModes;
 			}
 		});
 
-		this.onMessage(Reply005Isupport, ({ params: { supports } }) => {
+		this.onTypedMessage(Reply005Isupport, ({ params: { supports } }) => {
 			const newFeatures = arrayToObject(supports.split(' '), (part: string) => {
 				const [support, param] = splitWithLimit(part, '=', 2);
 				return { [support]: param || true };
@@ -262,7 +261,7 @@ export class IrcClient extends EventEmitter {
 			};
 		});
 
-		this.onMessage(Error462AlreadyRegistered, () => {
+		this.onTypedMessage(Error462AlreadyRegistered, () => {
 			// what, I thought we are not registered yet?
 			if (!this._registered) {
 				// screw this, we are now.
@@ -272,7 +271,7 @@ export class IrcClient extends EventEmitter {
 			}
 		});
 
-		this.onMessage(PrivateMessage, msg => {
+		this.onTypedMessage(PrivateMessage, msg => {
 			const {
 				params: { target, message }
 			} = msg;
@@ -290,7 +289,7 @@ export class IrcClient extends EventEmitter {
 			}
 		});
 
-		this.onMessage(NickChange, msg => {
+		this.onTypedMessage(NickChange, msg => {
 			const {
 				params: { nick: newNick }
 			} = msg;
@@ -304,7 +303,7 @@ export class IrcClient extends EventEmitter {
 			this.emit(this.onNickChange, oldNick, newNick, msg);
 		});
 
-		this.onMessage(Notice, msg => {
+		this.onTypedMessage(Notice, msg => {
 			const {
 				params: { target, message }
 			} = msg;
@@ -476,7 +475,7 @@ export class IrcClient extends EventEmitter {
 	pingCheck() {
 		const now = Date.now();
 		const nowStr = now.toString();
-		const handler = this.onMessage(Pong, (msg: Pong) => {
+		const handler = this.onTypedMessage(Pong, (msg: Pong) => {
 			const {
 				params: { message }
 			} = msg;
@@ -548,7 +547,7 @@ export class IrcClient extends EventEmitter {
 				resolve();
 			});
 
-			errorListener = this.onMessage(ErrorMessage, msg => {
+			errorListener = this.onTypedMessage(ErrorMessage, msg => {
 				registerListener.unbind();
 				this.removeMessageListener(errorListener);
 				disconnectListener.unbind();
@@ -595,18 +594,11 @@ export class IrcClient extends EventEmitter {
 		}
 	}
 
-	onMessage<C extends MessageConstructor>(
-		type: C,
-		handler: EventHandler<ConstructedType<C>>,
-		handlerName?: string
-	): string;
-	onMessage<T extends Message>(type: string, handler: EventHandler, handlerName?: string): string;
-	onMessage<T extends Message>(
-		type: typeof Message | string,
+	onNamedMessage<T extends Message = Message>(
+		commandName: string,
 		handler: EventHandler<T>,
 		handlerName?: string
 	): string {
-		const commandName = typeof type === 'string' ? type : type.COMMAND;
 		if (!this._events.has(commandName)) {
 			this._events.set(commandName, new Map());
 		}
@@ -622,6 +614,14 @@ export class IrcClient extends EventEmitter {
 		handlerList.set(handlerName, handler);
 
 		return handlerName;
+	}
+
+	onTypedMessage<T extends Message>(
+		type: MessageConstructor<T>,
+		handler: EventHandler<T>,
+		handlerName?: string
+	): string {
+		return this.onNamedMessage<T>(type.COMMAND, handler, handlerName);
 	}
 
 	removeMessageListener(handlerName: string) {
