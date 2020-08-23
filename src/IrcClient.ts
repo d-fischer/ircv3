@@ -31,6 +31,7 @@ import {
 	CapabilityNegotiation,
 	ChannelJoin,
 	ChannelPart,
+	ClientQuit,
 	ErrorMessage,
 	NickChange,
 	Notice,
@@ -40,7 +41,6 @@ import {
 	PrivateMessage,
 	UserRegistration
 } from './Message/MessageTypes/Commands';
-import { ClientQuit } from './Message/MessageTypes/Commands/ClientQuit';
 import {
 	Error462AlreadyRegistered,
 	Reply001Welcome,
