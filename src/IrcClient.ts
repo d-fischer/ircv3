@@ -326,109 +326,6 @@ export class IrcClient extends EventEmitter {
 		}
 	}
 
-	async setupConnection() {
-		this._logger.debug('Determining connection password');
-		const password = await this.getPassword(this._credentials.password);
-		if (password) {
-			if (password !== this._credentials.password) {
-				this._updateCredentials({ password });
-			}
-		}
-
-		if (this._initialConnectionSetupDone) {
-			return;
-		}
-		this._initialConnectionSetupDone = true;
-
-		this._connection.onConnect(async () => {
-			this._logger.info(`Connection to server ${this._connection.host}:${this._connection.port} established`);
-			this.sendMessageAndCaptureReply(CapabilityNegotiation, {
-				subCommand: 'LS',
-				version: '302'
-			}).then((capReply: Message[]) => {
-				if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
-					this._logger.debug('Server does not support capabilities');
-					return;
-				}
-				this._supportsCapabilities = true;
-				const capLists = capReply.map(line =>
-					arrayToObject((line as CapabilityNegotiation).params.capabilities.split(' '), (part: string) => {
-						if (!part) {
-							return {};
-						}
-						const [cap, param] = splitWithLimit(part, '=', 2);
-						return {
-							[cap]: {
-								name: cap,
-								param: param || true
-							}
-						};
-					})
-				);
-				this._serverCapabilities = new Map<string, ServerCapability>(
-					Object.entries(Object.assign({}, ...capLists))
-				);
-				this._logger.debug(
-					`Capabilities supported by server: ${Array.from(this._serverCapabilities.keys()).join(', ')}`
-				);
-				const capabilitiesToNegotiate = capLists.map(list => {
-					const capNames = Object.keys(list);
-					return Array.from(this._clientCapabilities.entries())
-						.filter(([name]) => capNames.includes(name))
-						.map(([, cap]) => cap);
-				});
-				this._negotiateCapabilityBatch(capabilitiesToNegotiate).then(() => {
-					this.sendMessage(CapabilityNegotiation, { subCommand: 'END' });
-					this._registered = true;
-					this.emit(this.onRegister);
-				});
-			});
-			if (password) {
-				this.sendMessage(Password, { password });
-			}
-			this.sendMessage(NickChange, { nick: this._credentials.nick });
-			this.sendMessage(UserRegistration, {
-				user: this._credentials.userName || this._credentials.nick,
-				mode: '8',
-				unused: '*',
-				realName: this._credentials.realName || this._credentials.nick
-			});
-		});
-
-		this._connection.onReceive((line: string) => {
-			this.receiveLine(line);
-		});
-
-		this._connection.onDisconnect((manually: boolean, reason?: Error) => {
-			this._registered = false;
-			if (this._pingCheckTimer) {
-				clearTimeout(this._pingCheckTimer);
-			}
-			if (this._pingTimeoutTimer) {
-				clearTimeout(this._pingTimeoutTimer);
-			}
-			if (manually) {
-				this._logger.info('Disconnected');
-			} else {
-				if (reason) {
-					this._logger.err(`Disconnected unexpectedly: ${reason.message}`);
-				} else {
-					this._logger.err('Disconnected unexpectedly');
-				}
-			}
-			this.emit(this.onDisconnect, manually, reason);
-		});
-
-		// eslint-disable-next-line no-restricted-syntax
-		if (this._options.connection.reconnect !== false) {
-			this._connection.onEnd(manually => {
-				if (!manually) {
-					this._logger.info('No further retries will be made');
-				}
-			});
-		}
-	}
-
 	receiveLine(line: string) {
 		this._logger.debug(`Received message: ${line}`);
 		let parsedMessage;
@@ -525,7 +422,7 @@ export class IrcClient extends EventEmitter {
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map();
 		this._currentNick = this._credentials.nick;
-		await this.setupConnection();
+		await this._setupConnection();
 		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
 		await this._connection.connect();
 		this.emit(this.onConnect);
@@ -777,6 +674,115 @@ export class IrcClient extends EventEmitter {
 
 	protected _updateCredentials(newCredentials: Partial<IRCCredentials>) {
 		this._credentials = { ...this._credentials, ...newCredentials };
+	}
+
+	private async _setupConnection() {
+		if (this._initialConnectionSetupDone) {
+			return;
+		}
+		this._connection.onConnect(async () => {
+			this._logger.info(`Connection to server ${this._connection.host}:${this._connection.port} established`);
+			this._logger.debug('Determining connection password');
+			const [password] = await Promise.all([
+				this.getPassword(this._credentials.password),
+				this.sendMessageAndCaptureReply(CapabilityNegotiation, {
+					subCommand: 'LS',
+					version: '302'
+				})
+					.then((capReply: Message[]) => {
+						if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
+							this._logger.debug('Server does not support capabilities');
+							return [];
+						}
+						this._supportsCapabilities = true;
+						const capLists = capReply.map(line =>
+							arrayToObject(
+								(line as CapabilityNegotiation).params.capabilities.split(' '),
+								(part: string) => {
+									if (!part) {
+										return {};
+									}
+									const [cap, param] = splitWithLimit(part, '=', 2);
+									return {
+										[cap]: {
+											name: cap,
+											param: param || true
+										}
+									};
+								}
+							)
+						);
+						this._serverCapabilities = new Map<string, ServerCapability>(
+							Object.entries(Object.assign({}, ...capLists))
+						);
+						this._logger.debug(
+							`Capabilities supported by server: ${Array.from(this._serverCapabilities.keys()).join(
+								', '
+							)}`
+						);
+						const capabilitiesToNegotiate = capLists.map(list => {
+							const capNames = Object.keys(list);
+							return Array.from(this._clientCapabilities.entries())
+								.filter(([name]) => capNames.includes(name))
+								.map(([, cap]) => cap);
+						});
+						return this._negotiateCapabilityBatch(capabilitiesToNegotiate);
+					})
+					.then(() => {
+						this.sendMessage(CapabilityNegotiation, { subCommand: 'END' });
+					})
+			]);
+			if (password && password !== this._credentials.password) {
+				this._updateCredentials({ password });
+			}
+			if (password) {
+				this.sendMessage(Password, { password });
+			}
+			this.sendMessage(NickChange, { nick: this._credentials.nick });
+			this.sendMessage(UserRegistration, {
+				user: this._credentials.userName || this._credentials.nick,
+				mode: '8',
+				unused: '*',
+				realName: this._credentials.realName || this._credentials.nick
+			});
+			this._registered = true;
+			this.emit(this.onRegister);
+		});
+
+		this._initialConnectionSetupDone = true;
+
+		this._connection.onReceive((line: string) => {
+			this.receiveLine(line);
+		});
+
+		this._connection.onDisconnect((manually: boolean, reason?: Error) => {
+			this._registered = false;
+			if (this._pingCheckTimer) {
+				clearTimeout(this._pingCheckTimer);
+			}
+			if (this._pingTimeoutTimer) {
+				clearTimeout(this._pingTimeoutTimer);
+			}
+			if (manually) {
+				this._logger.info('Disconnected');
+			} else {
+				if (reason) {
+					this._logger.err(`Disconnected unexpectedly: ${reason.message}`);
+				} else {
+					this._logger.err('Disconnected unexpectedly');
+				}
+			}
+			this.emit(this.onDisconnect, manually, reason);
+		});
+
+		// eslint-disable-next-line no-restricted-syntax
+		if (this._options.connection.reconnect !== false) {
+			this._connection.onEnd(manually => {
+				if (!manually) {
+					this._logger.info('No further retries will be made');
+				}
+			});
+		}
 	}
 
 	// event helper
