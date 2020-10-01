@@ -389,11 +389,10 @@ export class IrcClient extends EventEmitter {
 			// eslint-disable-next-line no-restricted-syntax
 			if (this._options.connection.reconnect === false) {
 				this._logger.error(`Disconnecting because the last ping took over ${this._pingTimeout} seconds`);
-				await this.quit('Ping timeout');
 			} else {
 				this._logger.warn(`Reconnecting because the last ping took over ${this._pingTimeout} seconds`);
-				await this.reconnect('Ping timeout');
 			}
+			this._connection.assumeExternalDisconnect();
 		}, this._pingTimeout * 1000);
 		this.sendMessage(Ping, { message: nowStr });
 	}
@@ -598,7 +597,9 @@ export class IrcClient extends EventEmitter {
 
 	async quit(message?: string) {
 		this.sendMessage(ClientQuit, { message });
-		return this._connection.disconnect();
+		this._connection.disconnect().then(() => {
+			this._logger.debug('Finished cleaning up old connection');
+		});
 	}
 
 	say(target: string, message: string) {
