@@ -271,15 +271,15 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@d-fischer/connection@^6.1.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.1.0.tgz#2eab8996f762ac11054af58689985c845623ebd1"
-  integrity sha512-Xt3GvSbNcmwIGHLbCub50Sm11cJvkRsfhImoX8HO3R408+Tp1U2FBD4aKrkyC3Nc6nRYOLD9BODlyW2kTHEw7Q==
+"@d-fischer/connection@^6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.2.0.tgz#fabbf1bab8bffd5c4b85988ce06c41f9537d3a94"
+  integrity sha512-koam3kWfdkWJXlczji2iDBPILTSddDxCujjdhNDrF1DEORgjrHfBwB4CvNKjQL3jTgOuaAUcSgfgGYZJ92ngXA==
   dependencies:
     "@d-fischer/isomorphic-ws" "^5.0.2"
-    "@d-fischer/logger" "^2.0.0"
-    "@d-fischer/shared-utils" "^2.3.2"
-    "@d-fischer/typed-event-emitter" "^3.0.2"
+    "@d-fischer/logger" "^2.1.0"
+    "@d-fischer/shared-utils" "^2.4.0"
+    "@d-fischer/typed-event-emitter" "^3.1.0"
     "@types/node" "^14.11.2"
     "@types/ws" "^7.2.7"
     tslib "^2.0.1"
@@ -307,33 +307,28 @@
   resolved "https://registry.yarnpkg.com/@d-fischer/isomorphic-ws/-/isomorphic-ws-5.0.2.tgz#91bb78f520b6c9e4a820eb80c9be5dfeebdb08ed"
   integrity sha512-FeULiS37jd5M7nroqUw7kfnntlIW6Kilr2kn38Xjoyw/WZqwdxSAihJ2Y09aoDamrVKEW9/flbo2/y/VwHVZ6g==
 
-"@d-fischer/klona@^1.1.5":
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/@d-fischer/klona/-/klona-1.1.5.tgz#f273072fcac6f1078d2ff52e24e1d34c329eca4f"
-  integrity sha512-fdXM0iXtYcGbIxpWpUYsUi7cAMw8jXbJ75OJDFuScL/TXrrtMlZ9JOLpsZFVMzgeBOTpHLefG5KydsZEAzj95Q==
-
-"@d-fischer/logger@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@d-fischer/logger/-/logger-2.0.0.tgz#0b9be52fdceddfe307563ee9f73b8b7f667f4020"
-  integrity sha512-KIVO0U8sqoulnepMEvXP/FjJAavfmKHLoFIn+D0iqzmFgaY8eaZ464y8nuMVgZGYUGAFxY953XVAeijBf07vcw==
+"@d-fischer/logger@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@d-fischer/logger/-/logger-2.1.0.tgz#fd14020c6a83490dafe0a85048967f578fc236da"
+  integrity sha512-NK2SFtNYfzI5V0/Nws1ANJC2b0K3JB1Uhp7CdS6VH2v3wPBlfM/NXcrrsiPTbCM5QgsZxJDIlQKcI+UYw9terg==
   dependencies:
     detect-node "^2.0.4"
-    tslib "^2.0.0"
+    tslib "^2.0.1"
 
-"@d-fischer/shared-utils@^2.3.2":
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/@d-fischer/shared-utils/-/shared-utils-2.3.2.tgz#ba271cf04dba05c89b8815e9427f7e647eb2633e"
-  integrity sha512-/eOhwUcdbWrpdPDWu77Q21UDuL6q9GJAp1dfXr6QgGs4pHTg9ZUFSs6Vhotk0Muu6xNkwwlOlZFwds3CRXhTmg==
+"@d-fischer/shared-utils@^2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@d-fischer/shared-utils/-/shared-utils-2.4.0.tgz#922993ccaf55307e2ae83fe9a0cbbab34248a687"
+  integrity sha512-HqS4PAyzJXzs+CtomhsqcvAl34UmDHoiP8BqOkTdMZCkcqW+SMoGekBAxDyX23p7q8E39zRy0S3uyIHD/GPmuA==
   dependencies:
-    "@types/node" "^14.0.5"
-    tslib "^2.0.0"
+    "@types/node" "^14.11.2"
+    tslib "^2.0.1"
 
-"@d-fischer/typed-event-emitter@^3.0.2":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@d-fischer/typed-event-emitter/-/typed-event-emitter-3.0.2.tgz#fde8f73317038fa5153a86ac5e25e2a0e00f660c"
-  integrity sha512-8wd8Nv9c0H0/eeagiXRongLdwv510EriTj9+Ja2gkIebGFp8Irrxcx9pL6+4jdnr+R7MV3sEoJBQ8FynSFH7Tw==
+"@d-fischer/typed-event-emitter@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@d-fischer/typed-event-emitter/-/typed-event-emitter-3.1.0.tgz#4dd7a052492e8a75310b5c4b0c93a81aa05d302d"
+  integrity sha512-s0ZokqR2kR3NX6C7Em4gdf6sXtyH17yqhQzDEXEvFjBeWaYSRbRVUV/73DxU2ZTR+4h2obwL+Gru4TAEXrFfdQ==
   dependencies:
-    "@types/node" "^14.11.1"
+    "@types/node" "^14.11.2"
     tslib "^2.0.1"
 
 "@eslint/eslintrc@^0.1.3":
@@ -766,7 +761,7 @@
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"
   integrity sha512-tHq6qdbT9U1IRSGf14CL0pUlULksvY9OZ+5eEgl1N7t+OA3tGvNpxJCzuKQlsNgCVwbAs670L1vcVQi8j9HjnA==
 
-"@types/node@*", "@types/node@^14.0.5", "@types/node@^14.11.1", "@types/node@^14.11.2":
+"@types/node@*", "@types/node@^14.11.2":
   version "14.11.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.11.2.tgz#2de1ed6670439387da1c9f549a2ade2b0a799256"
   integrity sha512-jiE3QIxJ8JLNcb1Ps6rDbysDhN4xa8DJJvuC9prr6w+1tIh+QAbYyNF3tyiZNLDBIuBCf4KEcV2UvQm/V60xfA==
@@ -3302,6 +3297,11 @@ kleur@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-3.0.3.tgz#a79c9ecc86ee1ce3fa6206d1216c501f147fc07e"
   integrity sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==
+
+klona@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/klona/-/klona-2.0.4.tgz#7bb1e3affb0cb8624547ef7e8f6708ea2e39dfc0"
+  integrity sha512-ZRbnvdg/NxqzC7L9Uyqzf4psi1OM4Cuc+sJAkQPjO6XkQIJTNbfK2Rsmbw8fx1p2mkZdp2FZYo2+LwXYY/uwIA==
 
 leven@^3.1.0:
   version "3.1.0"

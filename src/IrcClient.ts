@@ -5,7 +5,7 @@ import {
 	PersistentConnection,
 	WebSocketConnection
 } from '@d-fischer/connection';
-import klona from '@d-fischer/klona';
+import { klona } from 'klona/json';
 import { Logger, LoggerOptions } from '@d-fischer/logger';
 import {
 	arrayToObject,

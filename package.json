@@ -62,13 +62,13 @@
     "typescript": "~4.0.3"
   },
   "dependencies": {
-    "@d-fischer/connection": "^6.1.0",
+    "@d-fischer/connection": "^6.2.0",
     "@d-fischer/escape-string-regexp": "^5.0.0",
-    "@d-fischer/klona": "^1.1.5",
-    "@d-fischer/logger": "^2.0.0",
-    "@d-fischer/shared-utils": "^2.3.2",
-    "@d-fischer/typed-event-emitter": "^3.0.2",
+    "@d-fischer/logger": "^2.1.0",
+    "@d-fischer/shared-utils": "^2.4.0",
+    "@d-fischer/typed-event-emitter": "^3.1.0",
     "@types/node": "^14.11.2",
+    "klona": "^2.0.4",
     "tslib": "^2.0.1"
   }
 }
