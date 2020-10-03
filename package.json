@@ -4,7 +4,6 @@
   "version": "0.26.2",
   "main": "lib",
   "types": "lib",
-  "module": "es",
   "exports": {
     ".": {
       "require": "./lib/index.js",
