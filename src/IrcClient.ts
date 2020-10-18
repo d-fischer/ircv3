@@ -42,10 +42,12 @@ import {
 	UserRegistration
 } from './Message/MessageTypes/Commands';
 import {
+	Error422NoMotd,
 	Error462AlreadyRegistered,
 	Reply001Welcome,
 	Reply004ServerInfo,
-	Reply005Isupport
+	Reply005Isupport,
+	Reply376EndOfMotd
 } from './Message/MessageTypes/Numerics';
 import { defaultServerProperties, ServerProperties } from './ServerProperties';
 import { decodeCtcp } from './Toolkit/StringTools';
@@ -232,16 +234,7 @@ export class IrcClient extends EventEmitter {
 		});
 
 		this.onTypedMessage(Reply001Welcome, ({ params: { me } }) => {
-			if (this._currentNick !== me) {
-				if (this._currentNick !== '') {
-					this._logger.warn(`Mismatching nicks: passed ${this._currentNick}, but you're actually ${me}`);
-				}
-				this._currentNick = me;
-			}
-			if (!this._supportsCapabilities) {
-				this._registered = true;
-				this.emit(this.onRegister);
-			}
+			this._handleReceivedClientNick(me);
 		});
 
 		this.onTypedMessage(Reply004ServerInfo, ({ params: { userModes } }) => {
@@ -261,11 +254,28 @@ export class IrcClient extends EventEmitter {
 			};
 		});
 
-		this.onTypedMessage(Error462AlreadyRegistered, () => {
+		this.onTypedMessage(Reply376EndOfMotd, ({ params: { me } }) => {
+			if (!this._registered) {
+				this._handleReceivedClientNick(me);
+				this._registered = true;
+				this.emit(this.onRegister);
+			}
+		});
+
+		this.onTypedMessage(Error422NoMotd, ({ params: { me } }) => {
+			if (!this._registered) {
+				this._handleReceivedClientNick(me);
+				this._registered = true;
+				this.emit(this.onRegister);
+			}
+		});
+
+		this.onTypedMessage(Error462AlreadyRegistered, ({ params: { me } }) => {
 			// what, I thought we are not registered yet?
 			if (!this._registered) {
 				// screw this, we are now.
 				this._logger.warn("We thought we're not registered yet, but we actually are");
+				this._handleReceivedClientNick(me);
 				this._registered = true;
 				this.emit(this.onRegister);
 			}
@@ -746,8 +756,6 @@ export class IrcClient extends EventEmitter {
 				unused: '*',
 				realName: this._credentials.realName || this._credentials.nick
 			});
-			this._registered = true;
-			this.emit(this.onRegister);
 		});
 
 		this._initialConnectionSetupDone = true;
@@ -783,6 +791,15 @@ export class IrcClient extends EventEmitter {
 					this._logger.info('No further retries will be made');
 				}
 			});
+		}
+	}
+
+	private _handleReceivedClientNick(me: string) {
+		if (this._currentNick !== me) {
+			if (this._currentNick !== '') {
+				this._logger.warn(`Mismatching nicks: passed ${this._currentNick}, but you're actually ${me}`);
+			}
+			this._currentNick = me;
 		}
 	}
 
