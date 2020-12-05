@@ -271,10 +271,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@d-fischer/connection@^6.2.1":
-  version "6.2.1"
-  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.2.1.tgz#a631e91f3cdb37ccd64929e1f863b417c1173193"
-  integrity sha512-qQSMGHWjd/aE6c+lUGwxRYjur1iyD8siyuDDCYkdBYTVrvCGNSwNLgX8oRuR1UbKcM7evc1vQlxEIFGwr7lfcg==
+"@d-fischer/connection@^6.3.1":
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.3.1.tgz#5ecafae1c6ea1622deabc7299519af80912dfe9e"
+  integrity sha512-Lkf0cvLaeSN6lbDSUjUeBBV5dDmtc8VZflH8a0UZLn5kDpBAa0c+bO4pksrIOubR/HaTtBs6kCu5EimGLIGYXA==
   dependencies:
     "@d-fischer/isomorphic-ws" "^5.0.2"
     "@d-fischer/logger" "^2.1.1"

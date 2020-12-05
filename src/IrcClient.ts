@@ -170,7 +170,7 @@ export class IrcClient extends EventEmitter {
 		if (reconnect) {
 			this._connection = new PersistentConnection(ConnectionType, connectionOptions, { logger: this._logger });
 		} else {
-			this._connection = new ConnectionType(connectionOptions);
+			this._connection = new ConnectionType(connectionOptions, this._logger);
 		}
 
 		for (const cap of Object.values(CoreCapabilities)) {

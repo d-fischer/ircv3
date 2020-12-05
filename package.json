@@ -55,7 +55,7 @@
     "typescript": "~4.0.3"
   },
   "dependencies": {
-    "@d-fischer/connection": "^6.2.1",
+    "@d-fischer/connection": "^6.3.1",
     "@d-fischer/escape-string-regexp": "^5.0.0",
     "@d-fischer/logger": "^2.1.1",
     "@d-fischer/shared-utils": "^2.4.1",
