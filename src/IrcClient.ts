@@ -542,13 +542,18 @@ export class IrcClient extends EventEmitter {
 	createMessage<T extends Message<T>>(
 		type: MessageConstructor<T>,
 		params: Partial<MessageParamValues<T>>,
-		tags?: Map<string, string>
+		tags?: Record<string, string>
 	) {
-		return createMessage(type, params, undefined, tags, this.serverProperties);
+		const tagsMap = tags ? new Map(Object.entries(tags)) : undefined;
+		return createMessage(type, params, undefined, tagsMap, this.serverProperties);
 	}
 
-	sendMessage<T extends Message<T>>(type: MessageConstructor<T>, params: Partial<MessageParamValues<T>>): void {
-		this.send(this.createMessage(type, params));
+	sendMessage<T extends Message<T>>(
+		type: MessageConstructor<T>,
+		params: Partial<MessageParamValues<T>>,
+		tags?: Record<string, string>
+	): void {
+		this.send(this.createMessage(type, params, tags));
 	}
 
 	async sendMessageAndCaptureReply<T extends Message<T>>(
@@ -612,8 +617,8 @@ export class IrcClient extends EventEmitter {
 		});
 	}
 
-	say(target: string, message: string) {
-		this.sendMessage(PrivateMessage, { target, message });
+	say(target: string, message: string, tags: Record<string, string> = {}) {
+		this.sendMessage(PrivateMessage, { target, message }, tags);
 	}
 
 	sendCtcp(target: string, type: string, message: string) {
@@ -700,7 +705,7 @@ export class IrcClient extends EventEmitter {
 					subCommand: 'LS',
 					version: '302'
 				})
-					.then((capReply: Message[]) => {
+					.then<Array<ServerCapability[] | Error>>((capReply: Message[]) => {
 						if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
 							this._logger.debug('Server does not support capabilities');
 							return [];
