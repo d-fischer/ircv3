@@ -12,7 +12,8 @@
 		"noUnusedLocals": true,
 		"forceConsistentCasingInFileNames": true,
 		"experimentalDecorators": true,
-		"importHelpers": true
+		"importHelpers": true,
+		"isolatedModules": true
 	},
 	"exclude": ["node_modules", "lib", "es"]
 }

@@ -1,31 +1,23 @@
-import { Capability } from './Capability/Capability';
-import * as CoreCapabilities from './Capability/CoreCapabilities';
-import {
-	Message,
-	MessageConstructor,
-	MessageParam,
-	MessageParamSpec,
-	MessagePrefix,
-	prefixToString
-} from './Message/Message';
-import * as MessageTypes from './Message/MessageTypes';
+export { IrcClient } from './IrcClient';
 
-export { Message, MessageConstructor, MessageTypes, MessageParam, MessageParamSpec, MessagePrefix, prefixToString };
+export * as CoreCapabilities from './Capability/CoreCapabilities';
+export type { Capability } from './Capability/Capability';
 
-export { Capability, CoreCapabilities };
+export { Message, prefixToString } from './Message/Message';
+export type { MessageConstructor, MessageParam, MessageParamSpec, MessagePrefix } from './Message/Message';
+export { parseMessage, parsePrefix, parseTags } from './Message/MessageParser';
+export * as MessageTypes from './Message/MessageTypes';
+export type { SingleMode } from './Message/MessageTypes/Commands/Mode';
+
+export { defaultServerProperties } from './ServerProperties';
+export type { AccessLevelDefinition } from './ServerProperties';
+export type { SupportedModesByType, ServerProperties } from './ServerProperties';
 
 export { isChannel } from './Toolkit/StringTools';
-
-export { IrcClient } from './IrcClient';
-export { parseMessage, parsePrefix, parseTags } from './Message/MessageParser';
-export { AccessLevelDefinition, defaultServerProperties } from './ServerProperties';
-export { SupportedModesByType, ServerProperties } from './ServerProperties';
 
 export { MessageError } from './Errors/MessageError';
 export { NotEnoughParametersError } from './Errors/NotEnoughParametersError';
 export { ParameterRequirementMismatchError } from './Errors/ParameterRequirementMismatchError';
 export { UnknownChannelModeCharError } from './Errors/UnknownChannelModeCharError';
-
-export { SingleMode } from './Message/MessageTypes/Commands/Mode';
 
 export { MessageType, MessageParamDefinition } from './Message/MessageDefinition';
