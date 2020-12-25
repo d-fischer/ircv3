@@ -1,9 +1,11 @@
 import {
 	Connection,
 	ConnectionInfo,
+	ConnectionOptions,
 	DirectConnection,
 	PersistentConnection,
-	WebSocketConnection
+	WebSocketConnection,
+	WebSocketConnectionOptions
 } from '@d-fischer/connection';
 import { klona } from 'klona/json';
 import { Logger, LoggerOptions } from '@d-fischer/logger';
@@ -55,16 +57,14 @@ import { decodeCtcp } from './Toolkit/StringTools';
 export type EventHandler<T extends Message = Message> = (message: T) => void;
 export type EventHandlerList<T extends Message = Message> = Map<string, EventHandler<T>>;
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export interface IRCCredentials {
+export interface IrcCredentials {
 	nick: string;
 	password?: string;
 	userName?: string;
 	realName?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export interface IRCClientConnectionOptions {
+export interface IrcClientConnectionOptions {
 	hostName: string;
 	port?: number;
 	secure?: boolean;
@@ -73,10 +73,9 @@ export interface IRCClientConnectionOptions {
 	reconnect?: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export interface IRCClientOptions {
-	connection: IRCClientConnectionOptions;
-	credentials: IRCCredentials;
+export interface BaseIrcClientOptions {
+	connection: IrcClientConnectionOptions;
+	credentials: IrcCredentials;
 	channels?: ResolvableValue<string[]>;
 	webSocket?: boolean;
 	channelTypes?: string;
@@ -84,12 +83,24 @@ export interface IRCClientOptions {
 	nonConformingCommands?: string[];
 }
 
+export interface WebSocketIrcClientOptions extends BaseIrcClientOptions {
+	webSocket: true;
+	connectionOptions?: WebSocketConnectionOptions;
+}
+
+export interface TcpIrcClientOptions extends BaseIrcClientOptions {
+	webSocket?: false;
+	connectionOptions?: never;
+}
+
+export type IrcClientOptions = WebSocketIrcClientOptions | TcpIrcClientOptions;
+
 export class IrcClient extends EventEmitter {
 	protected _connection: Connection;
 	protected _registered: boolean = false;
 
-	@Enumerable(false) protected _options: IRCClientOptions;
-	@Enumerable(false) protected _credentials: IRCCredentials;
+	@Enumerable(false) protected _options: IrcClientOptions;
+	@Enumerable(false) protected _credentials: IrcCredentials;
 
 	protected _supportsCapabilities: boolean = true;
 
@@ -111,7 +122,7 @@ export class IrcClient extends EventEmitter {
 		handler: (target: string, user: string, message: string, msg: Notice) => void
 	) => Listener = this.registerEvent();
 
-	onNickChange = this.registerEvent<(oldNick: string | undefined, newNick: string, msg: NickChange) => void>();
+	onNickChange = this.registerEvent<[oldNick: string | undefined, newNick: string, msg: NickChange]>();
 
 	onCtcp: (
 		handler: (target: string, user: string, command: string, params: string, msg: PrivateMessage) => void
@@ -120,7 +131,7 @@ export class IrcClient extends EventEmitter {
 		handler: (target: string, user: string, command: string, params: string, msg: Notice) => void
 	) => Listener = this.registerEvent();
 
-	onAnyMessage = this.registerEvent<(msg: Message) => void>();
+	onAnyMessage = this.registerEvent<[msg: Message]>();
 
 	protected _serverProperties: ServerProperties = klona(defaultServerProperties);
 	protected _supportedFeatures: { [feature: string]: true | string } = {};
@@ -140,7 +151,7 @@ export class IrcClient extends EventEmitter {
 	private readonly _logger: Logger;
 	private _initialConnectionSetupDone = false;
 
-	constructor(options: IRCClientOptions) {
+	constructor(options: IrcClientOptions) {
 		super();
 
 		const { connection, credentials, channels, channelTypes, webSocket, logger = {} } = options;
@@ -168,9 +179,14 @@ export class IrcClient extends EventEmitter {
 
 		const ConnectionType: Constructor<Connection> = webSocket ? WebSocketConnection : DirectConnection;
 		if (reconnect) {
-			this._connection = new PersistentConnection(ConnectionType, connectionOptions, { logger: this._logger });
+			this._connection = new PersistentConnection(
+				ConnectionType,
+				connectionOptions,
+				{ logger: this._logger },
+				options.connectionOptions as ConnectionOptions<Connection>
+			);
 		} else {
-			this._connection = new ConnectionType(connectionOptions, this._logger);
+			this._connection = new ConnectionType(connectionOptions, this._logger, options.connectionOptions);
 		}
 
 		for (const cap of Object.values(CoreCapabilities)) {
@@ -688,7 +704,7 @@ export class IrcClient extends EventEmitter {
 		}
 	}
 
-	protected _updateCredentials(newCredentials: Partial<IRCCredentials>) {
+	protected _updateCredentials(newCredentials: Partial<IrcCredentials>) {
 		this._credentials = { ...this._credentials, ...newCredentials };
 	}
 

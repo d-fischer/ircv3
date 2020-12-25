@@ -271,16 +271,16 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@d-fischer/connection@^6.3.1":
-  version "6.3.1"
-  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.3.1.tgz#5ecafae1c6ea1622deabc7299519af80912dfe9e"
-  integrity sha512-Lkf0cvLaeSN6lbDSUjUeBBV5dDmtc8VZflH8a0UZLn5kDpBAa0c+bO4pksrIOubR/HaTtBs6kCu5EimGLIGYXA==
+"@d-fischer/connection@^6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.4.0.tgz#d7d42eca73a031a3c6d0c0669cd178200b1afd2b"
+  integrity sha512-vlUltrbbUBRL7l7QGPb++/jG3lypZmtsOldxaqPEvBht/1NDxU/z6Oz1i+LNin+nDofE0SV8oD6CRNTwDx+baQ==
   dependencies:
     "@d-fischer/isomorphic-ws" "^5.0.2"
     "@d-fischer/logger" "^2.1.1"
-    "@d-fischer/shared-utils" "^2.4.1"
-    "@d-fischer/typed-event-emitter" "^3.1.1"
-    "@types/node" "^14.11.2"
+    "@d-fischer/shared-utils" "^3.0.1"
+    "@d-fischer/typed-event-emitter" "^3.2.2"
+    "@types/node" "^14.14.16"
     "@types/ws" "^7.2.7"
     tslib "^2.0.3"
     ws "^7.3.1"
@@ -323,10 +323,18 @@
     "@types/node" "^14.11.2"
     tslib "^2.0.3"
 
-"@d-fischer/typed-event-emitter@^3.1.1":
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/@d-fischer/typed-event-emitter/-/typed-event-emitter-3.1.1.tgz#5858ce3c18fdb1c2ceaf3c6635d87c5f2a0ef02d"
-  integrity sha512-Tfk0ACUOzf292YwR7hFkLZWhgEAfFi9cqmc5zFHYQVNH/Vt5SLsrZrI4ZZaPGJGYpbtQl3726zNMg9Mqof7Ciw==
+"@d-fischer/shared-utils@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@d-fischer/shared-utils/-/shared-utils-3.0.1.tgz#f66ce592d172c6c1aac51a866cbb7e18de381a7d"
+  integrity sha512-q+ipJ0HN1SeC9MXYLpZvtNjNwaEhqmVK0pquaEjWWAZGntEzTQ1KugBUHeYo04dPdOCh7Eovn/hp1mvobc0rgg==
+  dependencies:
+    "@types/node" "^14.11.2"
+    tslib "^2.0.3"
+
+"@d-fischer/typed-event-emitter@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@d-fischer/typed-event-emitter/-/typed-event-emitter-3.2.2.tgz#99f383938a3b6f4002593ba27ca3f75b8d8d4ac9"
+  integrity sha512-qT53HcoEM644EiDYMG1mz478qcys7p/mya+7d7annFlXmHCJlZ3tfKJWonDf/itKOBdjaaiRqV2goS+85dsWVA==
   dependencies:
     "@types/node" "^14.11.2"
     tslib "^2.0.3"
@@ -770,6 +778,11 @@
   version "12.12.62"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.62.tgz#733923d73669188d35950253dd18a21570085d2b"
   integrity sha512-qAfo81CsD7yQIM9mVyh6B/U47li5g7cfpVQEDMfQeF8pSZVwzbhwU3crc0qG4DmpsebpJPR49AKOExQyJ05Cpg==
+
+"@types/node@^14.14.16":
+  version "14.14.16"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.14.16.tgz#3cc351f8d48101deadfed4c9e4f116048d437b4b"
+  integrity sha512-naXYePhweTi+BMv11TgioE2/FXU4fSl29HAH1ffxVciNsH3rYXjNP2yM8wqmSm7jS20gM8TIklKiTen+1iVncw==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
