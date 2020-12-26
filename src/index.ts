@@ -20,3 +20,5 @@ export { MessageError } from './Errors/MessageError';
 export { NotEnoughParametersError } from './Errors/NotEnoughParametersError';
 export { ParameterRequirementMismatchError } from './Errors/ParameterRequirementMismatchError';
 export { UnknownChannelModeCharError } from './Errors/UnknownChannelModeCharError';
+
+export type { WebSocketConnectionOptions } from '@d-fischer/connection';
