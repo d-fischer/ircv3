@@ -1,5 +1,7 @@
-import { Message, MessageConstructor, MessageParamSpecEntry } from './Message';
+import type { MessageConstructor, MessageParamSpecEntry } from './Message';
+import { Message } from './Message';
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 const isMessageType = (ctor: Function): ctor is MessageConstructor =>
 	Object.prototype.isPrototypeOf.call(Message, ctor);
 

@@ -1,4 +1,4 @@
-import { MessageConstructor } from '../Message/Message';
+import type { MessageConstructor } from '../Message/Message';
 
 export interface Capability {
 	name: string;

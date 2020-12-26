@@ -1,31 +1,25 @@
-import {
-	Connection,
-	ConnectionInfo,
-	ConnectionOptions,
-	DirectConnection,
-	PersistentConnection,
-	WebSocketConnection,
-	WebSocketConnectionOptions
-} from '@d-fischer/connection';
-import { klona } from 'klona/json';
-import { Logger, LoggerOptions } from '@d-fischer/logger';
+import type { Connection, ConnectionInfo, ConnectionOptions, WebSocketConnectionOptions } from '@d-fischer/connection';
+import { DirectConnection, PersistentConnection, WebSocketConnection } from '@d-fischer/connection';
+import type { LoggerOptions } from '@d-fischer/logger';
+import { Logger } from '@d-fischer/logger';
+import type { Constructor, ResolvableValue } from '@d-fischer/shared-utils';
 import {
 	arrayToObject,
-	Constructor,
 	Enumerable,
 	forEachObjectEntry,
-	ObjMap,
 	padLeft,
-	ResolvableValue,
 	resolveConfigValue,
 	splitWithLimit
 } from '@d-fischer/shared-utils';
-import { EventEmitter, Listener } from '@d-fischer/typed-event-emitter';
+import type { Listener } from '@d-fischer/typed-event-emitter';
+import { EventEmitter } from '@d-fischer/typed-event-emitter';
+import { klona } from 'klona/json';
 
-import { Capability, ServerCapability } from './Capability/Capability';
+import type { Capability, ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
 import { MessageError } from './Errors/MessageError';
-import { createMessage, Message, MessageConstructor, MessageParamValues } from './Message/Message';
+import type { Message, MessageConstructor, MessageParamValues } from './Message/Message';
+import { createMessage } from './Message/Message';
 import { MessageCollector } from './Message/MessageCollector';
 import { parseMessage } from './Message/MessageParser';
 import * as MessageTypes from './Message/MessageTypes';
@@ -51,7 +45,8 @@ import {
 	Reply005Isupport,
 	Reply376EndOfMotd
 } from './Message/MessageTypes/Numerics';
-import { defaultServerProperties, ServerProperties } from './ServerProperties';
+import type { ServerProperties } from './ServerProperties';
+import { defaultServerProperties } from './ServerProperties';
 import { decodeCtcp } from './Toolkit/StringTools';
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
@@ -104,8 +99,8 @@ export class IrcClient extends EventEmitter {
 
 	protected _supportsCapabilities: boolean = true;
 
-	protected _events: Map<string, EventHandlerList> = new Map();
-	protected _registeredMessageTypes: Map<string, MessageConstructor> = new Map();
+	protected _events = new Map<string, EventHandlerList>();
+	protected _registeredMessageTypes = new Map<string, MessageConstructor>();
 
 	// emitted events
 	onConnect: (handler: () => void) => Listener = this.registerEvent();
@@ -134,12 +129,12 @@ export class IrcClient extends EventEmitter {
 	onAnyMessage = this.registerEvent<[msg: Message]>();
 
 	protected _serverProperties: ServerProperties = klona(defaultServerProperties);
-	protected _supportedFeatures: { [feature: string]: true | string } = {};
+	protected _supportedFeatures: Record<string, true | string> = {};
 	protected _collectors: MessageCollector[] = [];
 
-	protected _clientCapabilities: Map<string, Capability> = new Map();
-	protected _serverCapabilities: Map<string, ServerCapability> = new Map();
-	protected _negotiatedCapabilities: Map<string, ServerCapability> = new Map();
+	protected _clientCapabilities = new Map<string, Capability>();
+	protected _serverCapabilities = new Map<string, ServerCapability>();
+	protected _negotiatedCapabilities = new Map<string, ServerCapability>();
 
 	protected _pingOnInactivity: number;
 	protected _pingTimeout: number;
@@ -196,6 +191,7 @@ export class IrcClient extends EventEmitter {
 		if (channels) {
 			this.onRegister(async () => {
 				const resolvedChannels = await resolveConfigValue(channels);
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (resolvedChannels) {
 					for (const channel of resolvedChannels) {
 						this.join(channel);
@@ -211,7 +207,7 @@ export class IrcClient extends EventEmitter {
 			switch (subCommand.toUpperCase()) {
 				case 'NEW': {
 					this._logger.debug(`Server registered new capabilities: ${caps.join(', ')}`);
-					const capList = arrayToObject<string, ServerCapability, {}>(caps, (part: string) => {
+					const capList = arrayToObject<string, ServerCapability, unknown>(caps, (part: string) => {
 						if (!part) {
 							return {};
 						}
@@ -302,7 +298,7 @@ export class IrcClient extends EventEmitter {
 				params: { target, message }
 			} = msg;
 			const ctcpMessage = decodeCtcp(message);
-			const nick = msg.prefix && msg.prefix.nick;
+			const nick = msg.prefix?.nick;
 
 			if (ctcpMessage) {
 				if (ctcpMessage.command === 'ACTION') {
@@ -320,7 +316,7 @@ export class IrcClient extends EventEmitter {
 				params: { nick: newNick }
 			} = msg;
 
-			const oldNick = msg.prefix && msg.prefix.nick;
+			const oldNick = msg.prefix?.nick;
 
 			if (oldNick === this._currentNick) {
 				this._currentNick = newNick;
@@ -334,7 +330,7 @@ export class IrcClient extends EventEmitter {
 				params: { target, message }
 			} = msg;
 			const ctcpMessage = decodeCtcp(message);
-			const nick = msg.prefix && msg.prefix.nick;
+			const nick = msg.prefix?.nick;
 
 			if (ctcpMessage) {
 				this.emit(this.onCtcpReply, target, nick, ctcpMessage.command, ctcpMessage.params, msg);
@@ -352,7 +348,7 @@ export class IrcClient extends EventEmitter {
 		}
 	}
 
-	receiveLine(line: string) {
+	receiveLine(line: string): void {
 		this._logger.debug(`Received message: ${line}`);
 		let parsedMessage;
 		try {
@@ -363,9 +359,9 @@ export class IrcClient extends EventEmitter {
 				true,
 				this._options.nonConformingCommands
 			);
-		} catch (e) {
-			this._logger.err(`Error parsing message: ${e.message}`);
-			this._logger.trace(e.stack);
+		} catch (e: unknown) {
+			this._logger.err(`Error parsing message: ${(e as Error).message}`);
+			this._logger.trace((e as Error).stack ?? 'No stack available');
 			return;
 		}
 		this._logger.trace(`Parsed message: ${JSON.stringify(parsedMessage)}`);
@@ -378,7 +374,7 @@ export class IrcClient extends EventEmitter {
 		return klona(this._serverProperties);
 	}
 
-	get port() {
+	get port(): number {
 		const {
 			webSocket,
 			connection: { port, secure }
@@ -395,7 +391,7 @@ export class IrcClient extends EventEmitter {
 		return secure ? 6697 : 6667;
 	}
 
-	pingCheck() {
+	pingCheck(): void {
 		const now = Date.now();
 		const nowStr = now.toString();
 		const handler = this.onTypedMessage(Pong, (msg: Pong) => {
@@ -423,12 +419,12 @@ export class IrcClient extends EventEmitter {
 		this.sendMessage(Ping, { message: nowStr });
 	}
 
-	async reconnect(message?: string) {
+	async reconnect(message?: string): Promise<void> {
 		await this.quit(message);
 		return this.connect();
 	}
 
-	registerMessageType(cls: MessageConstructor) {
+	registerMessageType(cls: MessageConstructor): void {
 		if (cls.COMMAND !== '') {
 			this._logger.trace(`Registering message type ${cls.COMMAND}`);
 			this._registeredMessageTypes.set(cls.COMMAND.toUpperCase(), cls);
@@ -445,7 +441,7 @@ export class IrcClient extends EventEmitter {
 
 	async connect(): Promise<void> {
 		this._supportsCapabilities = false;
-		this._negotiatedCapabilities = new Map();
+		this._negotiatedCapabilities = new Map<string, ServerCapability>();
 		this._currentNick = this._credentials.nick;
 		await this._setupConnection();
 		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
@@ -453,7 +449,7 @@ export class IrcClient extends EventEmitter {
 		this.emit(this.onConnect);
 	}
 
-	async waitForRegistration() {
+	async waitForRegistration(): Promise<void> {
 		if (this._registered) {
 			return undefined;
 		}
@@ -485,7 +481,7 @@ export class IrcClient extends EventEmitter {
 		});
 	}
 
-	addCapability(cap: Capability) {
+	addCapability(cap: Capability): void {
 		this._clientCapabilities.set(cap.name, cap);
 
 		if (cap.messageTypes) {
@@ -495,7 +491,7 @@ export class IrcClient extends EventEmitter {
 		}
 	}
 
-	async registerCapability(cap: Capability) {
+	async registerCapability(cap: Capability): Promise<ServerCapability[] | Error> {
 		this.addCapability(cap);
 
 		if (this._serverCapabilities.has(cap.name)) {
@@ -509,7 +505,7 @@ export class IrcClient extends EventEmitter {
 		this.sendRaw(message.toString());
 	}
 
-	sendRaw(line: string) {
+	sendRaw(line: string): void {
 		if (this._connection.isConnected) {
 			this._logger.debug(`Sending message: ${line}`);
 			this._connection.sendLine(line);
@@ -546,7 +542,7 @@ export class IrcClient extends EventEmitter {
 		return this.onNamedMessage<T>(type.COMMAND, handler, handlerName);
 	}
 
-	removeMessageListener(handlerName: string) {
+	removeMessageListener(handlerName: string): void {
 		const [commandName] = handlerName.split(':');
 		if (!this._events.has(commandName)) {
 			return;
@@ -559,7 +555,7 @@ export class IrcClient extends EventEmitter {
 		type: MessageConstructor<T>,
 		params: Partial<MessageParamValues<T>>,
 		tags?: Record<string, string>
-	) {
+	): T {
 		const tagsMap = tags ? new Map(Object.entries(tags)) : undefined;
 		return createMessage(type, params, undefined, tagsMap, this.serverProperties);
 	}
@@ -586,24 +582,24 @@ export class IrcClient extends EventEmitter {
 		return promise;
 	}
 
-	get isConnected() {
+	get isConnected(): boolean {
 		return this._connection.isConnected;
 	}
 
-	get isConnecting() {
+	get isConnecting(): boolean {
 		return this._connection.isConnecting;
 	}
 
-	get isRegistered() {
+	get isRegistered(): boolean {
 		return this._registered;
 	}
 
-	get currentNick() {
+	get currentNick(): string {
 		return this._currentNick;
 	}
 
 	/** @private */
-	collect(originalMessage: Message, ...types: MessageConstructor[]) {
+	collect(originalMessage: Message, ...types: MessageConstructor[]): MessageCollector {
 		const collector = new MessageCollector(this, originalMessage, ...types);
 		this._collectors.push(collector);
 		return collector;
@@ -618,38 +614,38 @@ export class IrcClient extends EventEmitter {
 	}
 
 	// convenience methods
-	join(channel: string, key?: string) {
+	join(channel: string, key?: string): void {
 		this.sendMessage(ChannelJoin, { channel, key });
 	}
 
-	part(channel: string) {
+	part(channel: string): void {
 		this.sendMessage(ChannelPart, { channel });
 	}
 
-	async quit(message?: string) {
+	async quit(message?: string): Promise<void> {
 		this.sendMessage(ClientQuit, { message });
-		this._connection.disconnect().then(() => {
+		void this._connection.disconnect().then(() => {
 			this._logger.debug('Finished cleaning up old connection');
 		});
 	}
 
-	say(target: string, message: string, tags: Record<string, string> = {}) {
+	say(target: string, message: string, tags: Record<string, string> = {}): void {
 		this.sendMessage(PrivateMessage, { target, message }, tags);
 	}
 
-	sendCtcp(target: string, type: string, message: string) {
+	sendCtcp(target: string, type: string, message: string): void {
 		this.say(target, `\x01${type.toUpperCase()} ${message}\x01`);
 	}
 
-	action(target: string, message: string) {
+	action(target: string, message: string): void {
 		this.sendCtcp(target, 'ACTION', message);
 	}
 
-	protected async getPassword(currentPassword?: string) {
+	protected async getPassword(currentPassword?: string): Promise<string | undefined> {
 		return currentPassword;
 	}
 
-	protected registerCoreMessageTypes() {
+	protected registerCoreMessageTypes(): void {
 		forEachObjectEntry(MessageTypes.Commands, (type: MessageConstructor) => {
 			this.registerMessageType(type);
 		});
@@ -670,7 +666,7 @@ export class IrcClient extends EventEmitter {
 	}
 
 	protected async _negotiateCapabilities(capList: ServerCapability[]): Promise<ServerCapability[] | Error> {
-		const mappedCapList: ObjMap<object, ServerCapability> = arrayToObject(capList, cap => ({
+		const mappedCapList: Record<string, ServerCapability> = arrayToObject(capList, cap => ({
 			[cap.name]: cap
 		}));
 		const messages = await this.sendMessageAndCaptureReply(CapabilityNegotiation, {
@@ -689,9 +685,7 @@ export class IrcClient extends EventEmitter {
 		if (capReply.params.subCommand === 'ACK') {
 			// filter is necessary because some networks seem to add trailing spaces...
 			this._logger.debug(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
-			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(
-				capName => (mappedCapList as { [name: string]: ServerCapability })[capName]
-			);
+			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(capName => mappedCapList[capName]);
 			for (const newCap of newNegotiatedCaps) {
 				const mergedCap = this._clientCapabilities.get(newCap.name) as ServerCapability;
 				mergedCap.param = newCap.param;
@@ -704,7 +698,7 @@ export class IrcClient extends EventEmitter {
 		}
 	}
 
-	protected _updateCredentials(newCredentials: Partial<IrcCredentials>) {
+	protected _updateCredentials(newCredentials: Partial<IrcCredentials>): void {
 		this._credentials = { ...this._credentials, ...newCredentials };
 	}
 
@@ -772,10 +766,10 @@ export class IrcClient extends EventEmitter {
 			}
 			this.sendMessage(NickChange, { nick: this._credentials.nick });
 			this.sendMessage(UserRegistration, {
-				user: this._credentials.userName || this._credentials.nick,
+				user: this._credentials.userName ?? this._credentials.nick,
 				mode: '8',
 				unused: '*',
-				realName: this._credentials.realName || this._credentials.nick
+				realName: this._credentials.realName ?? this._credentials.nick
 			});
 		});
 

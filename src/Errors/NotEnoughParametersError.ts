@@ -8,6 +8,7 @@ export class NotEnoughParametersError extends Error {
 
 		Object.setPrototypeOf(this, NotEnoughParametersError.prototype);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (Error.captureStackTrace) {
 			Error.captureStackTrace(this, NotEnoughParametersError);
 		}

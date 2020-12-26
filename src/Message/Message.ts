@@ -1,7 +1,9 @@
-import { AllowedNames, forEachObjectEntry } from '@d-fischer/shared-utils';
+import type { AllowedNames } from '@d-fischer/shared-utils';
+import { forEachObjectEntry } from '@d-fischer/shared-utils';
 import { NotEnoughParametersError } from '../Errors/NotEnoughParametersError';
 import { ParameterRequirementMismatchError } from '../Errors/ParameterRequirementMismatchError';
-import { defaultServerProperties, ServerProperties } from '../ServerProperties';
+import type { ServerProperties } from '../ServerProperties';
+import { defaultServerProperties } from '../ServerProperties';
 import { isChannel } from '../Toolkit/StringTools';
 
 export interface MessagePrefix {
@@ -31,6 +33,9 @@ export interface MessageConstructor<T extends Message<T> = any> extends Function
 	PARAM_SPEC?: MessageParamSpec<T>;
 	SUPPORTS_CAPTURE: boolean;
 
+	getMinParamCount: (isServer?: boolean) => number;
+	checkParam: (param: string, spec: MessageParamSpecEntry, serverProperties?: ServerProperties) => boolean;
+
 	new (
 		command: string,
 		params?: MessageParam[],
@@ -41,10 +46,6 @@ export interface MessageConstructor<T extends Message<T> = any> extends Function
 		isServer?: boolean,
 		shouldParseParams?: boolean
 	): T;
-
-	getMinParamCount(isServer?: boolean): number;
-
-	checkParam(param: string, spec: MessageParamSpecEntry, serverProperties?: ServerProperties): boolean;
 }
 
 export type MessageParamNames<T extends Message<T>> = AllowedNames<Omit<T, 'params'>, MessageParam | undefined>;
@@ -52,7 +53,7 @@ export type MessageParams<T extends Message<T>> = Record<MessageParamNames<T>, M
 export type MessageParamValues<T extends Message<T>> = Record<MessageParamNames<T>, string>;
 export type MessageParamSpec<T extends Message<T>> = Record<MessageParamNames<T>, MessageParamSpecEntry>;
 
-const tagEscapeMap: { [char: string]: string } = {
+const tagEscapeMap: Record<string, string> = {
 	'\\': '\\',
 	';': ':',
 	'\n': 'n',
@@ -64,7 +65,7 @@ function escapeTag(str: string) {
 	return str.replace(/[\\;\n\r ]/g, match => `\\${tagEscapeMap[match]}`);
 }
 
-export function prefixToString(prefix: MessagePrefix) {
+export function prefixToString(prefix: MessagePrefix): string {
 	let result = `${prefix.nick}`;
 	if (prefix.user) {
 		result += `!${prefix.user}`;
@@ -160,6 +161,7 @@ export class Message<T extends Message<T> = any> {
 	}
 
 	static getMinParamCount(isServer: boolean = false): number {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!this.PARAM_SPEC) {
 			return 0;
 		}
@@ -187,7 +189,7 @@ export class Message<T extends Message<T> = any> {
 	) {
 		this._command = command;
 		this._params = params;
-		this._tags = tags || new Map<string, string>();
+		this._tags = tags ?? new Map<string, string>();
 		this._prefix = prefix;
 		this._serverProperties = serverProperties;
 		this._raw = rawLine;
@@ -197,7 +199,7 @@ export class Message<T extends Message<T> = any> {
 		}
 	}
 
-	prefixToString() {
+	prefixToString(): string {
 		if (!this._prefix) {
 			return '';
 		}
@@ -205,11 +207,7 @@ export class Message<T extends Message<T> = any> {
 		return prefixToString(this._prefix);
 	}
 
-	tagsToString() {
-		if (!this._tags) {
-			return '';
-		}
-
+	tagsToString(): string {
 		return [...this._tags.entries()].map(([key, value]) => (value ? `${key}=${escapeTag(value)}` : key)).join(';');
 	}
 
@@ -222,7 +220,8 @@ export class Message<T extends Message<T> = any> {
 				.map((paramName: MessageParamNames<T>): string | undefined => {
 					// TS inference does really not help here... so this is any for now
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					const param: MessageParam = (this as any)[paramName];
+					const param: MessageParam = (this as Record<MessageParamNames<T>, MessageParam>)[paramName];
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					if (param) {
 						return (param.trailing ? ':' : '') + param.value;
 					}
@@ -252,14 +251,14 @@ export class Message<T extends Message<T> = any> {
 	}
 
 	/** @private */
-	_initPrefixAndTags(prefix?: MessagePrefix, tags?: Map<string, string>) {
+	_initPrefixAndTags(prefix?: MessagePrefix, tags?: Map<string, string>): void {
 		this._prefix = prefix;
 		if (tags) {
 			this._tags = tags;
 		}
 	}
 
-	parseParams(isServer: boolean = false) {
+	parseParams(isServer: boolean = false): void {
 		if (this._params) {
 			const cls = this.constructor as MessageConstructor<T>;
 			let requiredParamsLeft = cls.getMinParamCount(isServer);
@@ -290,6 +289,7 @@ export class Message<T extends Message<T> = any> {
 					}
 				}
 				let param: MessageParam = this._params[i];
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (!param) {
 					if (paramSpec.optional) {
 						break;
@@ -345,17 +345,18 @@ export class Message<T extends Message<T> = any> {
 				.map((paramName: MessageParamNames<T>): [MessageParamNames<T>, string] | undefined => {
 					// TS inference does really not help here... so this is any for now
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					const param: MessageParam = (this as any)[paramName];
+					const param: MessageParam = (this as Record<MessageParamNames<T>, MessageParam>)[paramName];
 
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					if (param) {
 						return [paramName, param.value];
 					}
 
 					return undefined;
 				})
-				.filter(pair => pair !== undefined)
+				.filter((pair): pair is [MessageParamNames<T>, string] => pair !== undefined)
 				.map(([key, value]) => ({ [key]: value }))
-		);
+		) as MessageParamValues<T>;
 	}
 
 	get prefix(): MessagePrefix | undefined {
@@ -366,18 +367,20 @@ export class Message<T extends Message<T> = any> {
 		return this._command;
 	}
 
-	get tags() {
+	get tags(): Map<string, string> {
 		return this._tags;
 	}
 
-	get rawLine() {
+	get rawLine(): string | undefined {
 		return this._raw;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	isResponseTo(originalMessage: Message): boolean {
 		return false;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	endsResponseTo(originalMessage: Message): boolean {
 		return false;
 	}

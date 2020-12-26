@@ -1,6 +1,8 @@
 import { splitWithLimit } from '@d-fischer/shared-utils';
-import { defaultServerProperties, ServerProperties } from '../ServerProperties';
-import { Message, MessageConstructor, MessageParam, MessagePrefix } from './Message';
+import type { ServerProperties } from '../ServerProperties';
+import { defaultServerProperties } from '../ServerProperties';
+import type { MessageConstructor, MessageParam, MessagePrefix } from './Message';
+import { Message } from './Message';
 import { all as coreMessageTypes } from './MessageTypes';
 
 export function parsePrefix(raw: string): MessagePrefix {
@@ -17,14 +19,14 @@ export function parsePrefix(raw: string): MessagePrefix {
 	}
 }
 
-const tagUnescapeMap: { [char: string]: string } = {
+const tagUnescapeMap: Record<string, string> = {
 	':': ';',
 	n: '\n',
 	r: '\r',
 	s: ' '
 };
 
-export function parseTags(raw: string) {
+export function parseTags(raw: string): Map<string, string> {
 	const tags = new Map<string, string>();
 	const tagStrings = raw.split(';');
 	for (const tagString of tagStrings) {
@@ -36,7 +38,7 @@ export function parseTags(raw: string) {
 		tags.set(
 			tagName,
 			tagValue
-				? tagValue.replace(/\\(.?)/g, (_, match) =>
+				? tagValue.replace(/\\(.?)/g, (_, match: string) =>
 						Object.prototype.hasOwnProperty.call(tagUnescapeMap, match) ? tagUnescapeMap[match] : match
 				  )
 				: ''
@@ -49,7 +51,7 @@ export function parseTags(raw: string) {
 export function parseMessage(
 	line: string,
 	serverProperties: ServerProperties = defaultServerProperties,
-	knownCommands: Map<string, MessageConstructor> = coreMessageTypes,
+	knownCommands: Map<string, MessageConstructor<Message>> = coreMessageTypes,
 	isServer: boolean = false,
 	nonConformingCommands: string[] = []
 ): Message {
@@ -63,9 +65,9 @@ export function parseMessage(
 
 	while (splitLine.length) {
 		token = splitLine[0];
-		if (token[0] === '@' && !tags && !command && !prefix) {
+		if (token.startsWith('@') && !tags && !command && !prefix) {
 			tags = parseTags(token.substr(1));
-		} else if (token[0] === ':') {
+		} else if (token.startsWith(':')) {
 			if (!prefix && !command) {
 				if (token.length > 1) {
 					// Not an empty prefix
@@ -97,7 +99,7 @@ export function parseMessage(
 		throw new Error(`line without command received: ${line}`);
 	}
 
-	let messageClass: MessageConstructor = Message;
+	let messageClass: MessageConstructor<Message> = Message;
 	if (knownCommands.has(command)) {
 		messageClass = knownCommands.get(command)!;
 	}

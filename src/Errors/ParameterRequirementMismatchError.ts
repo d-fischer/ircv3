@@ -1,4 +1,4 @@
-import { MessageParamSpecEntry } from '../Message/Message';
+import type { MessageParamSpecEntry } from '../Message/Message';
 
 export class ParameterRequirementMismatchError extends Error {
 	constructor(
@@ -9,12 +9,13 @@ export class ParameterRequirementMismatchError extends Error {
 	) {
 		super(
 			`required parameter "${_paramName}" did not validate against ${
-				_paramSpec.type || 'regex'
+				_paramSpec.type ?? 'regex'
 			} validation: "${_givenValue}"`
 		);
 
 		Object.setPrototypeOf(this, ParameterRequirementMismatchError.prototype);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (Error.captureStackTrace) {
 			Error.captureStackTrace(this, ParameterRequirementMismatchError);
 		}

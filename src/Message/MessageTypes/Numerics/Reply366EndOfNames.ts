@@ -1,4 +1,5 @@
-import { Message, MessageParam } from '../../Message';
+import type { MessageParam } from '../../Message';
+import { Message } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 import { Names } from '../Commands/Names';
 
@@ -21,7 +22,7 @@ export class Reply366EndOfNames extends Message<Reply366EndOfNames> {
 		return originalMessage instanceof Names;
 	}
 
-	endsResponseTo(originalMessage: Message): boolean {
+	endsResponseTo(): boolean {
 		return true;
 	}
 }

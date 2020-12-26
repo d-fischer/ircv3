@@ -1,4 +1,5 @@
-import { Message, MessageParam } from '../../../../../Message/Message';
+import type { MessageParam } from '../../../../../Message/Message';
+import { Message } from '../../../../../Message/Message';
 import { MessageParamDefinition, MessageType } from '../../../../../Message/MessageDefinition';
 
 @MessageType('CHGHOST')

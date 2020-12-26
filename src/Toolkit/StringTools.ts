@@ -1,8 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 import escapeRegexString from '@d-fischer/escape-string-regexp';
 import { splitWithLimit } from '@d-fischer/shared-utils';
 
-export function sanitizeParameter(param: string, spaceAllowed: boolean = false) {
+export function sanitizeParameter(param: string, spaceAllowed: boolean = false): string {
 	if (spaceAllowed) {
 		return param.replace(/[\0\r\n]/g, '');
 	} else {
@@ -10,7 +9,7 @@ export function sanitizeParameter(param: string, spaceAllowed: boolean = false) 
 	}
 }
 
-export function isChannel(str: string, validTypes: string = '#&') {
+export function isChannel(str: string, validTypes: string = '#&'): boolean {
 	const re = new RegExp(`^[${escapeRegexString(validTypes)}][^ \b\0\n\r,]+$`);
 	return re.test(str);
 }
@@ -20,7 +19,7 @@ export interface ParsedCtcp {
 	params: string;
 }
 
-const ctcpEscapeMap: { [char: string]: string } = {
+const ctcpEscapeMap: Record<string, string> = {
 	0: '\0',
 	n: '\n',
 	r: '\r',
@@ -28,14 +27,14 @@ const ctcpEscapeMap: { [char: string]: string } = {
 };
 
 export function decodeCtcp(message: string): ParsedCtcp | false {
-	if (message[0] !== '\x01') {
+	if (!message.startsWith('\x01')) {
 		// this is not a CTCP message
 		return false;
 	}
 
 	message = message.substring(1);
 	// remove trailing \x01 if present
-	if (message.slice(-1) === '\x01') {
+	if (message.endsWith('\x01')) {
 		message = message.slice(0, -1);
 	}
 
@@ -45,7 +44,7 @@ export function decodeCtcp(message: string): ParsedCtcp | false {
 	}
 
 	// unescape weirdly escaped stuff
-	message = message.replace(/\x10(.)/, (_, escapedChar) =>
+	message = message.replace(/\x10(.)/, (_, escapedChar: string) =>
 		escapedChar in ctcpEscapeMap ? ctcpEscapeMap[escapedChar] : ''
 	);
 

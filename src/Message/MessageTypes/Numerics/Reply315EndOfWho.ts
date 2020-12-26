@@ -1,4 +1,5 @@
-import { Message, MessageParam } from '../../Message';
+import type { MessageParam } from '../../Message';
+import { Message } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 import { WhoQuery } from '../Commands/WhoQuery';
 
@@ -19,7 +20,7 @@ export class Reply315EndOfWho extends Message<Reply315EndOfWho> {
 		return originalMessage instanceof WhoQuery;
 	}
 
-	endsResponseTo(originalMessage: Message): boolean {
+	endsResponseTo(): boolean {
 		return true;
 	}
 }

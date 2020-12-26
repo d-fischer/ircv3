@@ -1,6 +1,6 @@
-import { Listener } from '@d-fischer/typed-event-emitter';
-import { IrcClient } from '../IrcClient';
-import { Message, MessageConstructor } from './Message';
+import type { EventBinder, Listener } from '@d-fischer/typed-event-emitter';
+import type { IrcClient } from '../IrcClient';
+import type { Message, MessageConstructor } from './Message';
 
 export type MessageCollectorEndCallback = (messages: Message[]) => void;
 
@@ -9,20 +9,19 @@ export class MessageCollector {
 	protected _messages: Message[] = [];
 	protected _promise?: Promise<Message[]>;
 	protected _promiseResolve?: MessageCollectorEndCallback;
-	protected _endEventHandlers: Map<Function, Listener> = new Map();
+	protected readonly _endEventHandlers = new Map<EventBinder<never>, Listener>();
 
 	constructor(protected _client: IrcClient, protected _originalMessage: Message, ...types: MessageConstructor[]) {
 		this._types = new Set(types);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	untilEvent(eventType: (handler: (...args: any[]) => void) => Listener) {
+	untilEvent(eventType: EventBinder<never>): void {
 		this._cleanEndEventHandler(eventType);
 		const listener = this._client.on(eventType, () => this.end());
 		this._endEventHandlers.set(eventType, listener);
 	}
 
-	async promise() {
+	async promise(): Promise<Message[]> {
 		if (!this._promise) {
 			this._promise = new Promise(resolve => (this._promiseResolve = resolve));
 		}
@@ -44,7 +43,7 @@ export class MessageCollector {
 		return true;
 	}
 
-	end() {
+	end(): void {
 		this._client.stopCollect(this);
 		this._cleanEndEventHandlers();
 		if (this._promiseResolve) {
@@ -57,7 +56,7 @@ export class MessageCollector {
 		this._endEventHandlers.clear();
 	}
 
-	private _cleanEndEventHandler(eventType: Function) {
+	private _cleanEndEventHandler(eventType: EventBinder<never>) {
 		if (this._endEventHandlers.has(eventType)) {
 			this._client.removeListener(this._endEventHandlers.get(eventType)!);
 			this._endEventHandlers.delete(eventType);

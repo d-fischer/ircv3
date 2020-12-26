@@ -1,4 +1,5 @@
-import { Message, MessageParam } from '../../Message';
+import type { MessageParam } from '../../Message';
+import { Message } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('441')
@@ -19,11 +20,11 @@ export class Error441UserNotInChannel extends Message<Error441UserNotInChannel> 
 	})
 	suffix!: MessageParam;
 
-	isResponseTo(originalMessage: Message) {
+	isResponseTo(originalMessage: Message): boolean {
 		return originalMessage.command === 'NICK';
 	}
 
-	endsResponseTo(originalMessage: Message) {
+	endsResponseTo(): boolean {
 		return true;
 	}
 }
