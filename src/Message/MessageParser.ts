@@ -56,11 +56,14 @@ export function parseMessage(
 	nonConformingCommands: string[] = []
 ): Message {
 	const splitLine: string[] = line.split(' ');
+	// eslint-disable-next-line @typescript-eslint/init-declarations
 	let token: string;
 
+	// eslint-disable-next-line @typescript-eslint/init-declarations
 	let command: string | undefined;
 	const params: MessageParam[] = [];
-	let tags: Map<string, string> | undefined;
+	let tags: Map<string, string> | undefined = undefined;
+	// eslint-disable-next-line @typescript-eslint/init-declarations
 	let prefix: MessagePrefix | undefined;
 
 	while (splitLine.length) {

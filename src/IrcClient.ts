@@ -350,6 +350,7 @@ export class IrcClient extends EventEmitter {
 
 	receiveLine(line: string): void {
 		this._logger.debug(`Received message: ${line}`);
+		// eslint-disable-next-line @typescript-eslint/init-declarations
 		let parsedMessage;
 		try {
 			parsedMessage = parseMessage(
@@ -360,7 +361,7 @@ export class IrcClient extends EventEmitter {
 				this._options.nonConformingCommands
 			);
 		} catch (e: unknown) {
-			this._logger.err(`Error parsing message: ${(e as Error).message}`);
+			this._logger.error(`Error parsing message: ${(e as Error).message}`);
 			this._logger.trace((e as Error).stack ?? 'No stack available');
 			return;
 		}
@@ -455,7 +456,9 @@ export class IrcClient extends EventEmitter {
 		}
 
 		return new Promise<void>((resolve, reject) => {
+			// eslint-disable-next-line @typescript-eslint/init-declarations
 			let errorListener: string;
+			// eslint-disable-next-line @typescript-eslint/init-declarations
 			let disconnectListener: Listener;
 
 			const registerListener = this.onRegister(() => {
@@ -791,9 +794,9 @@ export class IrcClient extends EventEmitter {
 				this._logger.info('Disconnected');
 			} else {
 				if (reason) {
-					this._logger.err(`Disconnected unexpectedly: ${reason.message}`);
+					this._logger.error(`Disconnected unexpectedly: ${reason.message}`);
 				} else {
-					this._logger.err('Disconnected unexpectedly');
+					this._logger.error('Disconnected unexpectedly');
 				}
 			}
 			this.emit(this.onDisconnect, manually, reason);
