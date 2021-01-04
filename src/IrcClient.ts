@@ -1,7 +1,7 @@
 import type { Connection, ConnectionInfo, ConnectionOptions, WebSocketConnectionOptions } from '@d-fischer/connection';
 import { DirectConnection, PersistentConnection, WebSocketConnection } from '@d-fischer/connection';
-import type { LoggerOptions } from '@d-fischer/logger';
-import { Logger } from '@d-fischer/logger';
+import type { Logger, LoggerOptionsOrCustom } from '@d-fischer/logger';
+import { createLogger } from '@d-fischer/logger';
 import type { Constructor, ResolvableValue } from '@d-fischer/shared-utils';
 import {
 	arrayToObject,
@@ -74,7 +74,7 @@ export interface BaseIrcClientOptions {
 	channels?: ResolvableValue<string[]>;
 	webSocket?: boolean;
 	channelTypes?: string;
-	logger?: Partial<LoggerOptions>;
+	logger?: Partial<LoggerOptionsOrCustom>;
 	nonConformingCommands?: string[];
 }
 
@@ -159,7 +159,7 @@ export class IrcClient extends EventEmitter {
 
 		this._currentNick = credentials.nick;
 
-		this._logger = new Logger({ name: 'ircv3', emoji: true, ...logger });
+		this._logger = createLogger({ name: 'ircv3', emoji: true, ...logger });
 
 		this.registerCoreMessageTypes();
 
