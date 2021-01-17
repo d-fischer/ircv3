@@ -117,7 +117,9 @@ export class IrcClient extends EventEmitter {
 		handler: (target: string, user: string, message: string, msg: Notice) => void
 	) => Listener = this.registerEvent();
 
-	onNickChange = this.registerEvent<[oldNick: string | undefined, newNick: string, msg: NickChange]>();
+	onNickChange: (
+		handler: (oldNick: string | undefined, newNick: string, msg: NickChange) => void
+	) => Listener = this.registerEvent();
 
 	onCtcp: (
 		handler: (target: string, user: string, command: string, params: string, msg: PrivateMessage) => void
@@ -126,7 +128,7 @@ export class IrcClient extends EventEmitter {
 		handler: (target: string, user: string, command: string, params: string, msg: Notice) => void
 	) => Listener = this.registerEvent();
 
-	onAnyMessage = this.registerEvent<[msg: Message]>();
+	onAnyMessage: (handler: (msg: Message) => void) => Listener = this.registerEvent();
 
 	protected _serverProperties: ServerProperties = klona(defaultServerProperties);
 	protected _supportedFeatures: Record<string, true | string> = {};
