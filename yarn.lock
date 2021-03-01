@@ -278,10 +278,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@d-fischer/connection@^6.4.1":
-  version "6.4.1"
-  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.4.1.tgz#e89c0e9304939cbe84cd20235e4b48a1bac00f5e"
-  integrity sha512-NdMSfwzAaIJXS5weQlq1rd3Rl/0zfz7HQeWnIefkvA5Jsndt9fu1F3TeBnP+RIG73rjnFrUdPzeM975c7Yq6aw==
+"@d-fischer/connection@^6.4.2":
+  version "6.4.2"
+  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.4.2.tgz#b4b0a65ccfd745292a91d3b738d3d57e95cd105e"
+  integrity sha512-1ABkXOJWuIg21sumWVjzpYk+LWYvKWR8fBe/xRn9KcNver4ktOpq6ne/QwjQ1KDVHm1N61y+GzVMMZiOaGla6w==
   dependencies:
     "@d-fischer/isomorphic-ws" "^5.0.2"
     "@d-fischer/logger" "^3.0.0"
