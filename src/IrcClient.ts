@@ -102,24 +102,58 @@ export class IrcClient extends EventEmitter {
 	protected _events = new Map<string, EventHandlerList>();
 	protected _registeredMessageTypes = new Map<string, MessageConstructor>();
 
-	// emitted events
+	/**
+	 * @eventListener
+	 */
 	onConnect: EventBinder<[]> = this.registerEvent();
+
+	/**
+	 * @eventListener
+	 */
 	onRegister: EventBinder<[]> = this.registerEvent();
+
+	/**
+	 * @eventListener
+	 */
 	onDisconnect: EventBinder<[manually: boolean, reason?: Error]> = this.registerEvent();
 
+	/**
+	 * @eventListener
+	 */
 	onPrivmsg: EventBinder<[target: string, user: string, message: string, msg: PrivateMessage]> = this.registerEvent();
+
+	/**
+	 * @eventListener
+	 */
 	onAction: EventBinder<[target: string, user: string, message: string, msg: PrivateMessage]> = this.registerEvent();
+
+	/**
+	 * @eventListener
+	 */
 	onNotice: EventBinder<[target: string, user: string, message: string, msg: Notice]> = this.registerEvent();
 
+	/**
+	 * @eventListener
+	 */
 	onNickChange: EventBinder<[oldNick: string | undefined, newNick: string, msg: NickChange]> = this.registerEvent();
 
+	/**
+	 * @eventListener
+	 */
 	onCtcp: EventBinder<
 		[target: string, user: string, command: string, params: string, msg: PrivateMessage]
 	> = this.registerEvent();
+
+	/**
+	 * @eventListener
+	 */
 	onCtcpReply: EventBinder<
 		[target: string, user: string, command: string, params: string, msg: Notice]
 	> = this.registerEvent();
 
+	/**
+	 * @eventListener
+	 */
 	onAnyMessage: EventBinder<[msg: Message]> = this.registerEvent();
 
 	protected _serverProperties: ServerProperties = klona(defaultServerProperties);
