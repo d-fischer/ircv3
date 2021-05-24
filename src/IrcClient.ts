@@ -11,7 +11,7 @@ import {
 	resolveConfigValue,
 	splitWithLimit
 } from '@d-fischer/shared-utils';
-import type { Listener } from '@d-fischer/typed-event-emitter';
+import type { Listener, EventBinder } from '@d-fischer/typed-event-emitter';
 import { EventEmitter } from '@d-fischer/typed-event-emitter';
 import { klona } from 'klona/json';
 
@@ -103,20 +103,24 @@ export class IrcClient extends EventEmitter {
 	protected _registeredMessageTypes = new Map<string, MessageConstructor>();
 
 	// emitted events
-	onConnect = this.registerEvent<[]>();
-	onRegister = this.registerEvent<[]>();
-	onDisconnect = this.registerEvent<[manually: boolean, reason?: Error]>();
+	onConnect: EventBinder<[]> = this.registerEvent();
+	onRegister: EventBinder<[]> = this.registerEvent();
+	onDisconnect: EventBinder<[manually: boolean, reason?: Error]> = this.registerEvent();
 
-	onPrivmsg = this.registerEvent<[target: string, user: string, message: string, msg: PrivateMessage]>();
-	onAction = this.registerEvent<[target: string, user: string, message: string, msg: PrivateMessage]>();
-	onNotice = this.registerEvent<[target: string, user: string, message: string, msg: Notice]>();
+	onPrivmsg: EventBinder<[target: string, user: string, message: string, msg: PrivateMessage]> = this.registerEvent();
+	onAction: EventBinder<[target: string, user: string, message: string, msg: PrivateMessage]> = this.registerEvent();
+	onNotice: EventBinder<[target: string, user: string, message: string, msg: Notice]> = this.registerEvent();
 
-	onNickChange = this.registerEvent<[oldNick: string | undefined, newNick: string, msg: NickChange]>();
+	onNickChange: EventBinder<[oldNick: string | undefined, newNick: string, msg: NickChange]> = this.registerEvent();
 
-	onCtcp = this.registerEvent<[target: string, user: string, command: string, params: string, msg: PrivateMessage]>();
-	onCtcpReply = this.registerEvent<[target: string, user: string, command: string, params: string, msg: Notice]>();
+	onCtcp: EventBinder<
+		[target: string, user: string, command: string, params: string, msg: PrivateMessage]
+	> = this.registerEvent();
+	onCtcpReply: EventBinder<
+		[target: string, user: string, command: string, params: string, msg: Notice]
+	> = this.registerEvent();
 
-	onAnyMessage = this.registerEvent<[msg: Message]>();
+	onAnyMessage: EventBinder<[msg: Message]> = this.registerEvent();
 
 	protected _serverProperties: ServerProperties = klona(defaultServerProperties);
 	protected _supportedFeatures: Record<string, true | string> = {};
