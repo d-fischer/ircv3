@@ -103,32 +103,20 @@ export class IrcClient extends EventEmitter {
 	protected _registeredMessageTypes = new Map<string, MessageConstructor>();
 
 	// emitted events
-	onConnect: (handler: () => void) => Listener = this.registerEvent();
-	onRegister: (handler: () => void) => Listener = this.registerEvent();
-	onDisconnect: (handler: (manually: boolean, reason?: Error) => void) => Listener = this.registerEvent();
+	onConnect = this.registerEvent<[]>();
+	onRegister = this.registerEvent<[]>();
+	onDisconnect = this.registerEvent<[manually: boolean, reason?: Error]>();
 
-	onPrivmsg: (
-		handler: (target: string, user: string, message: string, msg: PrivateMessage) => void
-	) => Listener = this.registerEvent();
-	onAction: (
-		handler: (target: string, user: string, message: string, msg: PrivateMessage) => void
-	) => Listener = this.registerEvent();
-	onNotice: (
-		handler: (target: string, user: string, message: string, msg: Notice) => void
-	) => Listener = this.registerEvent();
+	onPrivmsg = this.registerEvent<[target: string, user: string, message: string, msg: PrivateMessage]>();
+	onAction = this.registerEvent<[target: string, user: string, message: string, msg: PrivateMessage]>();
+	onNotice = this.registerEvent<[target: string, user: string, message: string, msg: Notice]>();
 
-	onNickChange: (
-		handler: (oldNick: string | undefined, newNick: string, msg: NickChange) => void
-	) => Listener = this.registerEvent();
+	onNickChange = this.registerEvent<[oldNick: string | undefined, newNick: string, msg: NickChange]>();
 
-	onCtcp: (
-		handler: (target: string, user: string, command: string, params: string, msg: PrivateMessage) => void
-	) => Listener = this.registerEvent();
-	onCtcpReply: (
-		handler: (target: string, user: string, command: string, params: string, msg: Notice) => void
-	) => Listener = this.registerEvent();
+	onCtcp = this.registerEvent<[target: string, user: string, command: string, params: string, msg: PrivateMessage]>();
+	onCtcpReply = this.registerEvent<[target: string, user: string, command: string, params: string, msg: Notice]>();
 
-	onAnyMessage: (handler: (msg: Message) => void) => Listener = this.registerEvent();
+	onAnyMessage = this.registerEvent<[msg: Message]>();
 
 	protected _serverProperties: ServerProperties = klona(defaultServerProperties);
 	protected _supportedFeatures: Record<string, true | string> = {};
