@@ -297,9 +297,9 @@ export class IrcClient extends EventEmitter {
 
 		this.onTypedMessage(PrivateMessage, msg => {
 			const {
-				params: { target, message }
+				params: { target, content }
 			} = msg;
-			const ctcpMessage = decodeCtcp(message);
+			const ctcpMessage = decodeCtcp(content);
 			const nick = msg.prefix?.nick;
 
 			if (ctcpMessage) {
@@ -309,7 +309,7 @@ export class IrcClient extends EventEmitter {
 					this.emit(this.onCtcp, target, nick, ctcpMessage.command, ctcpMessage.params, msg);
 				}
 			} else {
-				this.emit(this.onPrivmsg, target, nick, message, msg);
+				this.emit(this.onPrivmsg, target, nick, content, msg);
 			}
 		});
 
@@ -329,16 +329,16 @@ export class IrcClient extends EventEmitter {
 
 		this.onTypedMessage(Notice, msg => {
 			const {
-				params: { target, message }
+				params: { target, content }
 			} = msg;
-			const ctcpMessage = decodeCtcp(message);
+			const ctcpMessage = decodeCtcp(content);
 			const nick = msg.prefix?.nick;
 
 			if (ctcpMessage) {
 				this.emit(this.onCtcpReply, target, nick, ctcpMessage.command, ctcpMessage.params, msg);
 			}
 
-			this.emit(this.onNotice, target, nick, message, msg);
+			this.emit(this.onNotice, target, nick, content, msg);
 		});
 
 		this.onRegister(() => this._startPingCheckTimer());
@@ -635,7 +635,7 @@ export class IrcClient extends EventEmitter {
 	}
 
 	say(target: string, message: string, tags: Record<string, string> = {}): void {
-		this.sendMessage(PrivateMessage, { target, message }, tags);
+		this.sendMessage(PrivateMessage, { target, content: message }, tags);
 	}
 
 	sendCtcp(target: string, type: string, message: string): void {

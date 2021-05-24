@@ -1,5 +1,5 @@
 import { parseMessage, parseTags } from '../MessageParser';
-import { PrivateMessage } from '../MessageTypes/Commands/PrivateMessage';
+import { PrivateMessage } from '../MessageTypes/Commands';
 
 describe('Message parser', () => {
 	it('parses a standard message without tags', () => {
@@ -7,7 +7,7 @@ describe('Message parser', () => {
 
 		expect(msg).toBeInstanceOf(PrivateMessage);
 		expect(msg.prefix).toStrictEqual({ nick: 'a', user: 'b', host: 'c' });
-		expect(msg.params).toStrictEqual({ target: '#test', message: 'hi' });
+		expect(msg.params).toStrictEqual({ target: '#test', content: 'hi' });
 		expect(msg.tags).not.toBeUndefined();
 		expect(msg.tags.size).toBe(0);
 	});
@@ -17,7 +17,7 @@ describe('Message parser', () => {
 
 		expect(msg).toBeInstanceOf(PrivateMessage);
 		expect(msg.prefix).toStrictEqual({ nick: 'a', user: 'b', host: 'c' });
-		expect(msg.params).toStrictEqual({ target: '#test', message: 'hi' });
+		expect(msg.params).toStrictEqual({ target: '#test', content: 'hi' });
 		expect(msg.tags).not.toBeUndefined();
 		expect(msg.tags.size).toBe(2);
 		expect(msg.tags.get('foo')).toBe('bar');

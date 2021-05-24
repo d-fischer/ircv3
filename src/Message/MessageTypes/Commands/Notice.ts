@@ -10,5 +10,5 @@ export class Notice extends Message<Notice> {
 	@MessageParamDefinition({
 		trailing: true
 	})
-	message!: MessageParam;
+	content!: MessageParam;
 }

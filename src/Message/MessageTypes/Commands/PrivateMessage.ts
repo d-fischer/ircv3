@@ -10,5 +10,5 @@ export class PrivateMessage extends Message<PrivateMessage> {
 	@MessageParamDefinition({
 		trailing: true
 	})
-	message!: MessageParam;
+	content!: MessageParam;
 }

@@ -10,5 +10,5 @@ export class Reply375MotdStart extends Message<Reply375MotdStart> {
 	@MessageParamDefinition({
 		trailing: true
 	})
-	message!: MessageParam;
+	line!: MessageParam;
 }

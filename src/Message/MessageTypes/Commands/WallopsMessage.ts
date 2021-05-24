@@ -7,5 +7,5 @@ export class WallopsMessage extends Message<WallopsMessage> {
 	@MessageParamDefinition({
 		trailing: true
 	})
-	message!: MessageParam;
+	content!: MessageParam;
 }

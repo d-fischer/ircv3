@@ -7,5 +7,5 @@ export class ErrorMessage extends Message<ErrorMessage> {
 	@MessageParamDefinition({
 		trailing: true
 	})
-	message!: MessageParam;
+	content!: MessageParam;
 }
