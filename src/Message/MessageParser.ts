@@ -32,7 +32,7 @@ export function parseTags(raw: string): Map<string, string> {
 	for (const tagString of tagStrings) {
 		const [tagName, tagValue] = splitWithLimit(tagString, '=', 2);
 		if (tagName === '') {
-			continue; // Ignore empty tags: @ @; @x; etc.
+			continue; // Ignore empty tags: @ @; etc.
 		}
 		// unescape according to http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
 		tags.set(
