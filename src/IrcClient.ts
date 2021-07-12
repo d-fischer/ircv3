@@ -140,16 +140,14 @@ export class IrcClient extends EventEmitter {
 	/**
 	 * @eventListener
 	 */
-	onCtcp: EventBinder<
-		[target: string, user: string, command: string, params: string, msg: PrivateMessage]
-	> = this.registerEvent();
+	onCtcp: EventBinder<[target: string, user: string, command: string, params: string, msg: PrivateMessage]> =
+		this.registerEvent();
 
 	/**
 	 * @eventListener
 	 */
-	onCtcpReply: EventBinder<
-		[target: string, user: string, command: string, params: string, msg: Notice]
-	> = this.registerEvent();
+	onCtcpReply: EventBinder<[target: string, user: string, command: string, params: string, msg: Notice]> =
+		this.registerEvent();
 
 	/**
 	 * @eventListener
