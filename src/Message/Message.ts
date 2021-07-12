@@ -211,7 +211,7 @@ export class Message<T extends Message<T> = any> {
 		return [...this._tags.entries()].map(([key, value]) => (value ? `${key}=${escapeTag(value)}` : key)).join(';');
 	}
 
-	toString(complete: boolean = false): string {
+	toString(includePrefix: boolean = false): string {
 		const cls = this.constructor as MessageConstructor<T>;
 		const specKeys = Object.keys(cls.PARAM_SPEC!) as Array<MessageParamNames<T>>;
 		const fullCommand = [
@@ -231,15 +231,13 @@ export class Message<T extends Message<T> = any> {
 				.filter((param: string | undefined) => param !== undefined)
 		].join(' ');
 
-		if (!complete) {
-			return fullCommand;
-		}
-
 		const parts = [fullCommand];
 
-		const prefix = this.prefixToString();
-		if (prefix) {
-			parts.unshift(`:${prefix}`);
+		if (includePrefix) {
+			const prefix = this.prefixToString();
+			if (prefix) {
+				parts.unshift(`:${prefix}`);
+			}
 		}
 
 		const tags = this.tagsToString();
