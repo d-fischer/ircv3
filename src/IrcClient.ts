@@ -1,6 +1,6 @@
 import type { Connection, ConnectionInfo, ConnectionOptions, WebSocketConnectionOptions } from '@d-fischer/connection';
 import { DirectConnection, PersistentConnection, WebSocketConnection } from '@d-fischer/connection';
-import type { Logger, LoggerOptionsOrCustom } from '@d-fischer/logger';
+import type { Logger, LoggerOptions } from '@d-fischer/logger';
 import { createLogger } from '@d-fischer/logger';
 import type { Constructor, ResolvableValue } from '@d-fischer/shared-utils';
 import {
@@ -74,7 +74,7 @@ export interface BaseIrcClientOptions {
 	channels?: ResolvableValue<string[]>;
 	webSocket?: boolean;
 	channelTypes?: string;
-	logger?: Partial<LoggerOptionsOrCustom>;
+	logger?: Partial<LoggerOptions>;
 	nonConformingCommands?: string[];
 }
 
