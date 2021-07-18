@@ -310,13 +310,13 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@d-fischer/connection@^6.5.0":
-  version "6.5.0"
-  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.5.0.tgz#283dba5741fc1d37be8e1d8a5984d242be262748"
-  integrity sha512-C0BQjswoiEdE9C644R7Cte3WpZ5A5f61DDdCxzjr0/UKIITTLVdcBbiCxstCWjwmM/MMvIokd4raZkJjnByUog==
+"@d-fischer/connection@^6.5.1":
+  version "6.5.1"
+  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.5.1.tgz#77694ccdd9df52d7151ae11e381b0d3b654b1f3d"
+  integrity sha512-lFKdDS+C3UPNc1NZNnZwqbzSyO8+/nXTYZVGm2f+yr0pnwLXGunL+KjlRc3R+4QtKQ6grEBVqHx4FCkHYBcpfw==
   dependencies:
     "@d-fischer/isomorphic-ws" "^5.0.2"
-    "@d-fischer/logger" "^3.0.0"
+    "@d-fischer/logger" "^4.0.0"
     "@d-fischer/shared-utils" "^3.0.1"
     "@d-fischer/typed-event-emitter" "^3.2.2"
     "@types/node" "^14.14.19"
@@ -344,14 +344,6 @@
   version "5.0.4"
   resolved "https://registry.yarnpkg.com/@d-fischer/isomorphic-ws/-/isomorphic-ws-5.0.4.tgz#d500735c69a9d0db7e135502eaeb30e6bc4c6532"
   integrity sha512-iNX2+kupoYtTg5snSzvqpa+rgQmnxWbngU5/uV0y4PyuJHJIoWJuTa/KPh+3ruW4UtloqhCpGe8pyb0EGjt9xQ==
-
-"@d-fischer/logger@^3.0.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@d-fischer/logger/-/logger-3.1.0.tgz#d9e24e6f1a2f7a3ae2f93af27a0e26d73bb38138"
-  integrity sha512-kNg9PjmiyH9DMr70mAWU+i+dy3+e1hI0lR+No5RJduQtexI247NmEzNd0pethpwm+1uA0MRf3w9QnqZ1PHKvyA==
-  dependencies:
-    detect-node "^2.0.4"
-    tslib "^2.0.3"
 
 "@d-fischer/logger@^4.0.0":
   version "4.0.0"
