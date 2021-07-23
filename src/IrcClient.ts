@@ -68,27 +68,16 @@ export interface IrcClientConnectionOptions {
 	reconnect?: boolean;
 }
 
-export interface BaseIrcClientOptions {
+export interface IrcClientOptions {
 	connection: IrcClientConnectionOptions;
 	credentials: IrcCredentials;
 	channels?: ResolvableValue<string[]>;
 	webSocket?: boolean;
+	connectionOptions?: WebSocketConnectionOptions;
 	channelTypes?: string;
 	logger?: Partial<LoggerOptions>;
 	nonConformingCommands?: string[];
 }
-
-export interface WebSocketIrcClientOptions extends BaseIrcClientOptions {
-	webSocket: true;
-	connectionOptions?: WebSocketConnectionOptions;
-}
-
-export interface TcpIrcClientOptions extends BaseIrcClientOptions {
-	webSocket?: false;
-	connectionOptions?: never;
-}
-
-export type IrcClientOptions = WebSocketIrcClientOptions | TcpIrcClientOptions;
 
 export class IrcClient extends EventEmitter {
 	protected _connection: Connection;
