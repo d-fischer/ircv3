@@ -1,4 +1,4 @@
-import type { AllowedNames } from '@d-fischer/shared-utils';
+import type { AllowedNames, NoInfer } from '@d-fischer/shared-utils';
 import { forEachObjectEntry } from '@d-fischer/shared-utils';
 import { NotEnoughParametersError } from '../Errors/NotEnoughParametersError';
 import { ParameterRequirementMismatchError } from '../Errors/ParameterRequirementMismatchError';
@@ -30,7 +30,7 @@ export interface MessageParamSpecEntry {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface MessageConstructor<T extends Message<T> = any> extends Function {
 	COMMAND: string;
-	PARAM_SPEC?: MessageParamSpec<T>;
+	PARAM_SPEC?: MessageParamSpec<NoInfer<T>>;
 	SUPPORTS_CAPTURE: boolean;
 
 	getMinParamCount: (isServer?: boolean) => number;
