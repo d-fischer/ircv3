@@ -204,7 +204,7 @@ export class IrcClient extends EventEmitter {
 		}
 
 		if (channels) {
-			this.onRegister(async () => {
+			this.addInternalListener(this.onRegister, async () => {
 				const resolvedChannels = await resolveConfigValue(channels);
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (resolvedChannels) {
@@ -354,7 +354,7 @@ export class IrcClient extends EventEmitter {
 			this.emit(this.onNotice, target, nick, content, msg);
 		});
 
-		this.onRegister(() => this._startPingCheckTimer());
+		this.addInternalListener(this.onRegister, () => this._startPingCheckTimer());
 
 		this._credentials = { ...credentials };
 
