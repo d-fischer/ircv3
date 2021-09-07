@@ -310,17 +310,17 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@d-fischer/connection@^6.5.1":
-  version "6.5.1"
-  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.5.1.tgz#77694ccdd9df52d7151ae11e381b0d3b654b1f3d"
-  integrity sha512-lFKdDS+C3UPNc1NZNnZwqbzSyO8+/nXTYZVGm2f+yr0pnwLXGunL+KjlRc3R+4QtKQ6grEBVqHx4FCkHYBcpfw==
+"@d-fischer/connection@^6.6.0":
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/@d-fischer/connection/-/connection-6.6.0.tgz#ce0701eb4de045d88429d0ca667c70f2e35b45c7"
+  integrity sha512-pm+BF3ZGoOu0Mq/l5rkaK0CE9WKwcEVednguuWVNrYggBMEmV5SBLn8k66vMUf+tmym6SP+n3NkpXT2uXbwKqQ==
   dependencies:
-    "@d-fischer/isomorphic-ws" "^5.0.2"
+    "@d-fischer/isomorphic-ws" "^6.0.0"
     "@d-fischer/logger" "^4.0.0"
     "@d-fischer/shared-utils" "^3.0.1"
     "@d-fischer/typed-event-emitter" "^3.2.2"
-    "@types/node" "^14.14.19"
-    "@types/ws" "^7.2.7"
+    "@types/node" "^16.7.10"
+    "@types/ws" "^7.4.6"
     tslib "^2.0.3"
     ws "^7.4.2"
 
@@ -340,10 +340,10 @@
     eslint-plugin-import "^2.22.0"
     eslint-plugin-jsdoc "^25.4.3"
 
-"@d-fischer/isomorphic-ws@^5.0.2":
-  version "5.0.4"
-  resolved "https://registry.yarnpkg.com/@d-fischer/isomorphic-ws/-/isomorphic-ws-5.0.4.tgz#d500735c69a9d0db7e135502eaeb30e6bc4c6532"
-  integrity sha512-iNX2+kupoYtTg5snSzvqpa+rgQmnxWbngU5/uV0y4PyuJHJIoWJuTa/KPh+3ruW4UtloqhCpGe8pyb0EGjt9xQ==
+"@d-fischer/isomorphic-ws@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@d-fischer/isomorphic-ws/-/isomorphic-ws-6.0.0.tgz#4ef0062f7c735d202a4901bac67e3b83bc0b80d1"
+  integrity sha512-xRhs0tSFxDAbKIxsfXzSz9+KAsz2P64NesfopsqQLf70adKLt+J8am1IFPssN1GlbDnXF15kzrkc8cogpk02gA==
 
 "@d-fischer/logger@^4.0.0":
   version "4.0.0"
@@ -806,6 +806,11 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.17.5.tgz#b59daf6a7ffa461b5648456ca59050ba8e40ed54"
   integrity sha512-bjqH2cX/O33jXT/UmReo2pM7DIJREPMnarixbQ57DOOzzFaI6D2+IcwaJQaJpv0M1E9TIhPCYVxrkcityLjlqA==
 
+"@types/node@^16.7.10":
+  version "16.7.13"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.7.13.tgz#86fae356b03b5a12f2506c6cf6cd9287b205973f"
+  integrity sha512-pLUPDn+YG3FYEt/pHI74HmnJOWzeR+tOIQzUx93pi9M7D8OE7PSLr97HboXwk5F+JS+TLtWuzCOW97AHjmOXXA==
+
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/@types/normalize-package-data/-/normalize-package-data-2.4.1.tgz#d3357479a0fdfdd5907fe67e17e0a85c906e1301"
@@ -834,10 +839,10 @@
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.1.tgz#20f18294f797f2209b5f65c8e3b5c8e8261d127c"
   integrity sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==
 
-"@types/ws@^7.2.7":
-  version "7.4.6"
-  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-7.4.6.tgz#c4320845e43d45a7129bb32905e28781c71c1fff"
-  integrity sha512-ijZ1vzRawI7QoWnTNL8KpHixd2b2XVb9I9HAqI3triPsh1EC0xH0Eg6w2O3TKbDCgiNNlJqfrof6j4T2I+l9vw==
+"@types/ws@^7.4.6":
+  version "7.4.7"
+  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-7.4.7.tgz#f7c390a36f7a0679aa69de2d501319f4f8d9b702"
+  integrity sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==
   dependencies:
     "@types/node" "*"
 
