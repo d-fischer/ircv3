@@ -141,6 +141,11 @@ export class IrcClient extends EventEmitter {
 	/**
 	 * @eventListener
 	 */
+	onPasswordError: EventBinder<[error: Error]> = this.registerEvent();
+
+	/**
+	 * @eventListener
+	 */
 	onAnyMessage: EventBinder<[msg: Message]> = this.registerEvent();
 
 	protected _serverProperties: ServerProperties = klona(defaultServerProperties);
@@ -459,10 +464,9 @@ export class IrcClient extends EventEmitter {
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map<string, ServerCapability>();
 		this._currentNick = this._credentials.nick;
-		await this._setupConnection();
+		this._setupConnection();
 		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
 		await this._connection.connect();
-		this.emit(this.onConnect);
 	}
 
 	async waitForRegistration(): Promise<void> {
@@ -720,75 +724,83 @@ export class IrcClient extends EventEmitter {
 		this._credentials = { ...this._credentials, ...newCredentials };
 	}
 
-	private async _setupConnection() {
+	private _setupConnection() {
 		if (this._initialConnectionSetupDone) {
 			return;
 		}
 		this._connection.onConnect(async () => {
 			this._logger.info(`Connection to server ${this._connection.host}:${this._connection.port} established`);
+			this.emit(this.onConnect);
 			this._logger.debug('Determining connection password');
-			const [password] = await Promise.all([
-				this.getPassword(this._credentials.password),
-				this.sendMessageAndCaptureReply(CapabilityNegotiation, {
-					subCommand: 'LS',
-					version: '302'
-				})
-					.then<Array<ServerCapability[] | Error>>((capReply: Message[]) => {
-						if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
-							this._logger.debug('Server does not support capabilities');
-							return [];
-						}
-						this._supportsCapabilities = true;
-						const capLists = capReply.map(line =>
-							arrayToObject(
-								(line as CapabilityNegotiation).params.capabilities.split(' '),
-								(part: string) => {
-									if (!part) {
-										return {};
-									}
-									const [cap, param] = splitWithLimit(part, '=', 2);
-									return {
-										[cap]: {
-											name: cap,
-											param: param || true
+			try {
+				const [password] = await Promise.all([
+					this.getPassword(this._credentials.password),
+					this.sendMessageAndCaptureReply(CapabilityNegotiation, {
+						subCommand: 'LS',
+						version: '302'
+					})
+						.then<Array<ServerCapability[] | Error>>((capReply: Message[]) => {
+							if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
+								this._logger.debug('Server does not support capabilities');
+								return [];
+							}
+							this._supportsCapabilities = true;
+							const capLists = capReply.map(line =>
+								arrayToObject(
+									(line as CapabilityNegotiation).params.capabilities.split(' '),
+									(part: string) => {
+										if (!part) {
+											return {};
 										}
-									};
-								}
-							)
-						);
-						this._serverCapabilities = new Map<string, ServerCapability>(
-							Object.entries(Object.assign({}, ...capLists))
-						);
-						this._logger.debug(
-							`Capabilities supported by server: ${Array.from(this._serverCapabilities.keys()).join(
-								', '
-							)}`
-						);
-						const capabilitiesToNegotiate = capLists.map(list => {
-							const capNames = Object.keys(list);
-							return Array.from(this._clientCapabilities.entries())
-								.filter(([name]) => capNames.includes(name))
-								.map(([, cap]) => cap);
-						});
-						return this._negotiateCapabilityBatch(capabilitiesToNegotiate);
-					})
-					.then(() => {
-						this.sendMessage(CapabilityNegotiation, { subCommand: 'END' });
-					})
-			]);
-			if (password && password !== this._credentials.password) {
-				this._updateCredentials({ password });
+										const [cap, param] = splitWithLimit(part, '=', 2);
+										return {
+											[cap]: {
+												name: cap,
+												param: param || true
+											}
+										};
+									}
+								)
+							);
+							this._serverCapabilities = new Map<string, ServerCapability>(
+								Object.entries(Object.assign({}, ...capLists))
+							);
+							this._logger.debug(
+								`Capabilities supported by server: ${Array.from(this._serverCapabilities.keys()).join(
+									', '
+								)}`
+							);
+							const capabilitiesToNegotiate = capLists.map(list => {
+								const capNames = Object.keys(list);
+								return Array.from(this._clientCapabilities.entries())
+									.filter(([name]) => capNames.includes(name))
+									.map(([, cap]) => cap);
+							});
+							return this._negotiateCapabilityBatch(capabilitiesToNegotiate);
+						})
+						.then(() => {
+							this.sendMessage(CapabilityNegotiation, { subCommand: 'END' });
+						})
+				]);
+				if (password && password !== this._credentials.password) {
+					this._updateCredentials({ password });
+				}
+				if (password) {
+					this.sendMessage(Password, { password });
+				}
+				this.sendMessage(NickChange, { nick: this._credentials.nick });
+				this.sendMessage(UserRegistration, {
+					user: this._credentials.userName ?? this._credentials.nick,
+					mode: '8',
+					unused: '*',
+					realName: this._credentials.realName ?? this._credentials.nick
+				});
+			} catch (e: unknown) {
+				this.emit(this.onPasswordError, e);
+				this.quit().catch(() =>
+					this._logger.debug(`Error while disconnecting after password error: ${(e as Error).message}`)
+				);
 			}
-			if (password) {
-				this.sendMessage(Password, { password });
-			}
-			this.sendMessage(NickChange, { nick: this._credentials.nick });
-			this.sendMessage(UserRegistration, {
-				user: this._credentials.userName ?? this._credentials.nick,
-				mode: '8',
-				unused: '*',
-				realName: this._credentials.realName ?? this._credentials.nick
-			});
 		});
 
 		this._initialConnectionSetupDone = true;
@@ -817,14 +829,11 @@ export class IrcClient extends EventEmitter {
 			this.emit(this.onDisconnect, manually, reason);
 		});
 
-		// eslint-disable-next-line no-restricted-syntax
-		if (this._options.connection.reconnect !== false) {
-			this._connection.onEnd(manually => {
-				if (!manually) {
-					this._logger.info('No further retries will be made');
-				}
-			});
-		}
+		this._connection.onEnd(manually => {
+			if (!manually) {
+				this._logger.info('No further retries will be made');
+			}
+		});
 	}
 
 	private _handleReceivedClientNick(me: string) {
