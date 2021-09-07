@@ -11,13 +11,12 @@ import {
 	resolveConfigValue,
 	splitWithLimit
 } from '@d-fischer/shared-utils';
-import type { Listener, EventBinder } from '@d-fischer/typed-event-emitter';
+import type { EventBinder } from '@d-fischer/typed-event-emitter';
 import { EventEmitter } from '@d-fischer/typed-event-emitter';
 import { klona } from 'klona/json';
 
 import type { Capability, ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
-import { MessageError } from './Errors/MessageError';
 import type { Message, MessageConstructor, MessageParamValues } from './Message/Message';
 import { createMessage } from './Message/Message';
 import { MessageCollector } from './Message/MessageCollector';
@@ -28,7 +27,6 @@ import {
 	ChannelJoin,
 	ChannelPart,
 	ClientQuit,
-	ErrorMessage,
 	NickChange,
 	Notice,
 	Password,
@@ -265,9 +263,7 @@ export class IrcClient extends EventEmitter {
 			this.sendMessage(Pong, { message });
 		});
 
-		this.onTypedMessage(Reply001Welcome, ({ params: { me } }) => {
-			this._handleReceivedClientNick(me);
-		});
+		this.onTypedMessage(Reply001Welcome, ({ params: { me } }) => this._handleReceivedClientNick(me));
 
 		this.onTypedMessage(Reply004ServerInfo, ({ params: { userModes } }) => {
 			if (userModes) {
@@ -467,40 +463,6 @@ export class IrcClient extends EventEmitter {
 		this._setupConnection();
 		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
 		await this._connection.connect();
-	}
-
-	async waitForRegistration(): Promise<void> {
-		if (this._registered) {
-			return undefined;
-		}
-
-		return new Promise<void>((resolve, reject) => {
-			// eslint-disable-next-line @typescript-eslint/init-declarations
-			let errorListener: string;
-			// eslint-disable-next-line @typescript-eslint/init-declarations
-			let disconnectListener: Listener;
-
-			const registerListener = this.onRegister(() => {
-				registerListener.unbind();
-				this.removeMessageListener(errorListener);
-				disconnectListener.unbind();
-				resolve();
-			});
-
-			errorListener = this.onTypedMessage(ErrorMessage, msg => {
-				registerListener.unbind();
-				this.removeMessageListener(errorListener);
-				disconnectListener.unbind();
-				reject(new MessageError(msg));
-			});
-
-			disconnectListener = this.onDisconnect(reason => {
-				registerListener.unbind();
-				this.removeMessageListener(errorListener);
-				disconnectListener.unbind();
-				reject(reason);
-			});
-		});
 	}
 
 	addCapability(cap: Capability): void {
