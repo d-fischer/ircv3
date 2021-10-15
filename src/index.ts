@@ -3,8 +3,15 @@ export { IrcClient } from './IrcClient';
 export * as CoreCapabilities from './Capability/CoreCapabilities';
 export type { Capability } from './Capability/Capability';
 
-export { Message, prefixToString } from './Message/Message';
-export type { MessageConstructor, MessageParam, MessageParamSpec, MessagePrefix } from './Message/Message';
+export { createMessage, Message, prefixToString } from './Message/Message';
+export type {
+	MessageConstructor,
+	MessageParam,
+	MessageParams,
+	MessageParamSpec,
+	MessageParamValues,
+	MessagePrefix
+} from './Message/Message';
 export { MessageType, MessageParamDefinition } from './Message/MessageDefinition';
 export { parseMessage, parsePrefix, parseTags } from './Message/MessageParser';
 export * as MessageTypes from './Message/MessageTypes';
