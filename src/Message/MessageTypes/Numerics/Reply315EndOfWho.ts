@@ -5,10 +5,10 @@ import { WhoQuery } from '../Commands/WhoQuery';
 
 @MessageType('315')
 export class Reply315EndOfWho extends Message<Reply315EndOfWho> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	query!: MessageParam;
 
 	@MessageParamDefinition({

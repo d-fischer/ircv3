@@ -16,14 +16,14 @@ export interface SingleMode {
 
 @MessageType('MODE')
 export class Mode extends Message<Mode> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	target!: MessageParam;
 
 	@MessageParamDefinition({
 		rest: true,
 		optional: true
 	})
-	modes!: MessageParam;
+	modes?: MessageParam;
 
 	get isChannel(): boolean {
 		return isChannel(this.params.target, this._serverProperties.channelTypes);

@@ -4,7 +4,7 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('451')
 export class Error451NotRegistered extends Message<Error451NotRegistered> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
 	@MessageParamDefinition({

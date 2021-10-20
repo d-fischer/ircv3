@@ -4,7 +4,7 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('376')
 export class Reply376EndOfMotd extends Message<Reply376EndOfMotd> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
 	@MessageParamDefinition({

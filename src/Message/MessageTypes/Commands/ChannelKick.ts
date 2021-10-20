@@ -9,12 +9,12 @@ export class ChannelKick extends Message<ChannelKick> {
 	})
 	channel!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	target!: MessageParam;
 
 	@MessageParamDefinition({
 		trailing: true,
 		optional: true
 	})
-	comment!: MessageParam;
+	comment?: MessageParam;
 }

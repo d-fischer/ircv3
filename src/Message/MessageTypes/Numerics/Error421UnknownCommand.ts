@@ -4,10 +4,10 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('421')
 export class Error421UnknownCommand extends Message<Error421UnknownCommand> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	originalCommand!: MessageParam;
 
 	@MessageParamDefinition({

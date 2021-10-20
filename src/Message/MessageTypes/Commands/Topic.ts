@@ -13,5 +13,5 @@ export class Topic extends Message<Topic> {
 		optional: true,
 		trailing: true
 	})
-	newTopic!: MessageParam;
+	newTopic?: MessageParam;
 }

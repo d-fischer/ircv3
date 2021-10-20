@@ -4,10 +4,10 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('472')
 export class Error472UnknownMode extends Message<Error472UnknownMode> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	char!: MessageParam;
 
 	@MessageParamDefinition({

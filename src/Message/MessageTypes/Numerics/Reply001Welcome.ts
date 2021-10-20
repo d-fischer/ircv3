@@ -4,7 +4,7 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('001')
 export class Reply001Welcome extends Message<Reply001Welcome> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
 	@MessageParamDefinition({

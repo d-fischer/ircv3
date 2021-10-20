@@ -6,11 +6,16 @@ export { Reply005Isupport } from './Reply005Isupport';
 
 export { Reply221UmodeIs } from './Reply221UmodeIs';
 
+export { Reply302UserHost } from './Reply302UserHost';
+export { Reply315EndOfWho } from './Reply315EndOfWho';
+export { Reply322List } from './Reply322List';
+export { Reply323ListEnd } from './Reply323ListEnd';
 export { Reply324ChannelModeIs } from './Reply324ChannelModeIs';
 export { Reply331NoTopic } from './Reply331NoTopic';
 export { Reply332Topic } from './Reply332Topic';
 export { Reply333TopicWhoTime } from './Reply333TopicWhoTime';
 export { Reply341Inviting } from './Reply341Inviting';
+export { Reply352WhoReply } from './Reply352WhoReply';
 export { Reply353NamesReply } from './Reply353NamesReply';
 export { Reply366EndOfNames } from './Reply366EndOfNames';
 export { Reply372Motd } from './Reply372Motd';
@@ -18,6 +23,7 @@ export { Reply375MotdStart } from './Reply375MotdStart';
 export { Reply376EndOfMotd } from './Reply376EndOfMotd';
 
 export { Error401NoSuchNick } from './Error401NoSuchNick';
+export { Error402NoSuchServer } from './Error402NoSuchServer';
 export { Error403NoSuchChannel } from './Error403NoSuchChannel';
 export { Error404CanNotSendToChan } from './Error404CanNotSendToChan';
 export { Error421UnknownCommand } from './Error421UnknownCommand';

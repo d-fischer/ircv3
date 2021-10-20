@@ -4,7 +4,7 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('PRIVMSG')
 export class PrivateMessage extends Message<PrivateMessage> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	target!: MessageParam;
 
 	@MessageParamDefinition({

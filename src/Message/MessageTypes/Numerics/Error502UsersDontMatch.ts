@@ -4,7 +4,7 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('502')
 export class Error502UsersDontMatch extends Message<Error502UsersDontMatch> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
 	@MessageParamDefinition({

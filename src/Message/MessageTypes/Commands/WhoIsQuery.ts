@@ -7,8 +7,8 @@ export class WhoIsQuery extends Message<WhoIsQuery> {
 	@MessageParamDefinition({
 		optional: true
 	})
-	server!: MessageParam;
+	server?: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	nickMask!: MessageParam;
 }

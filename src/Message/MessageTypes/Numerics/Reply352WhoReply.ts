@@ -5,22 +5,22 @@ import { WhoQuery } from '../Commands/WhoQuery';
 
 @MessageType('352')
 export class Reply352WhoReply extends Message<Reply352WhoReply> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	channel!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	host!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	server!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	nick!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	flags!: MessageParam;
 
 	@MessageParamDefinition({

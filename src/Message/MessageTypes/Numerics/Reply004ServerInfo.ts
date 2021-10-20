@@ -4,23 +4,23 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('004')
 export class Reply004ServerInfo extends Message<Reply004ServerInfo> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	serverName!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	version!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	userModes!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	channelModes!: MessageParam;
 
 	@MessageParamDefinition({
 		optional: true
 	})
-	channelModesWithParam!: MessageParam;
+	channelModesWithParam?: MessageParam;
 }

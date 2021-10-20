@@ -5,10 +5,10 @@ import { Names } from '../Commands/Names';
 
 @MessageType('353')
 export class Reply353NamesReply extends Message<Reply353NamesReply> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	channelType!: MessageParam;
 
 	@MessageParamDefinition({

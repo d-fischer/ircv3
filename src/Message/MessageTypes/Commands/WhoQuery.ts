@@ -7,7 +7,7 @@ export class WhoQuery extends Message<WhoQuery> {
 	@MessageParamDefinition({
 		optional: true
 	})
-	mask!: MessageParam;
+	mask?: MessageParam;
 
 	@MessageParamDefinition({
 		rest: true

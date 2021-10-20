@@ -4,10 +4,10 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('436')
 export class Error436NickCollision extends Message<Error436NickCollision> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	nick!: MessageParam;
 
 	@MessageParamDefinition({

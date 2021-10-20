@@ -4,13 +4,13 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('USER')
 export class UserRegistration extends Message<UserRegistration> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	user!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	mode!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	unused!: MessageParam;
 
 	@MessageParamDefinition({

@@ -5,10 +5,10 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 // misspelt for historical reasons
 @MessageType('432')
 export class Error432ErroneusNickname extends Message<Error432ErroneusNickname> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	nick!: MessageParam;
 
 	@MessageParamDefinition({

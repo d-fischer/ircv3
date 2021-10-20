@@ -4,10 +4,10 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('482')
 export class Error482ChanOpPrivsNeeded extends Message<Error482ChanOpPrivsNeeded> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	channel!: MessageParam;
 
 	@MessageParamDefinition({

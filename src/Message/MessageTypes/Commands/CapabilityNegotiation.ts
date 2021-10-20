@@ -11,7 +11,7 @@ export class CapabilityNegotiation extends Message<CapabilityNegotiation> {
 		optional: true,
 		noClient: true
 	})
-	target!: MessageParam;
+	target?: MessageParam;
 
 	@MessageParamDefinition({
 		match: /^(?:LS|LIST|REQ|ACK|NAK|END|NEW|DEL)$/i
@@ -22,19 +22,19 @@ export class CapabilityNegotiation extends Message<CapabilityNegotiation> {
 		match: /^\d+$/,
 		optional: true
 	})
-	version!: MessageParam;
+	version?: MessageParam;
 
 	@MessageParamDefinition({
 		match: /^\*$/,
 		optional: true
 	})
-	continued!: MessageParam;
+	continued?: MessageParam;
 
 	@MessageParamDefinition({
 		trailing: true,
 		optional: true
 	})
-	capabilities!: MessageParam;
+	capabilities?: MessageParam;
 
 	isResponseTo(originalMessage: Message): boolean {
 		if (!(originalMessage instanceof CapabilityNegotiation)) {
@@ -47,7 +47,7 @@ export class CapabilityNegotiation extends Message<CapabilityNegotiation> {
 				// trim is necessary because some networks seem to add trailing spaces (looking at you, Freenode)...
 				return (
 					originalMessage.params.subCommand === 'REQ' &&
-					originalMessage.params.capabilities === this.params.capabilities.trim()
+					originalMessage.params.capabilities === this.params.capabilities!.trim()
 				);
 			}
 

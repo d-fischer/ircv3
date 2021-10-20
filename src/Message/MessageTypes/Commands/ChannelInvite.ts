@@ -4,7 +4,7 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('INVITE')
 export class ChannelInvite extends Message<ChannelInvite> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	target!: MessageParam;
 
 	@MessageParamDefinition({

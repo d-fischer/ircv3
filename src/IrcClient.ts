@@ -219,7 +219,7 @@ export class IrcClient extends EventEmitter {
 		}
 
 		this.onTypedMessage(CapabilityNegotiation, async ({ params: { subCommand, capabilities } }) => {
-			const caps = capabilities.split(' ');
+			const caps = capabilities!.split(' ');
 
 			// eslint-disable-next-line default-case
 			switch (subCommand.toUpperCase()) {
@@ -665,7 +665,7 @@ export class IrcClient extends EventEmitter {
 		if (!(capReply instanceof CapabilityNegotiation)) {
 			throw new Error(`capability negotiation failed unexpectedly with "${capReply.command}" command`);
 		}
-		const negotiatedCapNames = capReply.params.capabilities.split(' ').filter(c => c);
+		const negotiatedCapNames = capReply.params.capabilities!.split(' ').filter(c => c);
 		if (capReply.params.subCommand === 'ACK') {
 			// filter is necessary because some networks seem to add trailing spaces...
 			this._logger.debug(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
@@ -709,7 +709,7 @@ export class IrcClient extends EventEmitter {
 							this._supportsCapabilities = true;
 							const capLists = capReply.map(line =>
 								arrayToObject(
-									(line as CapabilityNegotiation).params.capabilities.split(' '),
+									(line as CapabilityNegotiation).params.capabilities!.split(' '),
 									(part: string) => {
 										if (!part) {
 											return {};

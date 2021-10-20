@@ -2,19 +2,13 @@ import type { MessageParam } from '../../Message';
 import { Message } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-@MessageType('333')
-export class Reply333TopicWhoTime extends Message<Reply333TopicWhoTime> {
+@MessageType('323')
+export class Reply323ListEnd extends Message<Reply323ListEnd> {
 	@MessageParamDefinition()
 	me!: MessageParam;
 
 	@MessageParamDefinition({
-		type: 'channel'
+		trailing: true
 	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition()
-	who!: MessageParam;
-
-	@MessageParamDefinition()
-	ts!: MessageParam;
+	suffix!: MessageParam;
 }

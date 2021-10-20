@@ -10,5 +10,5 @@ export class Names extends Message<Names> {
 		type: 'channelList',
 		optional: true
 	})
-	channel!: MessageParam;
+	channel?: MessageParam;
 }

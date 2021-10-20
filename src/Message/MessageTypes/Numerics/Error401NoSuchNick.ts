@@ -4,10 +4,10 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('401')
 export class Error401NoSuchNick extends Message<Error401NoSuchNick> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	nick!: MessageParam;
 
 	@MessageParamDefinition({

@@ -8,5 +8,5 @@ export class ClientQuit extends Message<ClientQuit> {
 		trailing: true,
 		optional: true
 	})
-	message!: MessageParam;
+	message?: MessageParam;
 }

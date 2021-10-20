@@ -4,10 +4,10 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('461')
 export class Error461NeedMoreParams extends Message<Error461NeedMoreParams> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	originalCommand!: MessageParam;
 
 	@MessageParamDefinition({

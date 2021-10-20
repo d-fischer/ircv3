@@ -5,12 +5,10 @@ import { Names } from '../Commands/Names';
 
 @MessageType('366')
 export class Reply366EndOfNames extends Message<Reply366EndOfNames> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({
-		type: 'channel'
-	})
+	@MessageParamDefinition()
 	channel!: MessageParam;
 
 	@MessageParamDefinition({

@@ -4,6 +4,6 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('PASS')
 export class Password extends Message<Password> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	password!: MessageParam;
 }

@@ -50,7 +50,9 @@ export interface MessageConstructor<T extends Message<T> = any> extends Function
 
 export type MessageParamNames<T extends Message<T>> = AllowedNames<Omit<T, 'params'>, MessageParam | undefined>;
 export type MessageParams<T extends Message<T>> = Record<MessageParamNames<T>, MessageParam>;
-export type MessageParamValues<T extends Message<T>> = Record<MessageParamNames<T>, string>;
+export type MessageParamValues<T extends Message<T>> = {
+	[K in MessageParamNames<T>]: string | (undefined extends T[K] ? undefined : never);
+};
 export type MessageParamSpec<T extends Message<T>> = Record<MessageParamNames<T>, MessageParamSpecEntry>;
 
 const tagEscapeMap: Record<string, string> = {

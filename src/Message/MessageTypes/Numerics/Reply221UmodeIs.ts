@@ -4,9 +4,9 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('221')
 export class Reply221UmodeIs extends Message<Reply221UmodeIs> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	modes!: MessageParam;
 }

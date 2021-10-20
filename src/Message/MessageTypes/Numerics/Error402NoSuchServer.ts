@@ -2,19 +2,16 @@ import type { MessageParam } from '../../Message';
 import { Message } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-@MessageType('333')
-export class Reply333TopicWhoTime extends Message<Reply333TopicWhoTime> {
+@MessageType('402')
+export class Error402NoSuchServer extends Message<Error402NoSuchServer> {
 	@MessageParamDefinition()
 	me!: MessageParam;
 
+	@MessageParamDefinition()
+	server!: MessageParam;
+
 	@MessageParamDefinition({
-		type: 'channel'
+		trailing: true
 	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition()
-	who!: MessageParam;
-
-	@MessageParamDefinition()
-	ts!: MessageParam;
+	suffix!: MessageParam;
 }

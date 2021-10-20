@@ -4,9 +4,9 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('OPER')
 export class OperLogin extends Message<OperLogin> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	name!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	password!: MessageParam;
 }

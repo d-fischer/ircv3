@@ -4,6 +4,6 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('NICK')
 export class NickChange extends Message<NickChange> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	nick!: MessageParam;
 }

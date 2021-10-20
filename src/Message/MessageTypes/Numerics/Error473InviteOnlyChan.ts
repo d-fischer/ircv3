@@ -4,10 +4,10 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('473')
 export class Error473InviteOnlyChan extends Message<Error473InviteOnlyChan> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	channel!: MessageParam;
 
 	@MessageParamDefinition({

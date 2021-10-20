@@ -4,16 +4,16 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('WHOWAS')
 export class WhoWasQuery extends Message<WhoWasQuery> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	nickname!: MessageParam;
 
 	@MessageParamDefinition({
 		optional: true
 	})
-	count!: MessageParam;
+	count?: MessageParam;
 
 	@MessageParamDefinition({
 		optional: true
 	})
-	server!: MessageParam;
+	server?: MessageParam;
 }

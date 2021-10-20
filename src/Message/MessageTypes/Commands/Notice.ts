@@ -4,7 +4,7 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('NOTICE')
 export class Notice extends Message<Notice> {
-	@MessageParamDefinition({})
+	@MessageParamDefinition()
 	target!: MessageParam;
 
 	@MessageParamDefinition({
