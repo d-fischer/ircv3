@@ -2,12 +2,14 @@ import type { MessageParam } from '../../Message';
 import { Message } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-@MessageType('473')
-export class Error473InviteOnlyChan extends Message<Error473InviteOnlyChan> {
+@MessageType('405')
+export class Error405TooManyChannels extends Message<Error405TooManyChannels> {
 	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({ type: 'channel' })
+	@MessageParamDefinition({
+		type: 'channel'
+	})
 	channel!: MessageParam;
 
 	@MessageParamDefinition({

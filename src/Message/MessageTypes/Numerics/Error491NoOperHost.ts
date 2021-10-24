@@ -2,13 +2,10 @@ import type { MessageParam } from '../../Message';
 import { Message } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-@MessageType('473')
-export class Error473InviteOnlyChan extends Message<Error473InviteOnlyChan> {
+@MessageType('491')
+export class Error491NoOperHost extends Message<Error491NoOperHost> {
 	@MessageParamDefinition()
 	me!: MessageParam;
-
-	@MessageParamDefinition({ type: 'channel' })
-	channel!: MessageParam;
 
 	@MessageParamDefinition({
 		trailing: true

@@ -50,7 +50,10 @@ export { ChannelKick } from './ChannelKick';
 // endregion
 
 // region 4.3 Server queries and commands
-// TODO
+// TODO add more
+
+// 4.3.4 Time message
+export { Time } from './Time';
 // endregion
 
 // region 4.4 Sending messages

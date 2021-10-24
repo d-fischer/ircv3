@@ -21,11 +21,14 @@ export { Reply366EndOfNames } from './Reply366EndOfNames';
 export { Reply372Motd } from './Reply372Motd';
 export { Reply375MotdStart } from './Reply375MotdStart';
 export { Reply376EndOfMotd } from './Reply376EndOfMotd';
+export { Reply381YoureOper } from './Reply381YoureOper';
+export { Reply391Time } from './Reply391Time';
 
 export { Error401NoSuchNick } from './Error401NoSuchNick';
 export { Error402NoSuchServer } from './Error402NoSuchServer';
 export { Error403NoSuchChannel } from './Error403NoSuchChannel';
 export { Error404CanNotSendToChan } from './Error404CanNotSendToChan';
+export { Error405TooManyChannels } from './Error405TooManyChannels';
 export { Error421UnknownCommand } from './Error421UnknownCommand';
 export { Error422NoMotd } from './Error422NoMotd';
 export { Error431NoNickNameGiven } from './Error431NoNickNameGiven';
@@ -40,7 +43,9 @@ export { Error461NeedMoreParams } from './Error461NeedMoreParams';
 export { Error462AlreadyRegistered } from './Error462AlreadyRegistered';
 export { Error472UnknownMode } from './Error472UnknownMode';
 export { Error473InviteOnlyChan } from './Error473InviteOnlyChan';
+export { Error479BadChanName } from './Error479BadChanName';
 export { Error482ChanOpPrivsNeeded } from './Error482ChanOpPrivsNeeded';
+export { Error491NoOperHost } from './Error491NoOperHost';
 
 export { Error501UmodeUnknownFlag } from './Error501UmodeUnknownFlag';
 export { Error502UsersDontMatch } from './Error502UsersDontMatch';
