@@ -8,4 +8,10 @@ export class ChannelPart extends Message<ChannelPart> {
 		type: 'channel'
 	})
 	channel!: MessageParam;
+
+	@MessageParamDefinition({
+		trailing: true,
+		optional: true
+	})
+	reason?: MessageParam;
 }
