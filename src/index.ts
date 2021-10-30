@@ -3,6 +3,10 @@ export { IrcClient } from './IrcClient';
 export * as CoreCapabilities from './Capability/CoreCapabilities';
 export type { Capability } from './Capability/Capability';
 
+export { Acknowledgement } from './Capability/CoreCapabilities/LabeledResponseCapability/MessageTypes/Commands/Acknowledgement';
+export { Batch } from './Capability/CoreCapabilities/BatchCapability/MessageTypes/Commands/Batch';
+export { ChgHost } from './Capability/CoreCapabilities/ChgHostCapability/MessageTypes/Commands/ChgHost';
+
 export { createMessage, Message, prefixToString } from './Message/Message';
 export type {
 	MessageConstructor,

@@ -50,9 +50,12 @@ export interface MessageConstructor<T extends Message<T> = any> extends Function
 
 export type MessageParamNames<T extends Message<T>> = AllowedNames<Omit<T, 'params'>, MessageParam | undefined>;
 export type MessageParams<T extends Message<T>> = Record<MessageParamNames<T>, MessageParam>;
-export type MessageParamValues<T extends Message<T>> = {
-	[K in MessageParamNames<T>]: string | (undefined extends T[K] ? undefined : never);
-};
+export type MessageParamValues<T extends Message<T>> = Pick<
+	{
+		[K in keyof T]: string | Extract<T[K], undefined>;
+	},
+	MessageParamNames<T>
+>;
 export type MessageParamSpec<T extends Message<T>> = Record<MessageParamNames<T>, MessageParamSpecEntry>;
 
 const tagEscapeMap: Record<string, string> = {
@@ -201,6 +204,10 @@ export class Message<T extends Message<T> = any> {
 		}
 	}
 
+	get paramCount(): number {
+		return this._params?.length ?? 0;
+	}
+
 	prefixToString(): string {
 		if (!this._prefix) {
 			return '';
@@ -263,7 +270,7 @@ export class Message<T extends Message<T> = any> {
 			const cls = this.constructor as MessageConstructor<T>;
 			let requiredParamsLeft = cls.getMinParamCount(isServer);
 			if (requiredParamsLeft > this._params.length) {
-				throw new NotEnoughParametersError(this._command, requiredParamsLeft, this._params.length);
+				throw new NotEnoughParametersError(this, requiredParamsLeft);
 			}
 
 			const paramSpecList = cls.PARAM_SPEC;
@@ -324,7 +331,7 @@ export class Message<T extends Message<T> = any> {
 						++i;
 					}
 				} else if (!paramSpec.optional) {
-					throw new ParameterRequirementMismatchError(this._command, paramName, paramSpec, param.value);
+					throw new ParameterRequirementMismatchError(this, paramName, paramSpec, param.value);
 				}
 
 				if (paramSpec.trailing) {

@@ -2,16 +2,13 @@ import type { MessageParam } from '../../Message';
 import { Message } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-@MessageType('501')
-export class Error501UmodeUnknownFlag extends Message<Error501UmodeUnknownFlag> {
+@MessageType('410')
+export class Error410InvalidCapCmd extends Message<Error410InvalidCapCmd> {
 	@MessageParamDefinition()
 	me!: MessageParam;
 
-	@MessageParamDefinition({
-		optional: true,
-		match: /^\w$/
-	})
-	modeChar?: MessageParam;
+	@MessageParamDefinition()
+	subCommand!: MessageParam;
 
 	@MessageParamDefinition({
 		trailing: true

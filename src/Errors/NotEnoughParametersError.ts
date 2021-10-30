@@ -1,10 +1,10 @@
+import type { Message } from '../Message/Message';
+
 export class NotEnoughParametersError extends Error {
-	constructor(
-		private readonly _command: string,
-		private readonly _expectedParams: number,
-		private readonly _actualParams: number
-	) {
-		super(`command "${_command}" expected ${_expectedParams} or more parameters, got ${_actualParams}`);
+	constructor(private readonly _message: Message, private readonly _expectedParams: number) {
+		super(
+			`command "${_message.command}" expected ${_expectedParams} or more parameters, got ${_message.paramCount}`
+		);
 
 		Object.setPrototypeOf(this, NotEnoughParametersError.prototype);
 
@@ -14,8 +14,12 @@ export class NotEnoughParametersError extends Error {
 		}
 	}
 
+	get parsedMessage(): Message {
+		return this._message;
+	}
+
 	get command(): string {
-		return this._command;
+		return this._message.command;
 	}
 
 	get expectedParams(): number {
@@ -23,6 +27,6 @@ export class NotEnoughParametersError extends Error {
 	}
 
 	get actualParams(): number {
-		return this._actualParams;
+		return this._message.paramCount;
 	}
 }

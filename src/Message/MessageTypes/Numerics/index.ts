@@ -29,6 +29,7 @@ export { Error402NoSuchServer } from './Error402NoSuchServer';
 export { Error403NoSuchChannel } from './Error403NoSuchChannel';
 export { Error404CanNotSendToChan } from './Error404CanNotSendToChan';
 export { Error405TooManyChannels } from './Error405TooManyChannels';
+export { Error410InvalidCapCmd } from './Error410InvalidCapCmd';
 export { Error421UnknownCommand } from './Error421UnknownCommand';
 export { Error422NoMotd } from './Error422NoMotd';
 export { Error431NoNickNameGiven } from './Error431NoNickNameGiven';
@@ -44,6 +45,7 @@ export { Error462AlreadyRegistered } from './Error462AlreadyRegistered';
 export { Error472UnknownMode } from './Error472UnknownMode';
 export { Error473InviteOnlyChan } from './Error473InviteOnlyChan';
 export { Error479BadChanName } from './Error479BadChanName';
+export { Error481NoPrivileges } from './Error481NoPrivileges';
 export { Error482ChanOpPrivsNeeded } from './Error482ChanOpPrivsNeeded';
 export { Error491NoOperHost } from './Error491NoOperHost';
 

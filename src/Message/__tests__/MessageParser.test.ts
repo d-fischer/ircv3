@@ -24,6 +24,17 @@ describe('Message parser', () => {
 		expect(msg.tags.get('no-val')).toBe('');
 	});
 
+	it('parses a standard message with client-only tags', () => {
+		const msg = parseMessage('@+test=foo :a!b@c PRIVMSG #test :hi') as PrivateMessage;
+
+		expect(msg).toBeInstanceOf(PrivateMessage);
+		expect(msg.prefix).toStrictEqual({ nick: 'a', user: 'b', host: 'c' });
+		expect(msg.params).toStrictEqual({ target: '#test', content: 'hi' });
+		expect(msg.tags).not.toBeUndefined();
+		expect(msg.tags.size).toBe(1);
+		expect(msg.tags.get('+test')).toBe('foo');
+	});
+
 	it('parses tags only at the beginning of the message', () => {
 		const msg = parseMessage(':a!b@c @foo=bar PRIVMSG #test :hi');
 

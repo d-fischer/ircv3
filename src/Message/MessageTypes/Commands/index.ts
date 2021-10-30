@@ -120,4 +120,7 @@ export { IsOnQuery } from './IsOnQuery';
 // region IRCv3
 // Capability Negotiation
 export { CapabilityNegotiation } from './CapabilityNegotiation';
+
+// message-tags
+export { TagMessage } from './TagMessage';
 // endregion

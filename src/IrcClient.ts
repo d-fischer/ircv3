@@ -469,7 +469,7 @@ export class IrcClient extends EventEmitter {
 		this._clientCapabilities.set(cap.name, cap);
 
 		if (cap.messageTypes) {
-			for (const messageType of cap.messageTypes) {
+			for (const messageType of Object.values(cap.messageTypes)) {
 				this.registerMessageType(messageType);
 			}
 		}

@@ -2,14 +2,8 @@ import type { MessageParam } from '../../Message';
 import { Message } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-@MessageType('KILL')
-export class Kill extends Message<Kill> {
+@MessageType('TAGMSG')
+export class TagMessage extends Message<TagMessage> {
 	@MessageParamDefinition()
 	target!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true,
-		optional: true
-	})
-	reason?: MessageParam;
 }
