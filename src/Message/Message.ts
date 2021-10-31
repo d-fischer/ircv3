@@ -270,7 +270,7 @@ export class Message<T extends Message<T> = any> {
 			const cls = this.constructor as MessageConstructor<T>;
 			let requiredParamsLeft = cls.getMinParamCount(isServer);
 			if (requiredParamsLeft > this._params.length) {
-				throw new NotEnoughParametersError(this, requiredParamsLeft);
+				throw new NotEnoughParametersError(this._command, requiredParamsLeft, this._params.length);
 			}
 
 			const paramSpecList = cls.PARAM_SPEC;
@@ -331,7 +331,7 @@ export class Message<T extends Message<T> = any> {
 						++i;
 					}
 				} else if (!paramSpec.optional) {
-					throw new ParameterRequirementMismatchError(this, paramName, paramSpec, param.value);
+					throw new ParameterRequirementMismatchError(this._command, paramName, paramSpec, param.value);
 				}
 
 				if (paramSpec.trailing) {

@@ -1,8 +1,8 @@
-import type { Message, MessageParamSpecEntry } from '../Message/Message';
+import type { MessageParamSpecEntry } from '../Message/Message';
 
 export class ParameterRequirementMismatchError extends Error {
 	constructor(
-		private readonly _message: Message,
+		private readonly _command: string,
 		private readonly _paramName: string,
 		private readonly _paramSpec: MessageParamSpecEntry,
 		private readonly _givenValue: string
@@ -21,12 +21,8 @@ export class ParameterRequirementMismatchError extends Error {
 		}
 	}
 
-	get parsedMessage(): Message {
-		return this._message;
-	}
-
 	get command(): string {
-		return this._message.command;
+		return this._command;
 	}
 
 	get paramName(): string {
