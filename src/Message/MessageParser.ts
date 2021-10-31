@@ -53,7 +53,8 @@ export function parseMessage(
 	serverProperties: ServerProperties = defaultServerProperties,
 	knownCommands: Map<string, MessageConstructor<Message>> = coreMessageTypes,
 	isServer: boolean = false,
-	nonConformingCommands: string[] = []
+	nonConformingCommands: string[] = [],
+	shouldParseParams: boolean = true
 ): Message {
 	const splitLine: string[] = line.split(' ');
 	// eslint-disable-next-line @typescript-eslint/init-declarations
@@ -115,6 +116,6 @@ export function parseMessage(
 		serverProperties,
 		line,
 		isServer,
-		!nonConformingCommands.includes(command)
+		shouldParseParams && !nonConformingCommands.includes(command)
 	);
 }
