@@ -6,7 +6,10 @@ export { Reply005Isupport } from './Reply005Isupport';
 
 export { Reply221UmodeIs } from './Reply221UmodeIs';
 
+export { Reply301Away } from './Reply301Away';
 export { Reply302UserHost } from './Reply302UserHost';
+export { Reply305UnAway } from './Reply305UnAway';
+export { Reply306NowAway } from './Reply306NowAway';
 export { Reply315EndOfWho } from './Reply315EndOfWho';
 export { Reply322List } from './Reply322List';
 export { Reply323ListEnd } from './Reply323ListEnd';

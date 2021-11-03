@@ -2,11 +2,13 @@ import type { MessageParam } from '../../Message';
 import { Message } from '../../Message';
 import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
-@MessageType('AWAY')
-export class Away extends Message<Away> {
+@MessageType('305')
+export class Reply305UnAway extends Message<Reply305UnAway> {
+	@MessageParamDefinition()
+	me!: MessageParam;
+
 	@MessageParamDefinition({
-		trailing: true,
-		optional: true
+		trailing: true
 	})
-	message?: MessageParam;
+	suffix!: MessageParam;
 }
