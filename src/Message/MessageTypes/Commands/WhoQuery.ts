@@ -4,13 +4,17 @@ import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 @MessageType('WHO')
 export class WhoQuery extends Message<WhoQuery> {
+	@MessageParamDefinition()
+	mask!: MessageParam;
+
 	@MessageParamDefinition({
 		optional: true
 	})
-	mask?: MessageParam;
+	flags?: MessageParam;
 
 	@MessageParamDefinition({
-		rest: true
+		optional: true,
+		trailing: true
 	})
-	flags!: MessageParam;
+	extendedMask?: MessageParam;
 }

@@ -12,6 +12,9 @@ export class Reply352WhoReply extends Message<Reply352WhoReply> {
 	channel!: MessageParam;
 
 	@MessageParamDefinition()
+	user!: MessageParam;
+
+	@MessageParamDefinition()
 	host!: MessageParam;
 
 	@MessageParamDefinition()
