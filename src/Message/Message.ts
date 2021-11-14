@@ -92,30 +92,32 @@ export function createMessage<T extends Message<T>>(
 ): T {
 	const message: T = new type(type.COMMAND, undefined, undefined, undefined, serverProperties);
 	const parsedParams: Partial<MessageParams<T>> = {};
-	forEachObjectEntry(type.PARAM_SPEC, (paramSpec: MessageParamSpecEntry, paramName: MessageParamNames<T>) => {
-		if (isServer && paramSpec.noServer) {
-			return;
-		}
-		if (!isServer && paramSpec.noClient) {
-			return;
-		}
-		if (paramName in params) {
-			const param: string | undefined = params[paramName];
-			if (param !== undefined) {
-				if (type.checkParam(param, paramSpec, serverProperties)) {
-					parsedParams[paramName] = {
-						value: param,
-						trailing: Boolean(paramSpec.trailing)
-					};
-				} else if (!paramSpec.optional) {
-					throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
+	if (type.PARAM_SPEC) {
+		forEachObjectEntry(type.PARAM_SPEC, (paramSpec: MessageParamSpecEntry, paramName: MessageParamNames<T>) => {
+			if (isServer && paramSpec.noServer) {
+				return;
+			}
+			if (!isServer && paramSpec.noClient) {
+				return;
+			}
+			if (paramName in params) {
+				const param: string | undefined = params[paramName];
+				if (param !== undefined) {
+					if (type.checkParam(param, paramSpec, serverProperties)) {
+						parsedParams[paramName] = {
+							value: param,
+							trailing: Boolean(paramSpec.trailing)
+						};
+					} else if (!paramSpec.optional) {
+						throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
+					}
 				}
 			}
-		}
-		if (!(paramName in parsedParams) && !paramSpec.optional) {
-			throw new Error(`required parameter "${paramName}" not found in command "${type.COMMAND}"`);
-		}
-	});
+			if (!(paramName in parsedParams) && !paramSpec.optional) {
+				throw new Error(`required parameter "${paramName}" not found in command "${type.COMMAND}"`);
+			}
+		});
+	}
 
 	Object.assign(message, parsedParams);
 
@@ -222,7 +224,7 @@ export class Message<T extends Message<T> = any> {
 
 	toString(includePrefix: boolean = false): string {
 		const cls = this.constructor as MessageConstructor<T>;
-		const specKeys = Object.keys(cls.PARAM_SPEC!) as Array<MessageParamNames<T>>;
+		const specKeys = cls.PARAM_SPEC ? (Object.keys(cls.PARAM_SPEC) as Array<MessageParamNames<T>>) : [];
 		const fullCommand = [
 			this._command,
 			...specKeys
@@ -345,7 +347,7 @@ export class Message<T extends Message<T> = any> {
 
 	get params(): MessageParamValues<T> {
 		const cls = this.constructor as MessageConstructor<T>;
-		const specKeys = Object.keys(cls.PARAM_SPEC!) as Array<MessageParamNames<T>>;
+		const specKeys = cls.PARAM_SPEC ? (Object.keys(cls.PARAM_SPEC) as Array<MessageParamNames<T>>) : [];
 		return Object.assign(
 			{},
 			...specKeys

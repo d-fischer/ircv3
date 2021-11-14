@@ -27,8 +27,5 @@ export const MessageParamDefinition =
 		}
 
 		const cls = target.constructor as MessageConstructor;
-		if (!cls.PARAM_SPEC) {
-			cls.PARAM_SPEC = {};
-		}
-		cls.PARAM_SPEC[propertyKey] = spec;
+		(cls.PARAM_SPEC ??= {})[propertyKey] = spec;
 	};
