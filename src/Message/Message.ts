@@ -368,6 +368,10 @@ export class Message<T extends Message<T> = any> {
 		) as MessageParamValues<T>;
 	}
 
+	get rawParamValues(): string[] {
+		return this._params?.map(param => param.value) ?? [];
+	}
+
 	get prefix(): MessagePrefix | undefined {
 		return this._prefix;
 	}
