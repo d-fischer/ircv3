@@ -222,26 +222,8 @@ export class Message<T extends Message<T> = any> {
 		return [...this._tags.entries()].map(([key, value]) => (value ? `${key}=${escapeTag(value)}` : key)).join(';');
 	}
 
-	toString(includePrefix: boolean = false): string {
-		const cls = this.constructor as MessageConstructor<T>;
-		const specKeys = cls.PARAM_SPEC ? (Object.keys(cls.PARAM_SPEC) as Array<MessageParamNames<T>>) : [];
-		const fullCommand = [
-			this._command,
-			...specKeys
-				.map((paramName: MessageParamNames<T>): string | undefined => {
-					// TS inference does really not help here... so this is any for now
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					const param: MessageParam = (this as Record<MessageParamNames<T>, MessageParam>)[paramName];
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-					if (param) {
-						return (param.trailing ? ':' : '') + param.value;
-					}
-
-					return undefined;
-				})
-				.filter((param: string | undefined) => param !== undefined)
-		].join(' ');
-
+	toString(includePrefix: boolean = false, fromRawParams: boolean = false): string {
+		const fullCommand = fromRawParams ? this._buildCommandFromRawParams() : this._buildCommandFromNamedParams();
 		const parts = [fullCommand];
 
 		if (includePrefix) {
@@ -397,9 +379,36 @@ export class Message<T extends Message<T> = any> {
 	endsResponseTo(originalMessage: Message): boolean {
 		return false;
 	}
-
 	_acceptsInReplyCollection(message: Message): boolean {
 		// TODO implement IRCv3 labeled-response / batch here
 		return message.isResponseTo(this);
+	}
+
+	private _buildCommandFromNamedParams(): string {
+		const cls = this.constructor as MessageConstructor<T>;
+		const specKeys = cls.PARAM_SPEC ? (Object.keys(cls.PARAM_SPEC) as Array<MessageParamNames<T>>) : [];
+		return [
+			this._command,
+			...specKeys
+				.map((paramName: MessageParamNames<T>): string | undefined => {
+					// TS inference does really not help here... so this is any for now
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					const param: MessageParam = (this as Record<MessageParamNames<T>, MessageParam>)[paramName];
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (param) {
+						return (param.trailing ? ':' : '') + param.value;
+					}
+
+					return undefined;
+				})
+				.filter((param: string | undefined) => param !== undefined)
+		].join(' ');
+	}
+
+	private _buildCommandFromRawParams(): string {
+		return [
+			this._command,
+			...(this._params?.map(param => `${param.trailing ? ':' : ''}${param.value}`) ?? [])
+		].join(' ');
 	}
 }
