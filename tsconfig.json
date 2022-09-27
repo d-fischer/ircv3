@@ -2,9 +2,9 @@
 	"compilerOptions": {
 		"outDir": "lib",
 		"rootDir": "src",
-		"target": "es5",
+		"target": "es2019",
 		"module": "commonjs",
-		"lib": ["es6"],
+		"lib": ["es2019"],
 		"moduleResolution": "node",
 		"downlevelIteration": true,
 		"declaration": true,
