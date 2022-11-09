@@ -25,7 +25,7 @@ export { defaultServerProperties } from './ServerProperties';
 export type { AccessLevelDefinition } from './ServerProperties';
 export type { SupportedModesByType, ServerProperties } from './ServerProperties';
 
-export { isChannel } from './Toolkit/StringTools';
+export { decodeCtcp, isChannel } from './Toolkit/StringTools';
 
 export { MessageError } from './Errors/MessageError';
 export { NotEnoughParametersError } from './Errors/NotEnoughParametersError';
