@@ -1,4 +1,10 @@
-import type { Connection, ConnectionInfo, ConnectionOptions, WebSocketConnectionOptions } from '@d-fischer/connection';
+import type {
+	Connection,
+	ConnectionTarget,
+	ConnectionOptions,
+	WebSocketConnectionOptions,
+	InferConnectionOptions
+} from '@d-fischer/connection';
 import { DirectConnection, PersistentConnection, WebSocketConnection } from '@d-fischer/connection';
 import type { Logger, LoggerOptions } from '@d-fischer/logger';
 import { createLogger } from '@d-fischer/logger';
@@ -183,21 +189,21 @@ export class IrcClient extends EventEmitter {
 
 		const { hostName, secure, reconnect = true } = connection;
 
-		const connectionOptions: ConnectionInfo = {
+		const connectionTarget: ConnectionTarget = {
 			hostName,
 			port: this.port,
-			secure,
-			lineBased: true
+			secure
+		};
+
+		const connectionOptions: ConnectionOptions<InferConnectionOptions<Connection>> = {
+			lineBased: true,
+			logger: this._logger,
+			additionalOptions: options.connectionOptions as InferConnectionOptions<Connection>
 		};
 
 		const ConnectionType: Constructor<Connection> = webSocket ? WebSocketConnection : DirectConnection;
 		if (reconnect) {
-			this._connection = new PersistentConnection(
-				ConnectionType,
-				connectionOptions,
-				{ logger: this._logger },
-				options.connectionOptions as ConnectionOptions<Connection>
-			);
+			this._connection = new PersistentConnection(ConnectionType, connectionTarget, connectionOptions);
 		} else {
 			this._connection = new ConnectionType(connectionOptions, this._logger, options.connectionOptions);
 		}
@@ -461,7 +467,7 @@ export class IrcClient extends EventEmitter {
 		this._negotiatedCapabilities = new Map<string, ServerCapability>();
 		this._currentNick = this._credentials.nick;
 		this._setupConnection();
-		this._logger.info(`Connecting to ${this._connection.host}:${this._connection.port}`);
+		this._logger.info(`Connecting to ${this._options.connection.hostName}:${this.port}`);
 		await this._connection.connect();
 	}
 
@@ -691,7 +697,7 @@ export class IrcClient extends EventEmitter {
 			return;
 		}
 		this._connection.onConnect(async () => {
-			this._logger.info(`Connection to server ${this._connection.host}:${this._connection.port} established`);
+			this._logger.info(`Connection to server ${this._options.connection.hostName}:${this.port} established`);
 			this.emit(this.onConnect);
 			this._logger.debug('Determining connection password');
 			try {
