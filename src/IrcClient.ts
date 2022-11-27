@@ -788,10 +788,12 @@ export class IrcClient extends EventEmitter {
 			if (manually) {
 				this._logger.info('Disconnected');
 			} else {
-				if (reason) {
-					this._logger.error(`Disconnected unexpectedly: ${reason.message}`);
+				const willReconnect = this._options.connection.reconnect ?? true;
+				const message = reason ? `Disconnected unexpectedly: ${reason.message}` : 'Disconnected unexpectedly';
+				if (willReconnect) {
+					this._logger.warn(`${message}; trying to reconnect`);
 				} else {
-					this._logger.error('Disconnected unexpectedly');
+					this._logger.error(message);
 				}
 			}
 			this.emit(this.onDisconnect, manually, reason);
@@ -799,7 +801,7 @@ export class IrcClient extends EventEmitter {
 
 		this._connection.onEnd(manually => {
 			if (!manually) {
-				this._logger.info('No further retries will be made');
+				this._logger.warn('No further retries will be made');
 			}
 		});
 	}
