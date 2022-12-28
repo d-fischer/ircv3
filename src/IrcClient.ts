@@ -58,7 +58,7 @@ export type EventHandlerList<T extends Message = Message> = Map<string, EventHan
 
 export interface IrcCredentials {
 	nick: string;
-	password?: string;
+	password?: ResolvableValue<string | undefined>;
 	userName?: string;
 	realName?: string;
 }
@@ -614,6 +614,11 @@ export class IrcClient extends EventEmitter {
 
 	async quit(message?: string): Promise<void> {
 		this.sendMessage(ClientQuit, { message });
+		this.quitAbruptly();
+	}
+
+	quitAbruptly(): void {
+		this._registered = false;
 		void this._connection.disconnect().then(() => {
 			this._logger.debug('Finished cleaning up old connection');
 		});
@@ -631,8 +636,14 @@ export class IrcClient extends EventEmitter {
 		this.sendCtcp(target, 'ACTION', message);
 	}
 
-	protected async getPassword(currentPassword?: string): Promise<string | undefined> {
-		return currentPassword;
+	changeNick(newNick: string): void {
+		if (this._currentNick === newNick) {
+			return;
+		}
+
+		if (this.isRegistered) {
+			this.sendMessage(NickChange, { nick: newNick });
+		}
 	}
 
 	protected registerCoreMessageTypes(): void {
@@ -702,7 +713,7 @@ export class IrcClient extends EventEmitter {
 			this._logger.debug('Determining connection password');
 			try {
 				const [password] = await Promise.all([
-					this.getPassword(this._credentials.password),
+					resolveConfigValue(this._credentials.password),
 					this.sendMessageAndCaptureReply(CapabilityNegotiation, {
 						subCommand: 'LS',
 						version: '302'
