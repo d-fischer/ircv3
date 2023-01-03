@@ -26,7 +26,7 @@ export class MessageCollector {
 			this._promise = new Promise(resolve => (this._promiseResolve = resolve));
 		}
 
-		return this._promise;
+		return await this._promise;
 	}
 
 	collect(message: Message): boolean {

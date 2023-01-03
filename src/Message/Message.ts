@@ -58,6 +58,7 @@ export type MessageParamValues<T extends Message<T>> = Pick<
 >;
 export type MessageParamSpec<T extends Message<T>> = Record<MessageParamNames<T>, MessageParamSpecEntry>;
 
+/* eslint-disable @typescript-eslint/naming-convention */
 const tagEscapeMap: Record<string, string> = {
 	'\\': '\\',
 	';': ':',
@@ -65,6 +66,7 @@ const tagEscapeMap: Record<string, string> = {
 	'\r': 'r',
 	' ': 's'
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 function escapeTag(str: string) {
 	return str.replace(/[\\;\n\r ]/g, match => `\\${tagEscapeMap[match]}`);

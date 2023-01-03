@@ -42,26 +42,26 @@
     "*.{js,ts}": "eslint --fix"
   },
   "devDependencies": {
-    "@d-fischer/eslint-config": "^4.2.0",
-    "@types/jest": "^26.0.19",
-    "eslint": "^7.17.0",
+    "@d-fischer/eslint-config": "^6.1.8",
+    "@types/jest": "^29.2.5",
+    "eslint": "^8.31.0",
     "husky": "^4.3.6",
-    "jest": "^26.6.3",
-    "jest-environment-node": "^26.6.2",
-    "lint-staged": "^10.5.3",
-    "prettier": "^2.2.1",
-    "ts-jest": "^26.4.4",
-    "tsukuru": "^0.7.3",
-    "typescript": "~4.3.5"
+    "jest": "^29.3.1",
+    "jest-environment-node": "^29.3.1",
+    "lint-staged": "^13.1.0",
+    "prettier": "^2.8.1",
+    "ts-jest": "^29.0.3",
+    "tsukuru": "^0.8.0-pre.11",
+    "typescript": "~4.9.4"
   },
   "dependencies": {
     "@d-fischer/connection": "^8.0.0",
     "@d-fischer/escape-string-regexp": "^5.0.0",
-    "@d-fischer/logger": "^4.0.0",
-    "@d-fischer/shared-utils": "^3.0.1",
+    "@d-fischer/logger": "^4.2.0",
+    "@d-fischer/shared-utils": "^3.5.0",
     "@d-fischer/typed-event-emitter": "^3.3.0",
     "@types/node": "^14.14.19",
-    "klona": "^2.0.4",
-    "tslib": "^2.0.3"
+    "klona": "^2.0.5",
+    "tslib": "^2.4.1"
   }
 }

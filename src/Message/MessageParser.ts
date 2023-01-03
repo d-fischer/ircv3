@@ -20,6 +20,7 @@ export function parsePrefix(raw: string): MessagePrefix {
 }
 
 const tagUnescapeMap: Record<string, string> = {
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	':': ';',
 	n: '\n',
 	r: '\r',

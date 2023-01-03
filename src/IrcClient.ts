@@ -485,7 +485,7 @@ export class IrcClient extends EventEmitter {
 		this.addCapability(cap);
 
 		if (this._serverCapabilities.has(cap.name)) {
-			return this._negotiateCapabilities([cap]);
+			return await this._negotiateCapabilities([cap]);
 		}
 
 		return [];
@@ -569,7 +569,7 @@ export class IrcClient extends EventEmitter {
 		const message = this.createMessage(type, params);
 		const promise = this.collect(message).promise();
 		this.send(message);
-		return promise;
+		return await promise;
 	}
 
 	get isConnected(): boolean {
@@ -657,10 +657,10 @@ export class IrcClient extends EventEmitter {
 	protected async _negotiateCapabilityBatch(
 		capabilities: ServerCapability[][]
 	): Promise<Array<ServerCapability[] | Error>> {
-		return Promise.all(
+		return await Promise.all(
 			capabilities
 				.filter(list => list.length)
-				.map(async (capList: ServerCapability[]) => this._negotiateCapabilities(capList))
+				.map(async (capList: ServerCapability[]) => await this._negotiateCapabilities(capList))
 		);
 	}
 

@@ -19,12 +19,14 @@ export interface ParsedCtcp {
 	params: string;
 }
 
+/* eslint-disable @typescript-eslint/naming-convention */
 const ctcpEscapeMap: Record<string, string> = {
 	0: '\0',
 	n: '\n',
 	r: '\r',
 	'\x10': '\x10'
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 export function decodeCtcp(message: string): ParsedCtcp | false {
 	if (!message.startsWith('\x01')) {
