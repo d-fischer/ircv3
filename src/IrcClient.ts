@@ -442,9 +442,9 @@ export class IrcClient extends EventEmitter {
 		this.sendMessage(Ping, { message: nowStr });
 	}
 
-	async reconnect(message?: string): Promise<void> {
-		await this.quit(message);
-		return this.connect();
+	reconnect(message?: string): void {
+		this.quit(message);
+		this.connect();
 	}
 
 	registerMessageType(cls: MessageConstructor): void {
@@ -462,13 +462,13 @@ export class IrcClient extends EventEmitter {
 		return this._registeredMessageTypes.get(command.toUpperCase());
 	}
 
-	async connect(): Promise<void> {
+	connect(): void {
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map<string, ServerCapability>();
 		this._currentNick = this._credentials.nick;
 		this._setupConnection();
 		this._logger.info(`Connecting to ${this._options.connection.hostName}:${this.port}`);
-		await this._connection.connect();
+		this._connection.connect();
 	}
 
 	addCapability(cap: Capability): void {
@@ -612,16 +612,14 @@ export class IrcClient extends EventEmitter {
 		this.sendMessage(ChannelPart, { channel });
 	}
 
-	async quit(message?: string): Promise<void> {
+	quit(message?: string): void {
 		this.sendMessage(ClientQuit, { message });
 		this.quitAbruptly();
 	}
 
 	quitAbruptly(): void {
 		this._registered = false;
-		void this._connection.disconnect().then(() => {
-			this._logger.debug('Finished cleaning up old connection');
-		});
+		this._connection.disconnect();
 	}
 
 	say(target: string, message: string, tags: Record<string, string> = {}): void {
@@ -776,9 +774,7 @@ export class IrcClient extends EventEmitter {
 				});
 			} catch (e: unknown) {
 				this.emit(this.onPasswordError, e);
-				this.quit().catch(() =>
-					this._logger.debug(`Error while disconnecting after password error: ${(e as Error).message}`)
-				);
+				this.quit();
 			}
 		});
 
