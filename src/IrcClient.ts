@@ -1,9 +1,9 @@
 import type {
 	Connection,
-	ConnectionTarget,
 	ConnectionOptions,
-	WebSocketConnectionOptions,
-	InferConnectionOptions
+	ConnectionTarget,
+	InferConnectionOptions,
+	WebSocketConnectionOptions
 } from '@d-fischer/connection';
 import { DirectConnection, PersistentConnection, WebSocketConnection } from '@d-fischer/connection';
 import type { Logger, LoggerOptions } from '@d-fischer/logger';
@@ -17,7 +17,6 @@ import {
 	resolveConfigValue,
 	splitWithLimit
 } from '@d-fischer/shared-utils';
-import type { EventBinder } from '@d-fischer/typed-event-emitter';
 import { EventEmitter } from '@d-fischer/typed-event-emitter';
 import { klona } from 'klona/json';
 
@@ -81,6 +80,7 @@ export interface IrcClientOptions {
 	channelTypes?: string;
 	logger?: Partial<LoggerOptions>;
 	nonConformingCommands?: string[];
+	manuallyAcknowledgeJoins?: boolean;
 }
 
 export class IrcClient extends EventEmitter {
@@ -98,59 +98,57 @@ export class IrcClient extends EventEmitter {
 	/**
 	 * @eventListener
 	 */
-	onConnect: EventBinder<[]> = this.registerEvent();
+	onConnect = this.registerEvent<[]>();
 
 	/**
 	 * @eventListener
 	 */
-	onRegister: EventBinder<[]> = this.registerEvent();
+	onRegister = this.registerEvent<[]>();
 
 	/**
 	 * @eventListener
 	 */
-	onDisconnect: EventBinder<[manually: boolean, reason?: Error]> = this.registerEvent();
+	onDisconnect = this.registerEvent<[manually: boolean, reason?: Error]>();
 
 	/**
 	 * @eventListener
 	 */
-	onPrivmsg: EventBinder<[target: string, user: string, message: string, msg: PrivateMessage]> = this.registerEvent();
+	onPrivmsg = this.registerEvent<[target: string, user: string, message: string, msg: PrivateMessage]>();
 
 	/**
 	 * @eventListener
 	 */
-	onAction: EventBinder<[target: string, user: string, message: string, msg: PrivateMessage]> = this.registerEvent();
+	onAction = this.registerEvent<[target: string, user: string, message: string, msg: PrivateMessage]>();
 
 	/**
 	 * @eventListener
 	 */
-	onNotice: EventBinder<[target: string, user: string, message: string, msg: Notice]> = this.registerEvent();
+	onNotice = this.registerEvent<[target: string, user: string, message: string, msg: Notice]>();
 
 	/**
 	 * @eventListener
 	 */
-	onNickChange: EventBinder<[oldNick: string | undefined, newNick: string, msg: NickChange]> = this.registerEvent();
+	onNickChange = this.registerEvent<[oldNick: string | undefined, newNick: string, msg: NickChange]>();
 
 	/**
 	 * @eventListener
 	 */
-	onCtcp: EventBinder<[target: string, user: string, command: string, params: string, msg: PrivateMessage]> =
-		this.registerEvent();
+	onCtcp = this.registerEvent<[target: string, user: string, command: string, params: string, msg: PrivateMessage]>();
 
 	/**
 	 * @eventListener
 	 */
-	onCtcpReply: EventBinder<[target: string, user: string, command: string, params: string, msg: Notice]> =
-		this.registerEvent();
+	onCtcpReply = this.registerEvent<[target: string, user: string, command: string, params: string, msg: Notice]>();
 
 	/**
 	 * @eventListener
 	 */
-	onPasswordError: EventBinder<[error: Error]> = this.registerEvent();
+	onPasswordError = this.registerEvent<[error: Error]>();
 
 	/**
 	 * @eventListener
 	 */
-	onAnyMessage: EventBinder<[msg: Message]> = this.registerEvent();
+	onAnyMessage = this.registerEvent<[msg: Message]>();
 
 	protected _serverProperties: ServerProperties = klona(defaultServerProperties);
 	protected _supportedFeatures: Record<string, true | string> = {};
@@ -166,6 +164,7 @@ export class IrcClient extends EventEmitter {
 	protected _pingTimeoutTimer?: NodeJS.Timer;
 
 	protected _currentNick: string;
+	private _currentChannels = new Set<string>();
 
 	private readonly _logger: Logger;
 	private _initialConnectionSetupDone = false;
@@ -361,6 +360,20 @@ export class IrcClient extends EventEmitter {
 			this.emit(this.onNotice, target, nick, content, msg);
 		});
 
+		if (!this._options.manuallyAcknowledgeJoins) {
+			this.onTypedMessage(ChannelJoin, msg => {
+				if (msg.prefix?.nick === this._currentNick) {
+					this.acknowledgeJoin(msg.params.channel);
+				}
+			});
+		}
+
+		this.onTypedMessage(ChannelPart, msg => {
+			if (msg.prefix?.nick === this._currentNick) {
+				this._currentChannels.delete(msg.params.channel);
+			}
+		});
+
 		this.addInternalListener(this.onRegister, () => this._startPingCheckTimer());
 
 		this._credentials = { ...credentials };
@@ -429,7 +442,7 @@ export class IrcClient extends EventEmitter {
 				this.removeMessageListener(handler);
 			}
 		});
-		this._pingTimeoutTimer = setTimeout(async () => {
+		this._pingTimeoutTimer = setTimeout(() => {
 			this.removeMessageListener(handler);
 			// eslint-disable-next-line no-restricted-syntax
 			if (this._options.connection.reconnect === false) {
@@ -462,9 +475,14 @@ export class IrcClient extends EventEmitter {
 		return this._registeredMessageTypes.get(command.toUpperCase());
 	}
 
+	acknowledgeJoin(channel: string): void {
+		this._currentChannels.add(channel);
+	}
+
 	connect(): void {
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map<string, ServerCapability>();
+		this._currentChannels = new Set<string>();
 		this._currentNick = this._credentials.nick;
 		this._setupConnection();
 		this._logger.info(`Connecting to ${this._options.connection.hostName}:${this.port}`);
@@ -586,6 +604,10 @@ export class IrcClient extends EventEmitter {
 
 	get currentNick(): string {
 		return this._currentNick;
+	}
+
+	get currentChannels(): string[] {
+		return Array.from(this._currentChannels);
 	}
 
 	/** @private */
