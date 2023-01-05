@@ -661,6 +661,8 @@ export class IrcClient extends EventEmitter {
 			return;
 		}
 
+		this._credentials.nick = newNick;
+
 		if (this.isRegistered) {
 			this.sendMessage(NickChange, { nick: newNick });
 		}
