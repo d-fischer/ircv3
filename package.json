@@ -57,7 +57,7 @@
   "dependencies": {
     "@d-fischer/connection": "^8.0.1",
     "@d-fischer/escape-string-regexp": "^5.0.0",
-    "@d-fischer/logger": "^4.2.0",
+    "@d-fischer/logger": "^4.2.1",
     "@d-fischer/shared-utils": "^3.5.0",
     "@d-fischer/typed-event-emitter": "^3.3.0",
     "@types/node": "^14.14.19",
