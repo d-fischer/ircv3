@@ -88,7 +88,10 @@ export class IrcClient extends EventEmitter {
 	protected _registered: boolean = false;
 
 	@Enumerable(false) protected _options: IrcClientOptions;
-	@Enumerable(false) protected _credentials: IrcCredentials;
+
+	protected _desiredNick: string;
+	protected _userName?: string;
+	protected _realName?: string;
 
 	protected _supportsCapabilities: boolean = true;
 
@@ -376,7 +379,9 @@ export class IrcClient extends EventEmitter {
 
 		this.addInternalListener(this.onRegister, () => this._startPingCheckTimer());
 
-		this._credentials = { ...credentials };
+		this._desiredNick = credentials.nick;
+		this._userName = credentials.userName;
+		this._realName = credentials.realName;
 
 		if (channelTypes) {
 			this._serverProperties.channelTypes = channelTypes;
@@ -483,7 +488,7 @@ export class IrcClient extends EventEmitter {
 		this._supportsCapabilities = false;
 		this._negotiatedCapabilities = new Map<string, ServerCapability>();
 		this._currentChannels = new Set<string>();
-		this._currentNick = this._credentials.nick;
+		this._currentNick = this._desiredNick;
 		this._setupConnection();
 		this._logger.info(`Connecting to ${this._options.connection.hostName}:${this.port}`);
 		this._connection.connect();
@@ -661,7 +666,7 @@ export class IrcClient extends EventEmitter {
 			return;
 		}
 
-		this._credentials.nick = newNick;
+		this._desiredNick = newNick;
 
 		if (this.isRegistered) {
 			this.sendMessage(NickChange, { nick: newNick });
@@ -721,10 +726,6 @@ export class IrcClient extends EventEmitter {
 		}
 	}
 
-	protected _updateCredentials(newCredentials: Partial<IrcCredentials>): void {
-		this._credentials = { ...this._credentials, ...newCredentials };
-	}
-
 	private _setupConnection() {
 		if (this._initialConnectionSetupDone) {
 			return;
@@ -735,7 +736,7 @@ export class IrcClient extends EventEmitter {
 			this._logger.debug('Determining connection password');
 			try {
 				const [password] = await Promise.all([
-					resolveConfigValue(this._credentials.password),
+					resolveConfigValue(this._options.credentials.password),
 					this.sendMessageAndCaptureReply(CapabilityNegotiation, {
 						subCommand: 'LS',
 						version: '302'
@@ -783,18 +784,15 @@ export class IrcClient extends EventEmitter {
 							this.sendMessage(CapabilityNegotiation, { subCommand: 'END' });
 						})
 				]);
-				if (password && password !== this._credentials.password) {
-					this._updateCredentials({ password });
-				}
 				if (password) {
 					this.sendMessage(Password, { password });
 				}
-				this.sendMessage(NickChange, { nick: this._credentials.nick });
+				this.sendMessage(NickChange, { nick: this._desiredNick });
 				this.sendMessage(UserRegistration, {
-					user: this._credentials.userName ?? this._credentials.nick,
+					user: this._userName ?? this._desiredNick,
 					mode: '8',
 					unused: '*',
-					realName: this._credentials.realName ?? this._credentials.nick
+					realName: this._realName ?? this._desiredNick
 				});
 			} catch (e: unknown) {
 				this.emit(this.onPasswordError, e);
