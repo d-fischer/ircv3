@@ -75,6 +75,7 @@ export interface IrcClientOptions {
 	connection: IrcClientConnectionOptions;
 	credentials: IrcCredentials;
 	channels?: ResolvableValue<string[]>;
+	rejoinChannelsOnReconnect?: boolean;
 	webSocket?: boolean;
 	connectionOptions?: WebSocketConnectionOptions;
 	channelTypes?: string;
@@ -168,6 +169,8 @@ export class IrcClient extends EventEmitter {
 
 	protected _currentNick: string;
 	private _currentChannels = new Set<string>();
+	private _hasRegisteredBefore = false;
+	private _channelsFromLastRegister = new Set<string>();
 
 	private readonly _logger: Logger;
 	private _initialConnectionSetupDone = false;
@@ -214,17 +217,21 @@ export class IrcClient extends EventEmitter {
 			this.addCapability(cap);
 		}
 
-		if (channels) {
-			this.addInternalListener(this.onRegister, async () => {
-				const resolvedChannels = await resolveConfigValue(channels);
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (resolvedChannels) {
-					for (const channel of resolvedChannels) {
-						this.join(channel);
-					}
+		this.addInternalListener(this.onRegister, async () => {
+			const hasRegisteredBefore = this._hasRegisteredBefore;
+			const channelsFromLastRegister = this._channelsFromLastRegister;
+			this._hasRegisteredBefore = true;
+			this._channelsFromLastRegister = new Set<string>();
+			const resolvedChannels: Iterable<string> | undefined =
+				hasRegisteredBefore && this._options.rejoinChannelsOnReconnect
+					? channelsFromLastRegister
+					: await resolveConfigValue(channels);
+			if (resolvedChannels) {
+				for (const channel of resolvedChannels) {
+					this.join(channel);
 				}
-			});
-		}
+			}
+		});
 
 		this.onTypedMessage(CapabilityNegotiation, async ({ params: { subCommand, capabilities } }) => {
 			const caps = capabilities!.split(' ');
@@ -374,6 +381,7 @@ export class IrcClient extends EventEmitter {
 		this.onTypedMessage(ChannelPart, msg => {
 			if (msg.prefix?.nick === this._currentNick) {
 				this._currentChannels.delete(msg.params.channel);
+				this._channelsFromLastRegister.delete(msg.params.channel);
 			}
 		});
 
@@ -482,6 +490,7 @@ export class IrcClient extends EventEmitter {
 
 	acknowledgeJoin(channel: string): void {
 		this._currentChannels.add(channel);
+		this._channelsFromLastRegister.add(channel);
 	}
 
 	connect(): void {
