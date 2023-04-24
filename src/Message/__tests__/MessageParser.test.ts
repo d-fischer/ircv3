@@ -7,7 +7,8 @@ describe('Message parser', () => {
 
 		expect(msg).toBeInstanceOf(PrivateMessage);
 		expect(msg.prefix).toStrictEqual({ nick: 'a', user: 'b', host: 'c' });
-		expect(msg.params).toStrictEqual({ target: '#test', content: 'hi' });
+		expect(msg.target).toEqual('#test');
+		expect(msg.text).toEqual('hi');
 		expect(msg.tags).not.toBeUndefined();
 		expect(msg.tags.size).toBe(0);
 	});
@@ -17,7 +18,8 @@ describe('Message parser', () => {
 
 		expect(msg).toBeInstanceOf(PrivateMessage);
 		expect(msg.prefix).toStrictEqual({ nick: 'a', user: 'b', host: 'c' });
-		expect(msg.params).toStrictEqual({ target: '#test', content: 'hi' });
+		expect(msg.target).toEqual('#test');
+		expect(msg.text).toEqual('hi');
 		expect(msg.tags).not.toBeUndefined();
 		expect(msg.tags.size).toBe(2);
 		expect(msg.tags.get('foo')).toBe('bar');
@@ -29,7 +31,8 @@ describe('Message parser', () => {
 
 		expect(msg).toBeInstanceOf(PrivateMessage);
 		expect(msg.prefix).toStrictEqual({ nick: 'a', user: 'b', host: 'c' });
-		expect(msg.params).toStrictEqual({ target: '#test', content: 'hi' });
+		expect(msg.target).toEqual('#test');
+		expect(msg.text).toEqual('hi');
 		expect(msg.tags).not.toBeUndefined();
 		expect(msg.tags.size).toBe(1);
 		expect(msg.tags.get('+test')).toBe('foo');

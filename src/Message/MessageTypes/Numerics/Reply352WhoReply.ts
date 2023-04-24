@@ -1,55 +1,52 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 import { WhoQuery } from '../Commands/WhoQuery';
 
-@MessageType('352')
-export class Reply352WhoReply extends Message<Reply352WhoReply> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply352WhoReplyFields {
+	me: string;
+	channel: string;
+	user: string;
+	host: string;
+	server: string;
+	nick: string;
+	flags: string;
+	hopsAndRealName: string;
+}
 
-	@MessageParamDefinition()
-	channel!: MessageParam;
-
-	@MessageParamDefinition()
-	user!: MessageParam;
-
-	@MessageParamDefinition()
-	host!: MessageParam;
-
-	@MessageParamDefinition()
-	server!: MessageParam;
-
-	@MessageParamDefinition()
-	nick!: MessageParam;
-
-	@MessageParamDefinition()
-	flags!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	hopsAndRealName!: MessageParam;
+export interface Reply352WhoReply extends Reply352WhoReplyFields {}
+export class Reply352WhoReply extends Message<Reply352WhoReplyFields> {
+	static readonly COMMAND = '352';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: {},
+			user: {},
+			host: {},
+			server: {},
+			nick: {},
+			flags: {},
+			hopsAndRealName: { trailing: true }
+		});
+	}
 
 	/**
 	 * Checks whether the found user is /away.
 	 */
 	get isAway(): boolean {
-		return this.params.flags.includes('G');
+		return this.flags.includes('G');
 	}
 
 	/**
 	 * Checks whether the found user is an IRCOp.
 	 */
 	get isOper(): boolean {
-		return this.params.flags.includes('*');
+		return this.flags.includes('*');
 	}
 
 	/**
 	 * Checks whether the found user is a bot.
 	 */
 	get isBot(): boolean {
-		return this.params.flags.includes('B');
+		return this.flags.includes('B');
 	}
 
 	isResponseTo(originalMessage: Message): boolean {

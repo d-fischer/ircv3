@@ -1,16 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('LIST')
-export class ChannelList extends Message<ChannelList> {
-	@MessageParamDefinition({
-		optional: true
-	})
-	channel?: MessageParam;
+interface ChannelListFields {
+	channel?: string;
+	server?: string;
+}
 
-	@MessageParamDefinition({
-		optional: true
-	})
-	server?: MessageParam;
+export interface ChannelList extends ChannelListFields {}
+export class ChannelList extends Message<ChannelListFields> {
+	static readonly COMMAND = 'LIST';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			channel: { optional: true },
+			server: { optional: true }
+		});
+	}
 }

@@ -1,12 +1,17 @@
-import type { MessageParam } from '../../../../../Message/Message';
-import { Message } from '../../../../../Message/Message';
-import { MessageParamDefinition, MessageType } from '../../../../../Message/MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../../../../Message/Message';
 
-@MessageType('CHGHOST')
-export class ChgHost extends Message<ChgHost> {
-	@MessageParamDefinition()
-	newUser!: MessageParam;
+interface ChgHostFields {
+	newUser: string;
+	newHost: string;
+}
 
-	@MessageParamDefinition()
-	newHost!: MessageParam;
+export interface ChgHost extends ChgHostFields {}
+export class ChgHost extends Message<ChgHostFields> {
+	static readonly COMMAND = 'CHGHOST';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			newUser: {},
+			newHost: {}
+		});
+	}
 }

@@ -1,17 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('402')
-export class Error402NoSuchServer extends Message<Error402NoSuchServer> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error402NoSuchServerFields {
+	me: string;
+	server: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition()
-	server!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error402NoSuchServer extends Error402NoSuchServerFields {}
+export class Error402NoSuchServer extends Message<Error402NoSuchServerFields> {
+	static readonly COMMAND = '402';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			server: {},
+			suffix: { trailing: true }
+		});
+	}
 }

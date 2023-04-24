@@ -1,16 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('431')
-export class Error431NoNickNameGiven extends Message<Error431NoNickNameGiven> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error431NoNickNameGivenFields {
+	me: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error431NoNickNameGiven extends Error431NoNickNameGivenFields {}
+export class Error431NoNickNameGiven extends Message<Error431NoNickNameGivenFields> {
+	static readonly COMMAND = '431';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			suffix: { trailing: true }
+		});
+	}
 
 	isResponseTo(originalMessage: Message): boolean {
 		return originalMessage.command === 'NICK';

@@ -1,11 +1,15 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('TIME')
-export class Time extends Message<Time> {
-	@MessageParamDefinition({
-		optional: true
-	})
-	server?: MessageParam;
+interface TimeFields {
+	server?: string;
+}
+
+export interface Time extends TimeFields {}
+export class Time extends Message<TimeFields> {
+	static readonly COMMAND = 'TIME';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			server: { optional: true }
+		});
+	}
 }

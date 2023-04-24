@@ -1,9 +1,15 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('NICK')
-export class NickChange extends Message<NickChange> {
-	@MessageParamDefinition()
-	nick!: MessageParam;
+interface NickChangeFields {
+	nick: string;
+}
+
+export interface NickChange extends NickChangeFields {}
+export class NickChange extends Message<NickChangeFields> {
+	static readonly COMMAND = 'NICK';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			nick: {}
+		});
+	}
 }

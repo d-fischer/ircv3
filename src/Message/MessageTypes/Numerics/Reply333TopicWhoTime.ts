@@ -1,20 +1,21 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('333')
-export class Reply333TopicWhoTime extends Message<Reply333TopicWhoTime> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply333TopicWhoTimeFields {
+	me: string;
+	channel: string;
+	who: string;
+	ts: string;
+}
 
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition()
-	who!: MessageParam;
-
-	@MessageParamDefinition()
-	ts!: MessageParam;
+export interface Reply333TopicWhoTime extends Reply333TopicWhoTimeFields {}
+export class Reply333TopicWhoTime extends Message<Reply333TopicWhoTimeFields> {
+	static readonly COMMAND = '333';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: { type: 'channel' },
+			who: {},
+			ts: {}
+		});
+	}
 }

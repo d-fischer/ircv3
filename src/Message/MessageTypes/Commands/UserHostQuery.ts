@@ -1,11 +1,15 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('USERHOST')
-export class UserHostQuery extends Message<UserHostQuery> {
-	@MessageParamDefinition({
-		rest: true
-	})
-	nicks!: MessageParam;
+interface UserHostQueryFields {
+	nicks: string;
+}
+
+export interface UserHostQuery extends UserHostQueryFields {}
+export class UserHostQuery extends Message<UserHostQueryFields> {
+	static readonly COMMAND = 'USERHOST';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			nicks: { rest: true }
+		});
+	}
 }

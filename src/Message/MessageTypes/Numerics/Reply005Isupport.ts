@@ -1,19 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('005')
-export class Reply005Isupport extends Message<Reply005Isupport> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply005IsupportFields {
+	me: string;
+	supports: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		rest: true
-	})
-	supports!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Reply005Isupport extends Reply005IsupportFields {}
+export class Reply005Isupport extends Message<Reply005IsupportFields> {
+	static readonly COMMAND = '005';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			supports: { rest: true },
+			suffix: { trailing: true }
+		});
+	}
 }

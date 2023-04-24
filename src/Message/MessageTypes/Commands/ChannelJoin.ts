@@ -1,16 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('JOIN')
-export class ChannelJoin extends Message<ChannelJoin> {
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
+interface ChannelJoinFields {
+	channel: string;
+	key?: string;
+}
 
-	@MessageParamDefinition({
-		optional: true
-	})
-	key?: MessageParam;
+export interface ChannelJoin extends ChannelJoinFields {}
+export class ChannelJoin extends Message<ChannelJoinFields> {
+	static readonly COMMAND = 'JOIN';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			channel: { type: 'channel' },
+			key: { optional: true }
+		});
+	}
 }

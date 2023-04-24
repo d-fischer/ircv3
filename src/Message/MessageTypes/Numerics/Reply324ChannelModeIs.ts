@@ -1,19 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('324')
-export class Reply324ChannelModeIs extends Message<Reply324ChannelModeIs> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply324ChannelModeIsFields {
+	me: string;
+	channel: string;
+	modes: string;
+}
 
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		rest: true
-	})
-	modes!: MessageParam;
+export interface Reply324ChannelModeIs extends Reply324ChannelModeIsFields {}
+export class Reply324ChannelModeIs extends Message<Reply324ChannelModeIsFields> {
+	static readonly COMMAND = '324';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: { type: 'channel' },
+			modes: { rest: true }
+		});
+	}
 }

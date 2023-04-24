@@ -1,11 +1,15 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('WALLOPS')
-export class WallopsMessage extends Message<WallopsMessage> {
-	@MessageParamDefinition({
-		trailing: true
-	})
-	content!: MessageParam;
+interface WallopsMessageFields {
+	text: string;
+}
+
+export interface WallopsMessage extends WallopsMessageFields {}
+export class WallopsMessage extends Message<WallopsMessageFields> {
+	static readonly COMMAND = 'WALLOPS';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			text: { trailing: true }
+		});
+	}
 }

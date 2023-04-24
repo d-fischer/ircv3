@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('462')
-export class Error462AlreadyRegistered extends Message<Error462AlreadyRegistered> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error462AlreadyRegisteredFields {
+	me: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error462AlreadyRegistered extends Error462AlreadyRegisteredFields {}
+export class Error462AlreadyRegistered extends Message<Error462AlreadyRegisteredFields> {
+	static readonly COMMAND = '462';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			suffix: { trailing: true }
+		});
+	}
 }

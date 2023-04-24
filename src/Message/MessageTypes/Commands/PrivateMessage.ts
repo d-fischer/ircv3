@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('PRIVMSG')
-export class PrivateMessage extends Message<PrivateMessage> {
-	@MessageParamDefinition()
-	target!: MessageParam;
+interface PrivateMessageFields {
+	target: string;
+	text: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	content!: MessageParam;
+export interface PrivateMessage extends PrivateMessageFields {}
+export class PrivateMessage extends Message<PrivateMessageFields> {
+	static readonly COMMAND = 'PRIVMSG';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			target: {},
+			text: { trailing: true }
+		});
+	}
 }

@@ -1,19 +1,19 @@
-import type { MessageParam } from '../../../../../Message/Message';
-import { Message } from '../../../../../Message/Message';
-import { MessageParamDefinition, MessageType } from '../../../../../Message/MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../../../../Message/Message';
 
-@MessageType('BATCH')
-export class Batch extends Message<Batch> {
-	@MessageParamDefinition()
-	reference!: MessageParam;
+interface BatchFields {
+	reference: string;
+	type?: string;
+	additionalParams?: string;
+}
 
-	@MessageParamDefinition({
-		optional: true
-	})
-	type?: MessageParam;
-
-	@MessageParamDefinition({
-		optional: true
-	})
-	additionalParams?: MessageParam;
+export interface Batch extends BatchFields {}
+export class Batch extends Message<BatchFields> {
+	static readonly COMMAND = 'BATCH';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			reference: {},
+			type: { optional: true },
+			additionalParams: { optional: true }
+		});
+	}
 }

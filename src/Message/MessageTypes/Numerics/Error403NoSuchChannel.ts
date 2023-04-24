@@ -1,20 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('403')
-export class Error403NoSuchChannel extends Message<Error403NoSuchChannel> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error403NoSuchChannelFields {
+	me: string;
+	channel: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		// channel type is wrong here - this numeric is also used for showing the user this is *not* a valid channel name
-		// type: 'channel'
-	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error403NoSuchChannel extends Error403NoSuchChannelFields {}
+export class Error403NoSuchChannel extends Message<Error403NoSuchChannelFields> {
+	static readonly COMMAND = '403';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: {},
+			suffix: { trailing: true }
+		});
+	}
 }

@@ -1,19 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('WHOWAS')
-export class WhoWasQuery extends Message<WhoWasQuery> {
-	@MessageParamDefinition()
-	nickname!: MessageParam;
+interface WhoWasQueryFields {
+	nick: string;
+	count?: string;
+	server?: string;
+}
 
-	@MessageParamDefinition({
-		optional: true
-	})
-	count?: MessageParam;
-
-	@MessageParamDefinition({
-		optional: true
-	})
-	server?: MessageParam;
+export interface WhoWasQuery extends WhoWasQueryFields {}
+export class WhoWasQuery extends Message<WhoWasQueryFields> {
+	static readonly COMMAND = 'WHOWAS';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			nick: {},
+			count: { optional: true },
+			server: { optional: true }
+		});
+	}
 }

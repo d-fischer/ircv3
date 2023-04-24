@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('376')
-export class Reply376EndOfMotd extends Message<Reply376EndOfMotd> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply376EndOfMotdFields {
+	me: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Reply376EndOfMotd extends Reply376EndOfMotdFields {}
+export class Reply376EndOfMotd extends Message<Reply376EndOfMotdFields> {
+	static readonly COMMAND = '376';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			suffix: { trailing: true }
+		});
+	}
 }

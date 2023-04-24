@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('003')
-export class Reply003Created extends Message<Reply003Created> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply003CreatedFields {
+	me: string;
+	createdText: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	createdText!: MessageParam;
+export interface Reply003Created extends Reply003CreatedFields {}
+export class Reply003Created extends Message<Reply003CreatedFields> {
+	static readonly COMMAND = '003';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			createdText: { trailing: true }
+		});
+	}
 }

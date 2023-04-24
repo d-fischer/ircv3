@@ -1,27 +1,23 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('348')
-export class Reply348ExceptList extends Message<Reply348ExceptList> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply348ExceptListFields {
+	me: string;
+	channel: string;
+	mask: string;
+	creatorName?: string;
+	timestamp?: string;
+}
 
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition()
-	mask!: MessageParam;
-
-	@MessageParamDefinition({
-		optional: true
-	})
-	creatorName?: MessageParam;
-
-	@MessageParamDefinition({
-		optional: true
-	})
-	timestamp?: MessageParam;
+export interface Reply348ExceptList extends Reply348ExceptListFields {}
+export class Reply348ExceptList extends Message<Reply348ExceptListFields> {
+	static readonly COMMAND = '348';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: { type: 'channel' },
+			mask: {},
+			creatorName: { optional: true },
+			timestamp: { optional: true }
+		});
+	}
 }

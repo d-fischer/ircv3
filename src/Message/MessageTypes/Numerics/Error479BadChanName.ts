@@ -1,17 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('479')
-export class Error479BadChanName extends Message<Error479BadChanName> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error479BadChanNameFields {
+	me: string;
+	channel: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition()
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error479BadChanName extends Error479BadChanNameFields {}
+export class Error479BadChanName extends Message<Error479BadChanNameFields> {
+	static readonly COMMAND = '479';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: {},
+			suffix: { trailing: true }
+		});
+	}
 }

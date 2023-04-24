@@ -1,16 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('PONG')
-export class Pong extends Message<Pong> {
-	@MessageParamDefinition({
-		noClient: true
-	})
-	server!: MessageParam;
+interface PongFields {
+	server: string;
+	text: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	message!: MessageParam;
+export interface Pong extends PongFields {}
+export class Pong extends Message<PongFields> {
+	static readonly COMMAND = 'PONG';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			server: { noClient: true },
+			text: { trailing: true }
+		});
+	}
 }

@@ -50,14 +50,14 @@ export function parseTags(raw: string): Map<string, string> {
 }
 
 export function parseMessage(
-	line: string,
+	rawLine: string,
 	serverProperties: ServerProperties = defaultServerProperties,
-	knownCommands: Map<string, MessageConstructor<Message>> = coreMessageTypes,
+	knownCommands: Map<string, MessageConstructor> = coreMessageTypes,
 	isServer: boolean = false,
 	nonConformingCommands: string[] = [],
 	shouldParseParams: boolean = true
 ): Message {
-	const splitLine: string[] = line.split(' ');
+	const splitLine: string[] = rawLine.split(' ');
 	// eslint-disable-next-line @typescript-eslint/init-declarations
 	let token: string;
 
@@ -71,16 +71,16 @@ export function parseMessage(
 	while (splitLine.length) {
 		token = splitLine[0];
 		if (token.startsWith('@') && !tags && !command && !prefix) {
-			tags = parseTags(token.substr(1));
+			tags = parseTags(token.slice(1));
 		} else if (token.startsWith(':')) {
 			if (!prefix && !command) {
 				if (token.length > 1) {
 					// Not an empty prefix
-					prefix = parsePrefix(token.substr(1));
+					prefix = parsePrefix(token.slice(1));
 				}
 			} else {
 				params.push({
-					value: splitLine.join(' ').substr(1),
+					value: splitLine.join(' ').slice(1),
 					trailing: true
 				});
 				break;
@@ -101,22 +101,28 @@ export function parseMessage(
 	}
 
 	if (!command) {
-		throw new Error(`line without command received: ${line}`);
+		throw new Error(`line without command received: ${rawLine}`);
 	}
 
-	let messageClass: MessageConstructor<Message> = Message;
+	shouldParseParams &&= !nonConformingCommands.includes(command);
+
+	let messageClass: MessageConstructor = Message;
 	if (knownCommands.has(command)) {
 		messageClass = knownCommands.get(command)!;
 	}
 
 	return new messageClass(
 		command,
-		params,
-		tags,
-		prefix,
-		serverProperties,
-		line,
-		isServer,
-		shouldParseParams && !nonConformingCommands.includes(command)
+		{
+			params,
+			tags,
+			prefix,
+			rawLine
+		},
+		{
+			serverProperties,
+			isServer,
+			shouldParseParams
+		}
 	);
 }

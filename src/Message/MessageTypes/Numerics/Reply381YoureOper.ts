@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('381')
-export class Reply381YoureOper extends Message<Reply381YoureOper> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply381YoureOperFields {
+	me: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Reply381YoureOper extends Reply381YoureOperFields {}
+export class Reply381YoureOper extends Message<Reply381YoureOperFields> {
+	static readonly COMMAND = '381';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			suffix: { trailing: true }
+		});
+	}
 }

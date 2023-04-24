@@ -1,17 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('471')
-export class Error471ChannelIsFull extends Message<Error471ChannelIsFull> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error471ChannelIsFullFields {
+	me: string;
+	channel: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({ type: 'channel' })
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error471ChannelIsFull extends Error471ChannelIsFullFields {}
+export class Error471ChannelIsFull extends Message<Error471ChannelIsFullFields> {
+	static readonly COMMAND = '471';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: { type: 'channel' },
+			suffix: { trailing: true }
+		});
+	}
 }

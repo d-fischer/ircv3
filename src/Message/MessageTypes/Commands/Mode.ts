@@ -1,8 +1,7 @@
 import { UnknownChannelModeCharError } from '../../../Errors/UnknownChannelModeCharError';
 import { isChannel } from '../../../Toolkit/StringTools';
-import type { MessageParam, MessagePrefix } from '../../Message';
+import type { MessageInternalConfig, MessageInternalContents, MessagePrefix } from '../../Message';
 import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
 
 export type ModeAction = 'getList' | 'add' | 'remove';
 
@@ -14,24 +13,28 @@ export interface SingleMode {
 	known: boolean;
 }
 
-@MessageType('MODE')
-export class Mode extends Message<Mode> {
-	@MessageParamDefinition()
-	target!: MessageParam;
+interface ModeFields {
+	target: string;
+	modes?: string;
+}
 
-	@MessageParamDefinition({
-		rest: true,
-		optional: true
-	})
-	modes?: MessageParam;
+export interface Mode extends ModeFields {}
+export class Mode extends Message<ModeFields> {
+	static readonly COMMAND = 'MODE';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			target: {},
+			modes: { rest: true, optional: true }
+		});
+	}
 
 	get isChannel(): boolean {
-		return isChannel(this.params.target, this._serverProperties.channelTypes);
+		return isChannel(this.target, this._serverProperties.channelTypes);
 	}
 
 	separate(): SingleMode[] {
 		const result: SingleMode[] = [];
-		const modeRestParam = this.params.modes;
+		const modeRestParam = this.modes;
 		if (!modeRestParam) {
 			throw new Error("can't separate a channel mode request, just set actions");
 		}

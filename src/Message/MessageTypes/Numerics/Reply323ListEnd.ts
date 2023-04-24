@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('323')
-export class Reply323ListEnd extends Message<Reply323ListEnd> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply323ListEndFields {
+	me: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Reply323ListEnd extends Reply323ListEndFields {}
+export class Reply323ListEnd extends Message<Reply323ListEndFields> {
+	static readonly COMMAND = '323';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			suffix: { trailing: true }
+		});
+	}
 }

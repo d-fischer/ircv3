@@ -1,59 +1,49 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('CAP')
-export class CapabilityNegotiation extends Message<CapabilityNegotiation> {
+interface CapabilityNegotiationFields {
+	target?: string;
+	subCommand: string;
+	version?: string;
+	continued?: string;
+	capabilities?: string;
+}
+
+export interface CapabilityNegotiation extends CapabilityNegotiationFields {}
+export class CapabilityNegotiation extends Message<CapabilityNegotiationFields> {
+	static readonly COMMAND = 'CAP';
 	static readonly SUPPORTS_CAPTURE = true;
 
-	@MessageParamDefinition({
-		match: /^(?:[a-z_\-\[\]\\^{}|`][a-z0-9_\-\[\]\\^{}|`]+|\*)$/i,
-		optional: true,
-		noClient: true
-	})
-	target?: MessageParam;
-
-	@MessageParamDefinition({
-		match: /^(?:LS|LIST|REQ|ACK|NAK|END|NEW|DEL)$/i
-	})
-	subCommand!: MessageParam;
-
-	@MessageParamDefinition({
-		match: /^\d+$/,
-		optional: true
-	})
-	version?: MessageParam;
-
-	@MessageParamDefinition({
-		match: /^\*$/,
-		optional: true
-	})
-	continued?: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true,
-		optional: true
-	})
-	capabilities?: MessageParam;
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			target: {
+				match: /^(?:[a-z_\-\[\]\\^{}|`][a-z0-9_\-\[\]\\^{}|`]+|\*)$/i,
+				optional: true,
+				noClient: true
+			},
+			subCommand: { match: /^(?:LS|LIST|REQ|ACK|NAK|END|NEW|DEL)$/i },
+			version: { match: /^\d+$/, optional: true },
+			continued: { match: /^\*$/, optional: true },
+			capabilities: { trailing: true, optional: true }
+		});
+	}
 
 	isResponseTo(originalMessage: Message): boolean {
 		if (!(originalMessage instanceof CapabilityNegotiation)) {
 			return false;
 		}
 
-		switch (this.params.subCommand) {
+		switch (this.subCommand) {
 			case 'ACK':
 			case 'NAK': {
 				// trim is necessary because some networks seem to add trailing spaces (looking at you, Freenode)...
 				return (
-					originalMessage.params.subCommand === 'REQ' &&
-					originalMessage.params.capabilities === this.params.capabilities!.trim()
+					originalMessage.subCommand === 'REQ' && originalMessage.capabilities === this.capabilities!.trim()
 				);
 			}
 
 			case 'LS':
 			case 'LIST': {
-				return originalMessage.params.subCommand === this.params.subCommand;
+				return originalMessage.subCommand === this.subCommand;
 			}
 
 			default: {
@@ -67,10 +57,10 @@ export class CapabilityNegotiation extends Message<CapabilityNegotiation> {
 			return false;
 		}
 
-		switch (this.params.subCommand) {
+		switch (this.subCommand) {
 			case 'LS':
 			case 'LIST': {
-				return !this.params.continued;
+				return !this.continued;
 			}
 
 			default: {

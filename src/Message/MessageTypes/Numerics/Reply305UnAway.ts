@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('305')
-export class Reply305UnAway extends Message<Reply305UnAway> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply305UnAwayFields {
+	me: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Reply305UnAway extends Reply305UnAwayFields {}
+export class Reply305UnAway extends Message<Reply305UnAwayFields> {
+	static readonly COMMAND = '305';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			suffix: { trailing: true }
+		});
+	}
 }

@@ -1,11 +1,15 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('ISON')
-export class IsOnQuery extends Message<IsOnQuery> {
-	@MessageParamDefinition({
-		rest: true
-	})
-	nicks!: MessageParam;
+interface IsOnQueryFields {
+	nicks: string;
+}
+
+export interface IsOnQuery extends IsOnQueryFields {}
+export class IsOnQuery extends Message<IsOnQueryFields> {
+	static readonly COMMAND = 'ISON';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			nicks: { rest: true }
+		});
+	}
 }

@@ -1,20 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('501')
-export class Error501UmodeUnknownFlag extends Message<Error501UmodeUnknownFlag> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error501UmodeUnknownFlagFields {
+	me: string;
+	modeChar?: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		optional: true,
-		match: /^\w$/
-	})
-	modeChar?: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error501UmodeUnknownFlag extends Error501UmodeUnknownFlagFields {}
+export class Error501UmodeUnknownFlag extends Message<Error501UmodeUnknownFlagFields> {
+	static readonly COMMAND = '501';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			modeChar: { optional: true, match: /^\w$/ },
+			suffix: { trailing: true }
+		});
+	}
 }

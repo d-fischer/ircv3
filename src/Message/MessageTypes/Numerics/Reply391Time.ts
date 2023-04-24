@@ -1,19 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('391')
-export class Reply391Time extends Message<Reply391Time> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply391TimeFields {
+	me: string;
+	server?: string;
+	timestamp: string;
+}
 
-	@MessageParamDefinition({
-		optional: true
-	})
-	server!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	timestamp!: MessageParam;
+export interface Reply391Time extends Reply391TimeFields {}
+export class Reply391Time extends Message<Reply391TimeFields> {
+	static readonly COMMAND = '391';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			server: { optional: true },
+			timestamp: { trailing: true }
+		});
+	}
 }

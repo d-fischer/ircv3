@@ -1,11 +1,15 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('ERROR')
-export class ErrorMessage extends Message<ErrorMessage> {
-	@MessageParamDefinition({
-		trailing: true
-	})
-	content!: MessageParam;
+interface ErrorMessageFields {
+	text: string;
+}
+
+export interface ErrorMessage extends ErrorMessageFields {}
+export class ErrorMessage extends Message<ErrorMessageFields> {
+	static readonly COMMAND = 'ERROR';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			text: { trailing: true }
+		});
+	}
 }

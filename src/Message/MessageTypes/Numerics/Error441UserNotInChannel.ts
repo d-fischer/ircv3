@@ -1,24 +1,23 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('441')
-export class Error441UserNotInChannel extends Message<Error441UserNotInChannel> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error441UserNotInChannelFields {
+	me: string;
+	nick: string;
+	channel: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition()
-	nick!: MessageParam;
-
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error441UserNotInChannel extends Error441UserNotInChannelFields {}
+export class Error441UserNotInChannel extends Message<Error441UserNotInChannelFields> {
+	static readonly COMMAND = '441';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			nick: {},
+			channel: { type: 'channel' },
+			suffix: { trailing: true }
+		});
+	}
 
 	isResponseTo(originalMessage: Message): boolean {
 		return originalMessage.command === 'NICK';

@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('INVITE')
-export class ChannelInvite extends Message<ChannelInvite> {
-	@MessageParamDefinition()
-	target!: MessageParam;
+interface ChannelInviteFields {
+	target: string;
+	channel: string;
+}
 
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
+export interface ChannelInvite extends ChannelInviteFields {}
+export class ChannelInvite extends Message<ChannelInviteFields> {
+	static readonly COMMAND = 'INVITE';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			target: {},
+			channel: { type: 'channel' }
+		});
+	}
 }

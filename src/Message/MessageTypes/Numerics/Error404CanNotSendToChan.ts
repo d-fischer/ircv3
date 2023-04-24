@@ -1,19 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('404')
-export class Error404CanNotSendToChan extends Message<Error404CanNotSendToChan> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error404CanNotSendToChanFields {
+	me: string;
+	channel: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error404CanNotSendToChan extends Error404CanNotSendToChanFields {}
+export class Error404CanNotSendToChan extends Message<Error404CanNotSendToChanFields> {
+	static readonly COMMAND = '404';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: { type: 'channel' },
+			suffix: { trailing: true }
+		});
+	}
 }

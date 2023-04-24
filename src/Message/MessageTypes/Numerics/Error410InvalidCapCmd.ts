@@ -1,17 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('410')
-export class Error410InvalidCapCmd extends Message<Error410InvalidCapCmd> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error410InvalidCapCmdFields {
+	me: string;
+	subCommand: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition()
-	subCommand!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error410InvalidCapCmd extends Error410InvalidCapCmdFields {}
+export class Error410InvalidCapCmd extends Message<Error410InvalidCapCmdFields> {
+	static readonly COMMAND = '410';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			subCommand: {},
+			suffix: { trailing: true }
+		});
+	}
 }

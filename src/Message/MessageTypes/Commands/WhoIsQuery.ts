@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('WHOIS')
-export class WhoIsQuery extends Message<WhoIsQuery> {
-	@MessageParamDefinition({
-		optional: true
-	})
-	server?: MessageParam;
+interface WhoIsQueryFields {
+	server?: string;
+	nickMask: string;
+}
 
-	@MessageParamDefinition()
-	nickMask!: MessageParam;
+export interface WhoIsQuery extends WhoIsQueryFields {}
+export class WhoIsQuery extends Message<WhoIsQueryFields> {
+	static readonly COMMAND = 'WHOIS';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			server: { optional: true },
+			nickMask: {}
+		});
+	}
 }

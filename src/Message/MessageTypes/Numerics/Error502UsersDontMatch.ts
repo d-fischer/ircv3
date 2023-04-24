@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('502')
-export class Error502UsersDontMatch extends Message<Error502UsersDontMatch> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error502UsersDontMatchFields {
+	me: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error502UsersDontMatch extends Error502UsersDontMatchFields {}
+export class Error502UsersDontMatch extends Message<Error502UsersDontMatchFields> {
+	static readonly COMMAND = '502';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			suffix: { trailing: true }
+		});
+	}
 }

@@ -1,17 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('301')
-export class Reply301Away extends Message<Reply301Away> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply301AwayFields {
+	me: string;
+	nick: string;
+	text: string;
+}
 
-	@MessageParamDefinition()
-	nick!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	content!: MessageParam;
+export interface Reply301Away extends Reply301AwayFields {}
+export class Reply301Away extends Message<Reply301AwayFields> {
+	static readonly COMMAND = '301';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			nick: {},
+			text: { trailing: true }
+		});
+	}
 }

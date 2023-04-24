@@ -1,12 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('OPER')
-export class OperLogin extends Message<OperLogin> {
-	@MessageParamDefinition()
-	name!: MessageParam;
+interface OperLoginFields {
+	name: string;
+	password: string;
+}
 
-	@MessageParamDefinition()
-	password!: MessageParam;
+export interface OperLogin extends OperLoginFields {}
+export class OperLogin extends Message<OperLoginFields> {
+	static readonly COMMAND = 'OPER';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			name: {},
+			password: {}
+		});
+	}
 }

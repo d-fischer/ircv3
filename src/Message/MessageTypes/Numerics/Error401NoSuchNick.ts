@@ -1,17 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('401')
-export class Error401NoSuchNick extends Message<Error401NoSuchNick> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error401NoSuchNickFields {
+	me: string;
+	nick: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition()
-	nick!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error401NoSuchNick extends Error401NoSuchNickFields {}
+export class Error401NoSuchNick extends Message<Error401NoSuchNickFields> {
+	static readonly COMMAND = '401';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			nick: {},
+			suffix: { trailing: true }
+		});
+	}
 }

@@ -1,12 +1,18 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('AWAY')
-export class Away extends Message<Away> {
-	@MessageParamDefinition({
-		trailing: true,
-		optional: true
-	})
-	message?: MessageParam;
+interface AwayFields {
+	text?: string;
+}
+
+export interface Away extends AwayFields {}
+export class Away extends Message<AwayFields> {
+	static readonly COMMAND = 'AWAY';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			text: {
+				trailing: true,
+				optional: true
+			}
+		});
+	}
 }

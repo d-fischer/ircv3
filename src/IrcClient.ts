@@ -22,7 +22,7 @@ import { klona } from 'klona/json';
 
 import type { Capability, ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
-import type { Message, MessageConstructor, MessageParamValues } from './Message/Message';
+import type { Message, MessageConstructor, MessageFieldsFromType } from './Message/Message';
 import { createMessage } from './Message/Message';
 import { MessageCollector } from './Message/MessageCollector';
 import { parseMessage } from './Message/MessageParser';
@@ -233,7 +233,7 @@ export class IrcClient extends EventEmitter {
 			}
 		});
 
-		this.onTypedMessage(CapabilityNegotiation, async ({ params: { subCommand, capabilities } }) => {
+		this.onTypedMessage(CapabilityNegotiation, async ({ subCommand, capabilities }) => {
 			const caps = capabilities!.split(' ');
 
 			// eslint-disable-next-line default-case
@@ -274,20 +274,20 @@ export class IrcClient extends EventEmitter {
 			}
 		});
 
-		this.onTypedMessage(Ping, ({ params: { message } }) => {
-			this.sendMessage(Pong, { message });
+		this.onTypedMessage(Ping, ({ text }) => {
+			this.sendMessage(Pong, { text });
 		});
 
-		this.onTypedMessage(Reply001Welcome, ({ params: { me } }) => this._handleReceivedClientNick(me));
+		this.onTypedMessage(Reply001Welcome, ({ me }) => this._handleReceivedClientNick(me));
 
-		this.onTypedMessage(Reply004ServerInfo, ({ params: { userModes } }) => {
+		this.onTypedMessage(Reply004ServerInfo, ({ userModes }) => {
 			if (userModes) {
 				this._serverProperties.supportedUserModes = userModes;
 			}
 		});
 
-		this.onTypedMessage(Reply005Isupport, ({ params: { supports } }) => {
-			const newFeatures = arrayToObject(supports.split(' '), (part: string) => {
+		this.onTypedMessage(Reply005Isupport, ({ supports }) => {
+			const newFeatures = arrayToObject(supports.split(' '), part => {
 				const [support, param] = splitWithLimit(part, '=', 2);
 				return { [support]: param || true };
 			});
@@ -297,7 +297,7 @@ export class IrcClient extends EventEmitter {
 			};
 		});
 
-		this.onTypedMessage(Reply376EndOfMotd, ({ params: { me } }) => {
+		this.onTypedMessage(Reply376EndOfMotd, ({ me }) => {
 			if (!this._registered) {
 				this._handleReceivedClientNick(me);
 				this._registered = true;
@@ -305,7 +305,7 @@ export class IrcClient extends EventEmitter {
 			}
 		});
 
-		this.onTypedMessage(Error422NoMotd, ({ params: { me } }) => {
+		this.onTypedMessage(Error422NoMotd, ({ me }) => {
 			if (!this._registered) {
 				this._handleReceivedClientNick(me);
 				this._registered = true;
@@ -313,7 +313,7 @@ export class IrcClient extends EventEmitter {
 			}
 		});
 
-		this.onTypedMessage(Error462AlreadyRegistered, ({ params: { me } }) => {
+		this.onTypedMessage(Error462AlreadyRegistered, ({ me }) => {
 			// what, I thought we are not registered yet?
 			if (!this._registered) {
 				// screw this, we are now.
@@ -325,10 +325,8 @@ export class IrcClient extends EventEmitter {
 		});
 
 		this.onTypedMessage(PrivateMessage, msg => {
-			const {
-				params: { target, content }
-			} = msg;
-			const ctcpMessage = decodeCtcp(content);
+			const { target, text } = msg;
+			const ctcpMessage = decodeCtcp(text);
 			const nick = msg.prefix?.nick;
 
 			if (ctcpMessage) {
@@ -338,14 +336,12 @@ export class IrcClient extends EventEmitter {
 					this.emit(this.onCtcp, target, nick, ctcpMessage.command, ctcpMessage.params, msg);
 				}
 			} else {
-				this.emit(this.onPrivmsg, target, nick, content, msg);
+				this.emit(this.onPrivmsg, target, nick, text, msg);
 			}
 		});
 
 		this.onTypedMessage(NickChange, msg => {
-			const {
-				params: { nick: newNick }
-			} = msg;
+			const { nick: newNick } = msg;
 
 			const oldNick = msg.prefix?.nick;
 
@@ -357,31 +353,29 @@ export class IrcClient extends EventEmitter {
 		});
 
 		this.onTypedMessage(Notice, msg => {
-			const {
-				params: { target, content }
-			} = msg;
-			const ctcpMessage = decodeCtcp(content);
+			const { target, text } = msg;
+			const ctcpMessage = decodeCtcp(text);
 			const nick = msg.prefix?.nick;
 
 			if (ctcpMessage) {
 				this.emit(this.onCtcpReply, target, nick, ctcpMessage.command, ctcpMessage.params, msg);
 			}
 
-			this.emit(this.onNotice, target, nick, content, msg);
+			this.emit(this.onNotice, target, nick, text, msg);
 		});
 
 		if (!this._options.manuallyAcknowledgeJoins) {
-			this.onTypedMessage(ChannelJoin, msg => {
-				if (msg.prefix?.nick === this._currentNick) {
-					this.acknowledgeJoin(msg.params.channel);
+			this.onTypedMessage(ChannelJoin, ({ channel, prefix }) => {
+				if (prefix?.nick === this._currentNick) {
+					this.acknowledgeJoin(channel);
 				}
 			});
 		}
 
 		this.onTypedMessage(ChannelPart, msg => {
 			if (msg.prefix?.nick === this._currentNick) {
-				this._currentChannels.delete(msg.params.channel);
-				this._channelsFromLastRegister.delete(msg.params.channel);
+				this._currentChannels.delete(msg.channel);
+				this._channelsFromLastRegister.delete(msg.channel);
 			}
 		});
 
@@ -444,10 +438,8 @@ export class IrcClient extends EventEmitter {
 		const now = Date.now();
 		const nowStr = now.toString();
 		const handler = this.onTypedMessage(Pong, (msg: Pong) => {
-			const {
-				params: { message }
-			} = msg;
-			if (message === nowStr) {
+			const { text } = msg;
+			if (text === nowStr) {
 				this._logger.debug(`Current ping: ${Date.now() - now}ms`);
 				if (this._pingTimeoutTimer) {
 					clearTimeout(this._pingTimeoutTimer);
@@ -465,7 +457,7 @@ export class IrcClient extends EventEmitter {
 			}
 			this._connection.assumeExternalDisconnect();
 		}, this._pingTimeout * 1000);
-		this.sendMessage(Ping, { message: nowStr });
+		this.sendMessage(Ping, { text: nowStr });
 	}
 
 	reconnect(message?: string): void {
@@ -573,26 +565,26 @@ export class IrcClient extends EventEmitter {
 		this._events.get(commandName)!.delete(handlerName);
 	}
 
-	createMessage<T extends Message<T>>(
+	createMessage<T extends Message>(
 		type: MessageConstructor<T>,
-		params: Partial<MessageParamValues<T>>,
+		params: Partial<MessageFieldsFromType<T>>,
 		tags?: Record<string, string>
 	): T {
 		const tagsMap = tags ? new Map(Object.entries(tags)) : undefined;
 		return createMessage(type, params, undefined, tagsMap, this.serverProperties);
 	}
 
-	sendMessage<T extends Message<T>>(
+	sendMessage<T extends Message>(
 		type: MessageConstructor<T>,
-		params: Partial<MessageParamValues<T>>,
+		params: Partial<MessageFieldsFromType<T>>,
 		tags?: Record<string, string>
 	): void {
 		this.send(this.createMessage(type, params, tags));
 	}
 
-	async sendMessageAndCaptureReply<T extends Message<T>>(
+	async sendMessageAndCaptureReply<T extends Message>(
 		type: MessageConstructor<T>,
-		params: Partial<MessageParamValues<T>>
+		params: Partial<MessageFieldsFromType<T>>
 	): Promise<Message[]> {
 		if (!type.SUPPORTS_CAPTURE) {
 			throw new Error(`The command "${type.COMMAND}" does not support reply capture`);
@@ -648,8 +640,8 @@ export class IrcClient extends EventEmitter {
 		this.sendMessage(ChannelPart, { channel });
 	}
 
-	quit(message?: string): void {
-		this.sendMessage(ClientQuit, { message });
+	quit(text?: string): void {
+		this.sendMessage(ClientQuit, { text });
 		this.quitAbruptly();
 	}
 
@@ -658,8 +650,8 @@ export class IrcClient extends EventEmitter {
 		this._connection.disconnect();
 	}
 
-	say(target: string, message: string, tags: Record<string, string> = {}): void {
-		this.sendMessage(PrivateMessage, { target, content: message }, tags);
+	say(target: string, text: string, tags: Record<string, string> = {}): void {
+		this.sendMessage(PrivateMessage, { target, text }, tags);
 	}
 
 	sendCtcp(target: string, type: string, message: string): void {
@@ -718,8 +710,8 @@ export class IrcClient extends EventEmitter {
 		if (!(capReply instanceof CapabilityNegotiation)) {
 			throw new Error(`capability negotiation failed unexpectedly with "${capReply.command}" command`);
 		}
-		const negotiatedCapNames = capReply.params.capabilities!.split(' ').filter(c => c);
-		if (capReply.params.subCommand === 'ACK') {
+		const negotiatedCapNames = capReply.capabilities!.split(' ').filter(c => c);
+		if (capReply.subCommand === 'ACK') {
 			// filter is necessary because some networks seem to add trailing spaces...
 			this._logger.debug(`Successfully negotiated capabilities: ${negotiatedCapNames.join(', ')}`);
 			const newNegotiatedCaps: ServerCapability[] = negotiatedCapNames.map(capName => mappedCapList[capName]);
@@ -758,7 +750,7 @@ export class IrcClient extends EventEmitter {
 							this._supportsCapabilities = true;
 							const capLists = capReply.map(line =>
 								arrayToObject(
-									(line as CapabilityNegotiation).params.capabilities!.split(' '),
+									(line as CapabilityNegotiation).capabilities!.split(' '),
 									(part: string) => {
 										if (!part) {
 											return {};

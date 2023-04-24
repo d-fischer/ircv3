@@ -1,27 +1,23 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('367')
-export class Reply367BanList extends Message<Reply367BanList> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply367BanListFields {
+	me: string;
+	channel: string;
+	mask: string;
+	creatorName?: string;
+	timestamp?: string;
+}
 
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition()
-	mask!: MessageParam;
-
-	@MessageParamDefinition({
-		optional: true
-	})
-	creatorName?: MessageParam;
-
-	@MessageParamDefinition({
-		optional: true
-	})
-	timestamp?: MessageParam;
+export interface Reply367BanList extends Reply367BanListFields {}
+export class Reply367BanList extends Message<Reply367BanListFields> {
+	static readonly COMMAND = '367';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: { type: 'channel' },
+			mask: {},
+			creatorName: { optional: true },
+			timestamp: { optional: true }
+		});
+	}
 }

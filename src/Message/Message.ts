@@ -1,4 +1,3 @@
-import type { AllowedNames, NoInfer } from '@d-fischer/shared-utils';
 import { forEachObjectEntry } from '@d-fischer/shared-utils';
 import { NotEnoughParametersError } from '../Errors/NotEnoughParametersError';
 import { ParameterRequirementMismatchError } from '../Errors/ParameterRequirementMismatchError';
@@ -17,46 +16,69 @@ export interface MessageParam {
 	trailing: boolean;
 }
 
-export interface MessageParamSpecEntry {
+export interface BaseMessageParamSpecEntry {
 	trailing?: boolean;
 	rest?: boolean;
-	optional?: boolean;
 	noClient?: boolean;
 	noServer?: boolean;
 	type?: 'channel' | 'channelList';
 	match?: RegExp;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface MessageConstructor<T extends Message<T> = any> extends Function {
-	COMMAND: string;
-	PARAM_SPEC?: MessageParamSpec<NoInfer<T>>;
-	SUPPORTS_CAPTURE: boolean;
-
-	getMinParamCount: (isServer?: boolean) => number;
-	checkParam: (param: string, spec: MessageParamSpecEntry, serverProperties?: ServerProperties) => boolean;
-
-	new (
-		command: string,
-		params?: MessageParam[],
-		tags?: Map<string, string>,
-		prefix?: MessagePrefix,
-		serverProperties?: ServerProperties,
-		rawLine?: string,
-		isServer?: boolean,
-		shouldParseParams?: boolean
-	): T;
+export interface RequiredMessageParamSpecEntry extends BaseMessageParamSpecEntry {
+	optional?: false;
 }
 
-export type MessageParamNames<T extends Message<T>> = AllowedNames<Omit<T, 'params'>, MessageParam | undefined>;
-export type MessageParams<T extends Message<T>> = Record<MessageParamNames<T>, MessageParam>;
-export type MessageParamValues<T extends Message<T>> = Pick<
-	{
-		[K in keyof T]: string | Extract<T[K], undefined>;
-	},
-	MessageParamNames<T>
->;
-export type MessageParamSpec<T extends Message<T>> = Record<MessageParamNames<T>, MessageParamSpecEntry>;
+export interface OptionalMessageParamSpecEntry extends BaseMessageParamSpecEntry {
+	optional: true;
+}
+
+export type MessageParamSpecEntry<Optional extends boolean = boolean> = Optional extends true
+	? OptionalMessageParamSpecEntry
+	: RequiredMessageParamSpecEntry;
+
+export type MessageParamSpecEntryFor<T extends string | undefined> = undefined extends T
+	? T extends undefined
+		? never
+		: MessageParamSpecEntry<true>
+	: MessageParamSpecEntry<false>;
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type MessageFields<T extends {}> = { [K in keyof T]?: string };
+export type MessageParamSpec<Fields extends MessageFields<Fields>> = {
+	[K in Extract<keyof Fields, string>]-?: MessageParamSpecEntryFor<Fields[K]>;
+};
+
+export interface MessageInternalContents {
+	params?: MessageParam[];
+	tags?: Map<string, string>;
+	prefix?: MessagePrefix;
+	rawLine?: string;
+}
+
+export interface MessageInternalConfig {
+	serverProperties?: ServerProperties;
+	isServer?: boolean;
+	shouldParseParams?: boolean;
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export interface MessageConstructor<T extends Message = Message> extends Function {
+	COMMAND: string;
+	SUPPORTS_CAPTURE: boolean;
+
+	checkParam: (param: string, spec: MessageParamSpecEntry, serverProperties?: ServerProperties) => boolean;
+
+	new (command: string, contents?: MessageInternalContents, config?: MessageInternalConfig): T;
+}
+
+export type MessageParamNames<Fields extends MessageFields<Fields>> = Extract<keyof Fields, string>;
+export type MessageParams<Fields extends MessageFields<Fields>> = { [K in MessageParamNames<Fields>]: MessageParam };
+export type MessageFieldsFromType<T extends Message> = T extends Message<infer Fields>
+	? Fields extends MessageFields<Fields>
+		? Fields
+		: never
+	: never;
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const tagEscapeMap: Record<string, string> = {
@@ -84,60 +106,75 @@ export function prefixToString(prefix: MessagePrefix): string {
 	return result;
 }
 
-export function createMessage<T extends Message<T>>(
+export function createMessage<T extends Message>(
 	type: MessageConstructor<T>,
-	params: Partial<MessageParamValues<T>>,
+	params: Partial<MessageFieldsFromType<T>>,
 	prefix?: MessagePrefix,
 	tags?: Map<string, string>,
 	serverProperties: ServerProperties = defaultServerProperties,
 	isServer: boolean = false
 ): T {
-	const message: T = new type(type.COMMAND, undefined, undefined, undefined, serverProperties);
-	const parsedParams: Partial<MessageParams<T>> = {};
-	if (type.PARAM_SPEC) {
-		forEachObjectEntry(type.PARAM_SPEC, (paramSpec: MessageParamSpecEntry, paramName: MessageParamNames<T>) => {
-			if (isServer && paramSpec.noServer) {
-				return;
-			}
-			if (!isServer && paramSpec.noClient) {
-				return;
-			}
-			if (paramName in params) {
-				const param: string | undefined = params[paramName];
-				if (param !== undefined) {
-					if (type.checkParam(param, paramSpec, serverProperties)) {
-						parsedParams[paramName] = {
-							value: param,
-							trailing: Boolean(paramSpec.trailing)
-						};
-					} else if (!paramSpec.optional) {
-						throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
+	const message: T = new type(type.COMMAND, undefined, { serverProperties });
+	const parsedParams: Partial<MessageParams<MessageFieldsFromType<T>>> = {};
+	if (message._paramSpec) {
+		forEachObjectEntry(
+			message._paramSpec,
+			(paramSpec: MessageParamSpecEntry, paramName: MessageParamNames<MessageFieldsFromType<T>>) => {
+				if (isServer && paramSpec.noServer) {
+					return;
+				}
+				if (!isServer && paramSpec.noClient) {
+					return;
+				}
+				if (paramName in params) {
+					const param = params[paramName] as string | undefined;
+					if (param !== undefined) {
+						if (type.checkParam(param, paramSpec, serverProperties)) {
+							parsedParams[paramName] = {
+								value: param,
+								trailing: Boolean(paramSpec.trailing)
+							};
+						} else if (!paramSpec.optional) {
+							throw new Error(`required parameter "${paramName}" did not suit requirements: "${param}"`);
+						}
 					}
 				}
+				if (!(paramName in parsedParams) && !paramSpec.optional) {
+					throw new Error(`required parameter "${paramName}" not found in command "${type.COMMAND}"`);
+				}
 			}
-			if (!(paramName in parsedParams) && !paramSpec.optional) {
-				throw new Error(`required parameter "${paramName}" not found in command "${type.COMMAND}"`);
-			}
-		});
+		);
 	}
 
-	Object.assign(message, parsedParams);
+	message._parsedParams = parsedParams;
+
+	if (message._paramSpec) {
+		for (const key of Object.keys(message._paramSpec)) {
+			Object.defineProperty(message, key, {
+				get(this: T): string | undefined {
+					return (this._parsedParams as MessageParams<MessageFieldsFromType<T>> | undefined)?.[
+						key as MessageParamNames<MessageFieldsFromType<T>>
+					].value;
+				}
+			});
+		}
+	}
 
 	message._initPrefixAndTags(prefix, tags);
 	return message;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class Message<T extends Message<T> = any> {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export class Message<Fields extends MessageFields<Fields> = {}> {
 	static readonly COMMAND: string = '';
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	static readonly PARAM_SPEC: MessageParamSpec<any>;
 	static readonly SUPPORTS_CAPTURE: boolean = false;
+	readonly _paramSpec?: MessageParamSpec<Fields>;
 
 	protected _tags: Map<string, string>;
 	protected _prefix?: MessagePrefix;
 	protected _command: string;
 	protected _params?: MessageParam[] = [];
+	/** @internal */ _parsedParams?: MessageParams<Fields>;
 	protected _serverProperties: ServerProperties = defaultServerProperties;
 
 	private readonly _raw?: string;
@@ -169,33 +206,17 @@ export class Message<T extends Message<T> = any> {
 		return true;
 	}
 
-	static getMinParamCount(isServer: boolean = false): number {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (!this.PARAM_SPEC) {
-			return 0;
-		}
-
-		return Object.values(this.PARAM_SPEC).filter((spec: MessageParamSpecEntry) => {
-			if (spec.noServer && isServer) {
-				return false;
-			}
-			if (spec.noClient && !isServer) {
-				return false;
-			}
-			return !spec.optional;
-		}).length;
-	}
-
 	constructor(
 		command: string,
-		params?: MessageParam[],
-		tags?: Map<string, string>,
-		prefix?: MessagePrefix,
-		serverProperties: ServerProperties = defaultServerProperties,
-		rawLine?: string,
-		isServer: boolean = false,
-		shouldParseParams: boolean = true
+		{ params, tags, prefix, rawLine }: MessageInternalContents = {},
+		{
+			serverProperties = defaultServerProperties,
+			isServer = false,
+			shouldParseParams = true
+		}: MessageInternalConfig = {},
+		paramSpec?: MessageParamSpec<Fields>
 	) {
+		this._paramSpec = paramSpec;
 		this._command = command;
 		this._params = params;
 		this._tags = tags ?? new Map<string, string>();
@@ -206,6 +227,22 @@ export class Message<T extends Message<T> = any> {
 		if (shouldParseParams) {
 			this.parseParams(isServer);
 		}
+	}
+
+	getMinParamCount(isServer: boolean = false): number {
+		if (!this._paramSpec) {
+			return 0;
+		}
+
+		return Object.values<MessageParamSpecEntry>(this._paramSpec).filter(spec => {
+			if (spec.noServer && isServer) {
+				return false;
+			}
+			if (spec.noClient && !isServer) {
+				return false;
+			}
+			return !spec.optional;
+		}).length;
 	}
 
 	get paramCount(): number {
@@ -253,18 +290,18 @@ export class Message<T extends Message<T> = any> {
 
 	parseParams(isServer: boolean = false): void {
 		if (this._params) {
-			const cls = this.constructor as MessageConstructor<T>;
-			let requiredParamsLeft = cls.getMinParamCount(isServer);
+			let requiredParamsLeft = this.getMinParamCount(isServer);
 			if (requiredParamsLeft > this._params.length) {
 				throw new NotEnoughParametersError(this._command, requiredParamsLeft, this._params.length);
 			}
 
-			const paramSpecList = cls.PARAM_SPEC;
+			const paramSpecList = this._paramSpec;
 			if (!paramSpecList) {
 				return;
 			}
 			let i = 0;
-			const parsedParams: Partial<MessageParams<T>> = {};
+			// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+			const parsedParams = {} as MessageParams<Fields>;
 			for (const [paramName, paramSpec] of Object.entries<MessageParamSpecEntry>(paramSpecList)) {
 				if (paramSpec.noServer && isServer) {
 					continue;
@@ -309,7 +346,7 @@ export class Message<T extends Message<T> = any> {
 					};
 				}
 				if (Message.checkParam(param.value, paramSpec)) {
-					parsedParams[paramName as keyof MessageParamSpec<T>] = { ...param };
+					parsedParams[paramName as MessageParamNames<Fields>] = { ...param };
 					if (!paramSpec.optional) {
 						--requiredParamsLeft;
 					}
@@ -325,31 +362,18 @@ export class Message<T extends Message<T> = any> {
 				}
 			}
 
-			Object.assign(this, parsedParams);
+			this._parsedParams = parsedParams;
+
+			if (this._paramSpec) {
+				for (const key of Object.keys(this._paramSpec)) {
+					Object.defineProperty(this, key, {
+						get(this: Message<Fields>): string | undefined {
+							return this._parsedParams?.[key as MessageParamNames<Fields>].value;
+						}
+					});
+				}
+			}
 		}
-	}
-
-	get params(): MessageParamValues<T> {
-		const cls = this.constructor as MessageConstructor<T>;
-		const specKeys = cls.PARAM_SPEC ? (Object.keys(cls.PARAM_SPEC) as Array<MessageParamNames<T>>) : [];
-		return Object.assign(
-			{},
-			...specKeys
-				.map((paramName: MessageParamNames<T>): [MessageParamNames<T>, string] | undefined => {
-					// TS inference does really not help here... so this is any for now
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					const param: MessageParam = (this as Record<MessageParamNames<T>, MessageParam>)[paramName];
-
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-					if (param) {
-						return [paramName, param.value];
-					}
-
-					return undefined;
-				})
-				.filter((pair): pair is [MessageParamNames<T>, string] => pair !== undefined)
-				.map(([key, value]) => ({ [key]: value }))
-		) as MessageParamValues<T>;
 	}
 
 	get rawParamValues(): string[] {
@@ -387,16 +411,12 @@ export class Message<T extends Message<T> = any> {
 	}
 
 	private _buildCommandFromNamedParams(): string {
-		const cls = this.constructor as MessageConstructor<T>;
-		const specKeys = cls.PARAM_SPEC ? (Object.keys(cls.PARAM_SPEC) as Array<MessageParamNames<T>>) : [];
+		const specKeys = this._paramSpec ? (Object.keys(this._paramSpec) as Array<Extract<keyof Fields, string>>) : [];
 		return [
 			this._command,
 			...specKeys
-				.map((paramName: MessageParamNames<T>): string | undefined => {
-					// TS inference does really not help here... so this is any for now
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					const param: MessageParam = (this as Record<MessageParamNames<T>, MessageParam>)[paramName];
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				.map((paramName: MessageParamNames<Fields>): string | undefined => {
+					const param = this._parsedParams?.[paramName];
 					if (param) {
 						return (param.trailing ? ':' : '') + param.value;
 					}

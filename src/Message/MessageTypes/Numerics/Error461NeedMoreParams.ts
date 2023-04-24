@@ -1,17 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('461')
-export class Error461NeedMoreParams extends Message<Error461NeedMoreParams> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error461NeedMoreParamsFields {
+	me: string;
+	originalCommand: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition()
-	originalCommand!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error461NeedMoreParams extends Error461NeedMoreParamsFields {}
+export class Error461NeedMoreParams extends Message<Error461NeedMoreParamsFields> {
+	static readonly COMMAND = '461';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			originalCommand: {},
+			suffix: { trailing: true }
+		});
+	}
 }

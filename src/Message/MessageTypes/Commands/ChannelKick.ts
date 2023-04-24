@@ -1,20 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('KICK')
-export class ChannelKick extends Message<ChannelKick> {
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
+interface ChannelKickFields {
+	channel: string;
+	target: string;
+	reason?: string;
+}
 
-	@MessageParamDefinition()
-	target!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true,
-		optional: true
-	})
-	comment?: MessageParam;
+export interface ChannelKick extends ChannelKickFields {}
+export class ChannelKick extends Message<ChannelKickFields> {
+	static readonly COMMAND = 'KICK';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			channel: { type: 'channel' },
+			target: {},
+			reason: { trailing: true, optional: true }
+		});
+	}
 }

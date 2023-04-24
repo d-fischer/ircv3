@@ -1,17 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('473')
-export class Error473InviteOnlyChan extends Message<Error473InviteOnlyChan> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error473InviteOnlyChanFields {
+	me: string;
+	channel: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({ type: 'channel' })
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error473InviteOnlyChan extends Error473InviteOnlyChanFields {}
+export class Error473InviteOnlyChan extends Message<Error473InviteOnlyChanFields> {
+	static readonly COMMAND = '473';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: { type: 'channel' },
+			suffix: { trailing: true }
+		});
+	}
 }

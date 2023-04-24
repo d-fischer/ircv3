@@ -1,12 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('221')
-export class Reply221UmodeIs extends Message<Reply221UmodeIs> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply221UmodeIsFields {
+	me: string;
+	modes: string;
+}
 
-	@MessageParamDefinition()
-	modes!: MessageParam;
+export interface Reply221UmodeIs extends Reply221UmodeIsFields {}
+export class Reply221UmodeIs extends Message<Reply221UmodeIsFields> {
+	static readonly COMMAND = '221';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			modes: {}
+		});
+	}
 }

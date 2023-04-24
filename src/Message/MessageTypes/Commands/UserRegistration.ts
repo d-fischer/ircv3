@@ -1,20 +1,21 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('USER')
-export class UserRegistration extends Message<UserRegistration> {
-	@MessageParamDefinition()
-	user!: MessageParam;
+interface UserRegistrationFields {
+	user: string;
+	mode: string;
+	unused: string;
+	realName: string;
+}
 
-	@MessageParamDefinition()
-	mode!: MessageParam;
-
-	@MessageParamDefinition()
-	unused!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	realName!: MessageParam;
+export interface UserRegistration extends UserRegistrationFields {}
+export class UserRegistration extends Message<UserRegistrationFields> {
+	static readonly COMMAND = 'USER';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			user: {},
+			mode: {},
+			unused: {},
+			realName: { trailing: true }
+		});
+	}
 }

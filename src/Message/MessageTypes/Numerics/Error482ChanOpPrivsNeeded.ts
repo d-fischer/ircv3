@@ -1,17 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('482')
-export class Error482ChanOpPrivsNeeded extends Message<Error482ChanOpPrivsNeeded> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error482ChanOpPrivsNeededFields {
+	me: string;
+	channel: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition()
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error482ChanOpPrivsNeeded extends Error482ChanOpPrivsNeededFields {}
+export class Error482ChanOpPrivsNeeded extends Message<Error482ChanOpPrivsNeededFields> {
+	static readonly COMMAND = '482';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: {},
+			suffix: { trailing: true }
+		});
+	}
 }

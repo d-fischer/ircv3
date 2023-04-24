@@ -10,13 +10,14 @@ export { ChgHost } from './Capability/CoreCapabilities/ChgHostCapability/Message
 export { createMessage, Message, prefixToString } from './Message/Message';
 export type {
 	MessageConstructor,
+	MessageFieldsFromType,
 	MessageParam,
 	MessageParams,
 	MessageParamSpec,
-	MessageParamValues,
-	MessagePrefix
+	MessagePrefix,
+	MessageInternalConfig,
+	MessageInternalContents
 } from './Message/Message';
-export { MessageType, MessageParamDefinition } from './Message/MessageDefinition';
 export { parseMessage, parsePrefix, parseTags } from './Message/MessageParser';
 export * as MessageTypes from './Message/MessageTypes';
 export type { SingleMode } from './Message/MessageTypes/Commands/Mode';

@@ -5,7 +5,7 @@ describe('Message', () => {
 	it('should correctly stringify a PrivateMessage with tags', () => {
 		const message = createMessage(
 			PrivateMessage,
-			{ target: '#channel', content: 'A message with tags' },
+			{ target: '#channel', text: 'A message with tags' },
 			undefined,
 			new Map([['my-tag', 'value']])
 		);
@@ -16,7 +16,7 @@ describe('Message', () => {
 	it('should not include a PrivateMessage prefix by default', () => {
 		const message = createMessage(
 			PrivateMessage,
-			{ target: '#channel', content: 'A message with a prefix' },
+			{ target: '#channel', text: 'A message with a prefix' },
 			{
 				nick: 'nick'
 			}

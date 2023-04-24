@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('SQUIT')
-export class ServerQuit extends Message<ServerQuit> {
-	@MessageParamDefinition()
-	server!: MessageParam;
+interface ServerQuitFields {
+	server: string;
+	reason: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	message!: MessageParam;
+export interface ServerQuit extends ServerQuitFields {}
+export class ServerQuit extends Message<ServerQuitFields> {
+	static readonly COMMAND = 'SQUIT';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			server: {},
+			reason: { trailing: true }
+		});
+	}
 }

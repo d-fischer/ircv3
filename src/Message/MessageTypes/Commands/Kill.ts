@@ -1,15 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('KILL')
-export class Kill extends Message<Kill> {
-	@MessageParamDefinition()
-	target!: MessageParam;
+interface KillFields {
+	target: string;
+	reason?: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true,
-		optional: true
-	})
-	reason?: MessageParam;
+export interface Kill extends KillFields {}
+export class Kill extends Message<KillFields> {
+	static readonly COMMAND = 'KILL';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			target: {},
+			reason: { trailing: true, optional: true }
+		});
+	}
 }

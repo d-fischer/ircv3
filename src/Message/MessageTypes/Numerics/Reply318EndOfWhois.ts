@@ -1,17 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('318')
-export class Reply318EndOfWhois extends Message<Reply318EndOfWhois> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply318EndOfWhoisFields {
+	me: string;
+	nickMask: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition()
-	nickMask!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Reply318EndOfWhois extends Reply318EndOfWhoisFields {}
+export class Reply318EndOfWhois extends Message<Reply318EndOfWhoisFields> {
+	static readonly COMMAND = '318';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			nickMask: {},
+			suffix: { trailing: true }
+		});
+	}
 }

@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('NOTICE')
-export class Notice extends Message<Notice> {
-	@MessageParamDefinition()
-	target!: MessageParam;
+interface NoticeFields {
+	target: string;
+	text: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	content!: MessageParam;
+export interface Notice extends NoticeFields {}
+export class Notice extends Message<NoticeFields> {
+	static readonly COMMAND = 'NOTICE';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			target: {},
+			text: { trailing: true }
+		});
+	}
 }

@@ -1,26 +1,25 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('311')
-export class Reply311WhoisUser extends Message<Reply311WhoisUser> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply311WhoisUserFields {
+	me: string;
+	nick: string;
+	username: string;
+	host: string;
+	_unused: string;
+	realname: string;
+}
 
-	@MessageParamDefinition()
-	nick!: MessageParam;
-
-	@MessageParamDefinition()
-	username!: MessageParam;
-
-	@MessageParamDefinition()
-	host!: MessageParam;
-
-	@MessageParamDefinition()
-	_unused!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	realname!: MessageParam;
+export interface Reply311WhoisUser extends Reply311WhoisUserFields {}
+export class Reply311WhoisUser extends Message<Reply311WhoisUserFields> {
+	static readonly COMMAND = '311';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			nick: {},
+			username: {},
+			host: {},
+			_unused: {},
+			realname: { trailing: true }
+		});
+	}
 }

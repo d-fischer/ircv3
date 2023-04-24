@@ -1,19 +1,21 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('436')
-export class Error436NickCollision extends Message<Error436NickCollision> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error436NickCollisionFields {
+	me: string;
+	nick: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition()
-	nick!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error436NickCollision extends Error436NickCollisionFields {}
+export class Error436NickCollision extends Message<Error436NickCollisionFields> {
+	static readonly COMMAND = '436';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			nick: {},
+			suffix: { trailing: true }
+		});
+	}
 
 	isResponseTo(originalMessage: Message): boolean {
 		return originalMessage.command === 'NICK';

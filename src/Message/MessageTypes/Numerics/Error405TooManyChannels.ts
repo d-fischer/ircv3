@@ -1,19 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('405')
-export class Error405TooManyChannels extends Message<Error405TooManyChannels> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error405TooManyChannelsFields {
+	me: string;
+	channel: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error405TooManyChannels extends Error405TooManyChannelsFields {}
+export class Error405TooManyChannels extends Message<Error405TooManyChannelsFields> {
+	static readonly COMMAND = '405';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: { type: 'channel' },
+			suffix: { trailing: true }
+		});
+	}
 }

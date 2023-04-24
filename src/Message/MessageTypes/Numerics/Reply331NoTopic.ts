@@ -1,19 +1,19 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('331')
-export class Reply331NoTopic extends Message<Reply331NoTopic> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply331NoTopicFields {
+	me: string;
+	channel: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Reply331NoTopic extends Reply331NoTopicFields {}
+export class Reply331NoTopic extends Message<Reply331NoTopicFields> {
+	static readonly COMMAND = '331';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: { type: 'channel' },
+			suffix: { trailing: true }
+		});
+	}
 }

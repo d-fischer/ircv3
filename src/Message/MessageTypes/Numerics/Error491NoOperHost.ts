@@ -1,14 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('491')
-export class Error491NoOperHost extends Message<Error491NoOperHost> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Error491NoOperHostFields {
+	me: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Error491NoOperHost extends Error491NoOperHostFields {}
+export class Error491NoOperHost extends Message<Error491NoOperHostFields> {
+	static readonly COMMAND = '491';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			suffix: { trailing: true }
+		});
+	}
 }

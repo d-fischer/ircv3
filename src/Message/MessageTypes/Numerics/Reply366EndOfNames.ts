@@ -1,20 +1,22 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 import { Names } from '../Commands/Names';
 
-@MessageType('366')
-export class Reply366EndOfNames extends Message<Reply366EndOfNames> {
-	@MessageParamDefinition()
-	me!: MessageParam;
+interface Reply366EndOfNamesFields {
+	me: string;
+	channel: string;
+	suffix: string;
+}
 
-	@MessageParamDefinition()
-	channel!: MessageParam;
-
-	@MessageParamDefinition({
-		trailing: true
-	})
-	suffix!: MessageParam;
+export interface Reply366EndOfNames extends Reply366EndOfNamesFields {}
+export class Reply366EndOfNames extends Message<Reply366EndOfNamesFields> {
+	static readonly COMMAND = '366';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			me: {},
+			channel: {},
+			suffix: { trailing: true }
+		});
+	}
 
 	isResponseTo(originalMessage: Message): boolean {
 		return originalMessage instanceof Names;

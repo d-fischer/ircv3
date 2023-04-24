@@ -1,17 +1,17 @@
-import type { MessageParam } from '../../Message';
-import { Message } from '../../Message';
-import { MessageParamDefinition, MessageType } from '../../MessageDefinition';
+import { Message, type MessageInternalConfig, type MessageInternalContents } from '../../Message';
 
-@MessageType('PART')
-export class ChannelPart extends Message<ChannelPart> {
-	@MessageParamDefinition({
-		type: 'channel'
-	})
-	channel!: MessageParam;
+interface ChannelPartFields {
+	channel: string;
+	reason?: string;
+}
 
-	@MessageParamDefinition({
-		trailing: true,
-		optional: true
-	})
-	reason?: MessageParam;
+export interface ChannelPart extends ChannelPartFields {}
+export class ChannelPart extends Message<ChannelPartFields> {
+	static readonly COMMAND = 'PART';
+	constructor(command: string, contents?: MessageInternalContents, config?: MessageInternalConfig) {
+		super(command, contents, config, {
+			channel: { type: 'channel' },
+			reason: { trailing: true, optional: true }
+		});
+	}
 }
