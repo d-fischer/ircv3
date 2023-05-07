@@ -154,7 +154,7 @@ export function createMessage<T extends Message>(
 				get(this: T): string | undefined {
 					return (this._parsedParams as MessageParams<MessageFieldsFromType<T>> | undefined)?.[
 						key as MessageParamNames<MessageFieldsFromType<T>>
-					].value;
+					]?.value;
 				}
 			});
 		}
@@ -368,7 +368,7 @@ export class Message<Fields extends MessageFields<Fields> = {}> {
 				for (const key of Object.keys(this._paramSpec)) {
 					Object.defineProperty(this, key, {
 						get(this: Message<Fields>): string | undefined {
-							return this._parsedParams?.[key as MessageParamNames<Fields>].value;
+							return this._parsedParams?.[key as MessageParamNames<Fields>]?.value;
 						}
 					});
 				}
