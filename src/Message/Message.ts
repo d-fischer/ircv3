@@ -1,8 +1,7 @@
 import { forEachObjectEntry } from '@d-fischer/shared-utils';
 import { NotEnoughParametersError } from '../Errors/NotEnoughParametersError';
 import { ParameterRequirementMismatchError } from '../Errors/ParameterRequirementMismatchError';
-import type { ServerProperties } from '../ServerProperties';
-import { defaultServerProperties } from '../ServerProperties';
+import { defaultServerProperties, type ServerProperties } from '../ServerProperties';
 import { isChannel } from '../Toolkit/StringTools';
 
 export interface MessagePrefix {

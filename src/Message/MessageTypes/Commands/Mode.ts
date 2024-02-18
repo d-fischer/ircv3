@@ -1,7 +1,6 @@
 import { UnknownChannelModeCharError } from '../../../Errors/UnknownChannelModeCharError';
 import { isChannel } from '../../../Toolkit/StringTools';
-import type { MessageInternalConfig, MessageInternalContents, MessagePrefix } from '../../Message';
-import { Message } from '../../Message';
+import { Message, type MessageInternalConfig, type MessageInternalContents, type MessagePrefix } from '../../Message';
 
 export type ModeAction = 'getList' | 'add' | 'remove';
 

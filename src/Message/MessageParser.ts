@@ -1,8 +1,6 @@
 import { splitWithLimit } from '@d-fischer/shared-utils';
-import type { ServerProperties } from '../ServerProperties';
-import { defaultServerProperties } from '../ServerProperties';
-import type { MessageConstructor, MessageParam, MessagePrefix } from './Message';
-import { Message } from './Message';
+import { defaultServerProperties, type ServerProperties } from '../ServerProperties';
+import { Message, type MessageConstructor, type MessageParam, type MessagePrefix } from './Message';
 import { all as coreMessageTypes } from './MessageTypes';
 
 export function parsePrefix(raw: string): MessagePrefix {
@@ -11,12 +9,10 @@ export function parsePrefix(raw: string): MessagePrefix {
 		const [user, host] = splitWithLimit(hostName, '@', 2);
 		if (host) {
 			return { nick, user, host };
-		} else {
-			return { nick, host: user };
 		}
-	} else {
-		return { nick };
+		return { nick, host: user };
 	}
+	return { nick };
 }
 
 const tagUnescapeMap: Record<string, string> = {
@@ -69,7 +65,7 @@ export function parseMessage(
 	let prefix: MessagePrefix | undefined;
 
 	while (splitLine.length) {
-		token = splitLine[0];
+		[token] = splitLine;
 		if (token.startsWith('@') && !tags && !command && !prefix) {
 			tags = parseTags(token.slice(1));
 		} else if (token.startsWith(':')) {
@@ -96,9 +92,7 @@ export function parseMessage(
 		splitLine.shift();
 	}
 
-	if (!tags) {
-		tags = new Map<string, string>();
-	}
+	tags ||= new Map<string, string>();
 
 	if (!command) {
 		throw new Error(`line without command received: ${rawLine}`);

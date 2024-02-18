@@ -4,9 +4,8 @@ import { splitWithLimit } from '@d-fischer/shared-utils';
 export function sanitizeParameter(param: string, spaceAllowed: boolean = false): string {
 	if (spaceAllowed) {
 		return param.replace(/[\0\r\n]/g, '');
-	} else {
-		return param.replace(/[\0\r\n ]/g, '');
 	}
+	return param.replace(/[\0\r\n ]/g, '');
 }
 
 export function isChannel(str: string, validTypes: string = '#&'): boolean {

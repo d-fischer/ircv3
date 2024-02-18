@@ -22,9 +22,9 @@ export class MessageCollector {
 	}
 
 	async promise(): Promise<Message[]> {
-		if (!this._promise) {
-			this._promise = new Promise(resolve => (this._promiseResolve = resolve));
-		}
+		this._promise ||= new Promise(resolve => {
+			this._promiseResolve = resolve;
+		});
 
 		return await this._promise;
 	}
@@ -52,7 +52,9 @@ export class MessageCollector {
 	}
 
 	private _cleanEndEventHandlers() {
-		this._endEventHandlers.forEach(listener => this._client.removeListener(listener));
+		this._endEventHandlers.forEach(listener => {
+			this._client.removeListener(listener);
+		});
 		this._endEventHandlers.clear();
 	}
 

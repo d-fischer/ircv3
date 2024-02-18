@@ -1,19 +1,21 @@
-import type {
-	Connection,
-	ConnectionOptions,
-	ConnectionTarget,
-	InferConnectionOptions,
-	WebSocketConnectionOptions
+import {
+	type Connection,
+	type ConnectionOptions,
+	type ConnectionTarget,
+	DirectConnection,
+	type InferConnectionOptions,
+	PersistentConnection,
+	WebSocketConnection,
+	type WebSocketConnectionOptions
 } from '@d-fischer/connection';
-import { DirectConnection, PersistentConnection, WebSocketConnection } from '@d-fischer/connection';
-import type { Logger, LoggerOptions } from '@d-fischer/logger';
-import { createLogger } from '@d-fischer/logger';
-import type { Constructor, ResolvableValue } from '@d-fischer/shared-utils';
+import { createLogger, type Logger, type LoggerOptions } from '@d-fischer/logger';
 import {
 	arrayToObject,
+	type Constructor,
 	Enumerable,
 	forEachObjectEntry,
 	padLeft,
+	type ResolvableValue,
 	resolveConfigValue,
 	splitWithLimit
 } from '@d-fischer/shared-utils';
@@ -22,8 +24,7 @@ import { klona } from 'klona/json';
 
 import type { Capability, ServerCapability } from './Capability/Capability';
 import * as CoreCapabilities from './Capability/CoreCapabilities';
-import type { Message, MessageConstructor, MessageFieldsFromType } from './Message/Message';
-import { createMessage } from './Message/Message';
+import { createMessage, type Message, type MessageConstructor, type MessageFieldsFromType } from './Message/Message';
 import { MessageCollector } from './Message/MessageCollector';
 import { parseMessage } from './Message/MessageParser';
 import * as MessageTypes from './Message/MessageTypes';
@@ -48,8 +49,7 @@ import {
 	Reply005Isupport,
 	Reply376EndOfMotd
 } from './Message/MessageTypes/Numerics';
-import type { ServerProperties } from './ServerProperties';
-import { defaultServerProperties } from './ServerProperties';
+import { defaultServerProperties, type ServerProperties } from './ServerProperties';
 import { decodeCtcp } from './Toolkit/StringTools';
 
 export type EventHandler<T extends Message = Message> = (message: T) => void;
@@ -164,8 +164,8 @@ export class IrcClient extends EventEmitter {
 
 	protected _pingOnInactivity: number;
 	protected _pingTimeout: number;
-	protected _pingCheckTimer?: NodeJS.Timer;
-	protected _pingTimeoutTimer?: NodeJS.Timer;
+	protected _pingCheckTimer?: NodeJS.Timeout;
+	protected _pingTimeoutTimer?: NodeJS.Timeout;
 
 	protected _currentNick: string;
 	private _currentChannels = new Set<string>();
@@ -721,10 +721,9 @@ export class IrcClient extends EventEmitter {
 				this._negotiatedCapabilities.set(mergedCap.name, mergedCap);
 			}
 			return newNegotiatedCaps;
-		} else {
-			this._logger.warn(`Failed to negotiate capabilities: ${negotiatedCapNames.join(', ')}`);
-			return new Error('capabilities failed to negotiate');
 		}
+		this._logger.warn(`Failed to negotiate capabilities: ${negotiatedCapNames.join(', ')}`);
+		return new Error('capabilities failed to negotiate');
 	}
 
 	private _setupConnection() {
@@ -742,7 +741,7 @@ export class IrcClient extends EventEmitter {
 						subCommand: 'LS',
 						version: '302'
 					})
-						.then<Array<ServerCapability[] | Error>>((capReply: Message[]) => {
+						.then<Array<ServerCapability[] | Error>>(async (capReply: Message[]) => {
 							if (!capReply.length || !(capReply[0] instanceof CapabilityNegotiation)) {
 								this._logger.debug('Server does not support capabilities');
 								return [];
@@ -779,7 +778,7 @@ export class IrcClient extends EventEmitter {
 									.filter(([name]) => capNames.includes(name))
 									.map(([, cap]) => cap);
 							});
-							return this._negotiateCapabilityBatch(capabilitiesToNegotiate);
+							return await this._negotiateCapabilityBatch(capabilitiesToNegotiate);
 						})
 						.then(() => {
 							this.sendMessage(CapabilityNegotiation, { subCommand: 'END' });
